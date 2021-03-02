@@ -1,1 +1,0 @@
-# integration-adaptor-gpc-consumer
