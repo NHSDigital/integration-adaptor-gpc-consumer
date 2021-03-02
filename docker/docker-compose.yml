@@ -1,0 +1,13 @@
+version: '3.4'
+
+services: 
+    gpc-consumer:
+      image: ${GPC_CONSUMER_IMAGE:-local/gpc-consumer:latest}
+      build:
+          context: ../
+          dockerfile: docker/service/Dockerfile
+      ports: 
+        - "8082:8082"
+      environment: 
+        - GPC_CONSUMER_SERVER_PORT
+        - GPC_CONSUMER_LOGGING_LEVEL
