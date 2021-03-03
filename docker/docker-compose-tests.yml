@@ -1,0 +1,11 @@
+# An override for docker-compose.yml to run all tests
+version: '3.4'
+
+services:
+  gpc-consumer:
+    container_name: tests
+    build:
+      target: build
+    entrypoint: "gradle check"
+    environment:
+      - DISABLE_TEST_CONTAINERS=true

@@ -12,7 +12,7 @@ RUN gradle --build-cache bootJar
 
 FROM adoptopenjdk:11-jre-hotspot
 
-EXPOSE 8082
+EXPOSE 8080
 
 RUN mkdir /app
 
