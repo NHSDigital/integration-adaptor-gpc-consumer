@@ -7,5 +7,3 @@ services:
     build:
       target: build
     entrypoint: "gradle check"
-    environment:
-      - DISABLE_TEST_CONTAINERS=true
