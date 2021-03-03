@@ -26,6 +26,23 @@ The level DEBUG **MUST NOT** be used when handling live patient data.
 
 ## How to run service:
 
+The following steps use Docker to provide mocks of adaptor dependencies and infrastructure for local testing and 
+development. These containers are not suitable for use in a deployed environment. You are responsible for providing 
+adequate infrastructure and connections to external APIs. 
+
+### Copy a configuration example
+
+We provide several example configurations:
+An example configuration:
+* `vars.local.sh` to run the adaptor with mock services
+* `vars.public.sh` to run the adaptor with the GP Connect public demonstrator
+* `vars.opentest.sh` to run the adaptor with providers and responders in OpenTest
+
+```bash
+cd docker/
+cp vars.local.sh vars.sh
+```
+
 ### Using the helper script for Docker Compose
 ```bash
 cd docker/
