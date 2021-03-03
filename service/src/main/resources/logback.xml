@@ -7,10 +7,10 @@
     </appender>
 
 
-    <root level="${GPC_ROOT_LOGGING_LEVEL:-WARN}">
+    <root level="${GPC_CONSUMER_ROOT_LOGGING_LEVEL:-WARN}">
         <appender-ref ref="TEXT}"/>
     </root>
 
-    <logger name="uk.nhs.adaptors.gpc" level="${GPC_LOGGING_LEVEL:-INFO}" />
-    <logger name="reactor.netty.http.client" level="${GPC_LOGGING_LEVEL:-WARN}" />
+    <logger name="uk.nhs.adaptors.gpc" level="${GPC_CONSUMER_LOGGING_LEVEL:-INFO}" />
+    <logger name="reactor.netty.http.client" level="${GPC_CONSUMER_LOGGING_LEVEL:-WARN}" />
 </configuration>
