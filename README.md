@@ -13,7 +13,22 @@ The adaptor reads its configuration from environment variables. The following se
 
 Variables without a default value and not marked optional, *MUST* be defined for the adaptor to run.
 
-TODO
+### General Configuration Options
+
+| Environment Variable                 | Default                   | Description
+| -------------------------------------|---------------------------|-------------
+| GPC_CONSUMER_SERVER_PORT             | 8080                      | The port on which the GPC Consumer Adapter will run.
+| GPC_CONSUMER_ROOT_LOGGING_LEVEL      | WARN                      | The logging level applied to the entire application (including third-party dependencies).
+| GPC_CONSUMER__LOGGING_LEVEL          | INFO                      | The logging level applied to GPC Consumer adaptor components.
+| GPC_CONSUMER__LOGGING_FORMAT         | (*)                       | Defines how to format log events on stdout
+
+Logging levels are ane of: DEBUG, INFO, WARN, ERROR
+
+The level DEBUG **MUST NOT** be used when handling live patient data.
+
+(*) GPC Consumer adaptor uses logback (http://logback.qos.ch/). The built-in [logback.xml](service/src/main/resources/logback.xml) 
+defines the default log format. This value can be overridden using the `GPC_CONSUMER_LOGGING_FORMAT` environment variable.
+You can provide an external `logback.xml` file using the `-Dlogback.configurationFile` JVM parameter.
 
 ## How to run service:
 
