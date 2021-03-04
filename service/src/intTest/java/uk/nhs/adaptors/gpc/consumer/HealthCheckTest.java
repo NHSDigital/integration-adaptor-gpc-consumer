@@ -31,7 +31,7 @@ public class HealthCheckTest {
             .bodyToMono(String.class)
             .block();
 
-        assertThat(response).contains("DO");
+        assertThat(response).contains("UP");
     }
 }
 
