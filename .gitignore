@@ -1,6 +1,7 @@
 HELP.md
 service/.gradle
 build/
+*.DS_Store
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -36,3 +37,6 @@ lombok.config
 
 ### VS Code ###
 .vscode/
+
+# env vars with credentials for development
+vars.sh*

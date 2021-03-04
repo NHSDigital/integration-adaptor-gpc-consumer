@@ -14,8 +14,7 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'checkstyle'
 apply plugin: "com.github.spotbugs"
 
-group = 'uk.nhs.adaptors.gpc'
-version = '0.0.1-SNAPSHOT'
+group = 'uk.nhs.adaptors'
 sourceCompatibility = '11'
 
 repositories {

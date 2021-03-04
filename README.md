@@ -17,10 +17,10 @@ Variables without a default value and not marked optional, *MUST* be defined for
 
 | Environment Variable                 | Default                   | Description
 | -------------------------------------|---------------------------|-------------
-| GPC_CONSUMER_SERVER_PORT             | 8080                      | The port on which the GPC Consumer Adapter will run.
+| GPC_CONSUMER_SERVER_PORT             | 8080                      | The port on which the GPC Consumer Adaptor will run.
 | GPC_CONSUMER_ROOT_LOGGING_LEVEL      | WARN                      | The logging level applied to the entire application (including third-party dependencies).
-| GPC_CONSUMER_LOGGING_LEVEL          | INFO                      | The logging level applied to GPC Consumer adaptor components.
-| GPC_CONSUMER_LOGGING_FORMAT         | (*)                       | Defines how to format log events on stdout
+| GPC_CONSUMER_LOGGING_LEVEL           | INFO                      | The logging level applied to GPC Consumer Adaptor components.
+| GPC_CONSUMER_LOGGING_FORMAT          | (*)                       | Defines how to format log events on stdout
 
 Logging levels are ane of: DEBUG, INFO, WARN, ERROR
 
@@ -32,7 +32,30 @@ You can provide an external `logback.xml` file using the `-Dlogback.configuratio
 
 ## How to run service:
 
-TODO
+The following steps use Docker to provide mocks of adaptor dependencies and infrastructure for local testing and 
+development. These containers are not suitable for use in a deployed environment. You are responsible for providing 
+adequate infrastructure and connections to external APIs. 
+
+### Copy a configuration example
+
+We provide several example configurations:
+An example configuration:
+* `vars.local.sh` to run the adaptor with mock services
+* `vars.public.sh` to run the adaptor with the GP Connect public demonstrator
+* `vars.opentest.sh` to run the adaptor with providers and responders in OpenTest
+
+```bash
+cd docker/
+cp vars.local.sh vars.sh
+```
+
+### Using the helper script for Docker Compose
+```bash
+cd docker/
+./start-local-environment.sh
+```
+
+You can also run the docker-compose commands directly.
 
 ## How to run tests
 
@@ -60,6 +83,14 @@ You must run all gradle commands from the `service/` directory.
 ```shell script
 ./gradlew integrationTest
 ```
+
+## Troubleshooting
+
+### gradle-wrapper.jar doesn't exist
+
+If gradle-wrapper.jar doesn't exist run in terminal:
+* Install Gradle (MacOS) `brew install gradle`
+* Update gradle `gradle wrapper`
 
 ## Licensing
 This code is dual licensed under the MIT license and the OGL (Open Government License). Any new work added to this repository must conform to the conditions of these licenses. In particular this means that this project may not depend on GPL-licensed or AGPL-licensed libraries, as these would violate the terms of those libraries' licenses.
