@@ -23,12 +23,9 @@ spring:
           - Method=POST
 
 management:
-  engdoint:
-    gateway:
-      enabled: true
   endpoints:
     web:
       base-path: /
       path-mapping.health: healthcheck
       exposure:
-        include: info, health, metrics, gateway
+        include: info, health, metrics
