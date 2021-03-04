@@ -19,7 +19,7 @@ spring:
         - id: get-structured-record
           uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
-          - Path=/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord
+          - Path=${GPC_CONSUMER_GPC_STRUCTURED_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord}
           - Method=POST
 
 management:
