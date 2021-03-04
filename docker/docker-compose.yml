@@ -10,4 +10,6 @@ services:
         - "8080:8080"
       environment: 
         - GPC_CONSUMER_SERVER_PORT
+        - GPC_CONSUMER_ROOT_LOGGING_LEVEL
         - GPC_CONSUMER_LOGGING_LEVEL
+        - GPC_CONSUMER_LOGGING_FORMAT
