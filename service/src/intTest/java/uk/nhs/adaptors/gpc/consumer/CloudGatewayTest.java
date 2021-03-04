@@ -24,7 +24,6 @@ public class CloudGatewayTest {
     private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
     private static final String STRUCTURED_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord";
     private static final String LOCALHOST_URI = "http://localhost:";
-    private static final String ACTUATOR_ROUTES_URI = "/actuator/gateway/routes";
     private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\"," +
         "\"meta\":{\"profile\":[\"https://fhir.nhs" +
         ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]}," +
@@ -61,15 +60,6 @@ public class CloudGatewayTest {
     }
 
     @Test
-    public void When_MakingRequestToActuatorRoutes_Expect_OkResponse() {
-        webTestClient.get()
-            .uri(baseUri + ACTUATOR_ROUTES_URI)
-            .exchange()
-            .expectStatus()
-            .isOk();
-    }
-
-    @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
         WIRE_MOCK_SERVER.stubFor(post(urlEqualTo(STRUCTURED_URI))
             .willReturn(aResponse()
@@ -77,7 +67,7 @@ public class CloudGatewayTest {
                 .withBody(EXAMPLE_STRUCTURED_BODY)));
 
         webTestClient.post()
-            .uri(baseUri + STRUCTURED_URI)
+            .uri(STRUCTURED_URI)
             .exchange()
             .expectStatus()
             .isOk()

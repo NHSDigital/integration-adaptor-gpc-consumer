@@ -2,10 +2,19 @@ plugins {
 	id 'org.springframework.boot' version '2.4.3'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id "checkstyle"
+	id "com.github.spotbugs" version "4.6.2"
+	id "io.freefair.lombok" version "5.3.0"
+	id 'jacoco'
 }
 
-group = 'uk.nhs.adaptors.gpc'
-version = '0.0.1-SNAPSHOT'
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'checkstyle'
+apply plugin: "com.github.spotbugs"
+
+group = 'uk.nhs.adaptors'
 sourceCompatibility = '11'
 
 repositories {
@@ -14,6 +23,10 @@ repositories {
 
 ext {
 	set('springCloudVersion', "2020.0.1")
+}
+
+lombok {
+	config['lombok.log.fieldName'] = 'LOGGER'
 }
 
 dependencies {
@@ -33,6 +46,10 @@ dependencyManagement {
 
 test {
 	useJUnitPlatform()
+}
+
+jacocoTestReport {
+	dependsOn test // tests are required to run before generating the report
 }
 
 sourceSets {
@@ -64,5 +81,27 @@ task integrationTest(type: Test) {
 		testClassesDirs = sourceSets.integrationTest.output.classesDirs
 		classpath = sourceSets.integrationTest.runtimeClasspath
 		shouldRunAfter test
+	}
+}
+
+tasks.withType(Test) {
+	testLogging {
+		events "passed", "skipped", "failed"
+	}
+}
+
+check.dependsOn integrationTest
+jacocoTestReport.dependsOn integrationTest
+
+spotbugsTest.enabled = false
+spotbugsIntegrationTest.enabled = false
+spotbugsMain {
+	reports {
+		html {
+			enabled = true
+		}
+		xml {
+			enabled = true
+		}
 	}
 }

@@ -1,17 +1,6 @@
 server:
-  port: ${GPCC_SERVER_PORT:8082}
+  port: ${GPC_CONSUMER_SERVER_PORT:8080}
 
-spring:
-  application:
-    name: adaptor-gpc-consumer
-  cloud:
-    gateway:
-      routes:
-        - id: gpcc_id
-          uri: ${GPPCC_GPC_GET_URL:http://localhost:8110}
-          predicates:
-          - Path=/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord
-          - Method=POST
 logging:
   level:
     reactor:
@@ -21,8 +10,22 @@ logging:
         cloud:
           gateway: TRACE
 
+spring:
+  application:
+    name: adaptor-gpc-consumer
+  cloud:
+    gateway:
+      routes:
+        - id: get-structured-record
+          uri: ${GPPCC_GPC_GET_URL:http://localhost:8110}
+          predicates:
+          - Path=/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord
+          - Method=POST
+
 management:
   endpoints:
     web:
+      base-path: /
+      path-mapping.health: healthcheck
       exposure:
-        include: "*"
+        include: info, health, metrics
