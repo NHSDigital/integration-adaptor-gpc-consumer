@@ -1,0 +1,28 @@
+server:
+  port: ${GPCC_SERVER_PORT:8082}
+
+spring:
+  application:
+    name: adaptor-gpc-consumer-test
+  cloud:
+    gateway:
+      routes:
+        - id: gpcc_id
+          uri: ${GPPCC_GPC_GET_URL:http://localhost:8210}
+          predicates:
+          - Path=/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord
+          - Method=POST
+logging:
+  level:
+    reactor:
+      netty: INFO
+    org:
+      springframework:
+        cloud:
+          gateway: TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
