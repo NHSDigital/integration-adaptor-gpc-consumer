@@ -21,13 +21,14 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CloudGatewayTest {
     private static final int WIREMOCK_PORT = 8210;
+    private static final int MAX_TIMEOUT = 10;
     private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
     private static final String STRUCTURED_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord";
     private static final String LOCALHOST_URI = "http://localhost:";
-    private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\"," +
-        "\"meta\":{\"profile\":[\"https://fhir.nhs" +
-        ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]}," +
-        "\"type\":\"collection\",\"entry\":[]}";
+    private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\","
+        + "\"meta\":{\"profile\":[\"https://fhir.nhs"
+        + ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]},"
+        + "\"type\":\"collection\",\"entry\":[]}";
 
     @LocalServerPort
     private int port = 0;
@@ -49,7 +50,7 @@ public class CloudGatewayTest {
     public void setUp() {
         baseUri = LOCALHOST_URI + port;
         webTestClient = WebTestClient.bindToServer()
-            .responseTimeout(Duration.ofSeconds(10))
+            .responseTimeout(Duration.ofSeconds(MAX_TIMEOUT))
             .baseUrl(baseUri)
             .build();
     }
