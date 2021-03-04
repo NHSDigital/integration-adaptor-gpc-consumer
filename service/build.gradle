@@ -32,7 +32,10 @@ lombok {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
+	testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
 }
 
 dependencyManagement {

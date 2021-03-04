@@ -22,6 +22,13 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | GPC_CONSUMER_LOGGING_LEVEL           | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT          | (*)                       | Defines how to format log events on stdout
 
+### Cloud Gateway Configuration Options
+
+| Environment Variable                 | Default                                                        | Description
+| -------------------------------------|----------------------------------------------------------------|-------------
+| GPC_CONSUMER_GPC_GET_URL             | http://localhost:8110                                          | Base URL for GPC service.
+| GPC_CONSUMER_GPC_STRUCTURED_PATH     | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
+
 Logging levels are ane of: DEBUG, INFO, WARN, ERROR
 
 The level DEBUG **MUST NOT** be used when handling live patient data.

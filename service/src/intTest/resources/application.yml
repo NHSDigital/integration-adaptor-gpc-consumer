@@ -3,7 +3,24 @@ server:
 
 logging:
   level:
-    com.nhs.adaptors.gpc: DEBUG
+    reactor:
+      netty: INFO
+    org:
+      springframework:
+        cloud:
+          gateway: TRACE
+
+spring:
+  application:
+    name: adaptor-gpc-consumer-test
+  cloud:
+    gateway:
+      routes:
+        - id: get-structured-record
+          uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8210}
+          predicates:
+          - Path=${GPC_CONSUMER_GPC_STRUCTURED_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord}
+          - Method=POST
 
 management:
   endpoints:
