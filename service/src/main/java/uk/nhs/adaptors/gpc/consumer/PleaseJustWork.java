@@ -1,11 +1,14 @@
 package uk.nhs.adaptors.gpc.consumer;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
@@ -30,7 +33,8 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
-public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<LoggingGatewayFilterFactory.Config> {
+public class PleaseJustWork extends AbstractGatewayFilterFactory<PleaseJustWork.Config> {
+
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To");
     private static final String LOG_TEMPLATE = "Gateway filter log: %s %s URL: %s";
     private static final String HEADERS_PREFIX = "Headers: { ";
@@ -38,24 +42,13 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
     private static final String COLON = ": ";
     private static final int PRIORITY = -2;
 
-    public LoggingGatewayFilterFactory() {
-        super(Config.class);
+    public PleaseJustWork() {
+        super(PleaseJustWork.Config.class);
     }
 
     @Override
     public GatewayFilter apply(Config config) {
         return new OrderedGatewayFilter((exchange, chain) -> prepareGatewayFilterMono(exchange, chain, config), PRIORITY);
-    }
-
-    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange,
-            GatewayFilterChain chain,
-            Config config) {
-        LOGGER.info(String.format(LOG_TEMPLATE,
-            config.getBaseMessage(),
-            prepareHeaderLog(exchange.getRequest().getHeaders()),
-            exchange.getRequest().getURI()));
-
-        return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange)).build());
     }
 
     private String prepareHeaderLog(HttpHeaders httpHeaders) {
@@ -73,28 +66,48 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
         return headersLogBuilder.toString();
     }
 
-    private ServerHttpResponseDecorator prepareErrorHandlingResponseDecorator(ServerWebExchange exchange) {
-        return new ServerHttpResponseDecorator(exchange.getResponse()) {
-            @Override
-            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                return DataBufferUtils.join(body)
-                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer));
-            }
-        };
-    }
 
-    @SneakyThrows
-    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer) {
+    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer, Config config) {
         if (response != null && dataBuffer != null) {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
                 LOGGER.error(StandardCharsets.UTF_8.decode(dataBuffer.asByteBuffer()).toString());
-            }
+            } else {
+                var decompressedResponseString = decompressGZIPInputStream(dataBuffer);
+                var responseWithProxyUrlReplacement = decompressedResponseString.replace(config.getTargetUrl(), config.gpcConsumerurl);
+                var responseBodyGzipByteArrayOS = compressStringToGZIPByteArrayOS(response, responseWithProxyUrlReplacement);
 
-            return response.writeWith(Mono.just(dataBuffer));
+                DataBuffer buffer = response.bufferFactory().wrap(responseBodyGzipByteArrayOS.toByteArray());
+                return response.writeWith(Mono.just(buffer));
+            }
         }
 
         return Mono.empty();
+    }
+
+    @SneakyThrows
+    private ByteArrayOutputStream compressStringToGZIPByteArrayOS(ServerHttpResponse response, String responseWithProxyUrlReplacement) {
+        ByteArrayOutputStream obj=new ByteArrayOutputStream();
+        GZIPOutputStream gzip = new GZIPOutputStream(obj);
+        gzip.write(responseWithProxyUrlReplacement.getBytes(UTF_8));
+        gzip.close();
+
+        return obj;
+    }
+
+    @SneakyThrows
+    private String decompressGZIPInputStream(DataBuffer dataBuffer) {
+        StringBuilder outStr = new StringBuilder();
+        GZIPInputStream gis = new GZIPInputStream(dataBuffer.asInputStream());
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(gis, UTF_8));
+
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            outStr.append(line);
+        }
+        bufferedReader.close();
+
+        return outStr.toString();
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
@@ -102,9 +115,32 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
         return response.getStatusCode() != null && !response.getStatusCode().is2xxSuccessful();
     }
 
+    private ServerHttpResponseDecorator prepareErrorHandlingResponseDecorator(ServerWebExchange exchange, Config config) {
+        return new ServerHttpResponseDecorator(exchange.getResponse()) {
+            @Override
+            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+                return DataBufferUtils.join(body)
+                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer, config));
+            }
+        };
+    }
+
     @Setter
     @Getter
     public static class Config {
         private String baseMessage;
+        private String gpcConsumerurl;
+        private String targetUrl;
+    }
+
+    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange,
+        GatewayFilterChain chain,
+        PleaseJustWork.Config config) {
+        LOGGER.info(String.format(LOG_TEMPLATE,
+            config.getBaseMessage(),
+            prepareHeaderLog(exchange.getRequest().getHeaders()),
+            exchange.getRequest().getURI()));
+
+        return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange, config)).build());
     }
 }
