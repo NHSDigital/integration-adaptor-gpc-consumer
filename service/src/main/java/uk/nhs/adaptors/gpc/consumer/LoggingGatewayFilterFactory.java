@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -16,6 +17,7 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
     private static final String HEADERS_PREFIX = "Headers: { ";
     private static final String HEADERS_SUFFIX = "}";
     private static final String COLON = ": ";
+    private static final int PRIORITY = -2;
 
     public LoggingGatewayFilterFactory() {
         super(Config.class);
@@ -36,14 +39,18 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
 
     @Override
     public GatewayFilter apply(Config config) {
-        return new OrderedGatewayFilter((exchange, chain) -> {
-            LOGGER.info(String.format(LOG_TEMPLATE,
-                config.getBaseMessage(),
-                prepareHeaderLog(exchange.getRequest().getHeaders()),
-                exchange.getRequest().getURI()));
+        return new OrderedGatewayFilter((exchange, chain) -> prepareGatewayFilterMono(exchange, chain, config), PRIORITY);
+    }
 
-            return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange)).build());
-        }, -2);
+    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            Config config) {
+        LOGGER.info(String.format(LOG_TEMPLATE,
+            config.getBaseMessage(),
+            prepareHeaderLog(exchange.getRequest().getHeaders()),
+            exchange.getRequest().getURI()));
+
+        return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange)).build());
     }
 
     private String prepareHeaderLog(HttpHeaders httpHeaders) {
@@ -72,11 +79,21 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
     }
 
     private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer) {
-        if (response.getStatusCode() != null && !response.getStatusCode().is2xxSuccessful()) {
-            LOGGER.error("An error with status occurred: " + response.getStatusCode());
-            LOGGER.error(StandardCharsets.UTF_8.decode(dataBuffer.asByteBuffer()).toString());
+        if (response != null && dataBuffer != null) {
+            if (isErrorResponseCode(response)) {
+                LOGGER.error("An error with status occurred: " + response.getStatusCode());
+                LOGGER.error(StandardCharsets.UTF_8.decode(dataBuffer.asByteBuffer()).toString());
+            }
+
+            return response.writeWith(Mono.just(dataBuffer));
         }
-        return response.writeWith(Mono.just(dataBuffer));
+
+        return Mono.empty();
+    }
+
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
+    private boolean isErrorResponseCode(ServerHttpResponse response) {
+        return response.getStatusCode() != null && !response.getStatusCode().is2xxSuccessful();
     }
 
     @Setter
