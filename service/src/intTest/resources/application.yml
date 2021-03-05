@@ -8,7 +8,7 @@ logging:
     org:
       springframework:
         cloud:
-          gateway: TRACE
+          gateway: ERROR
 
 spring:
   application:
@@ -21,6 +21,10 @@ spring:
           predicates:
           - Path=${GPC_CONSUMER_GPC_STRUCTURED_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord}
           - Method=POST
+          filters:
+            - name: Logging
+              args:
+                baseMessage: "Getting structured record: "
 
 management:
   endpoints:
