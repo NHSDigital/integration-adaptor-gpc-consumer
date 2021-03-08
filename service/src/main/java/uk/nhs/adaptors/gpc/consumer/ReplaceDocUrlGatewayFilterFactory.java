@@ -33,17 +33,17 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
-public class PleaseJustWork extends AbstractGatewayFilterFactory<PleaseJustWork.Config> {
+public class ReplaceDocUrlGatewayFilterFactory extends AbstractGatewayFilterFactory<ReplaceDocUrlGatewayFilterFactory.Config> {
 
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To");
     private static final String LOG_TEMPLATE = "Gateway filter log: %s %s URL: %s";
     private static final String HEADERS_PREFIX = "Headers: { ";
     private static final String HEADERS_SUFFIX = "}";
     private static final String COLON = ": ";
-    private static final int PRIORITY = -2;
+    private static final int PRIORITY = -3;
 
-    public PleaseJustWork() {
-        super(PleaseJustWork.Config.class);
+    public ReplaceDocUrlGatewayFilterFactory() {
+        super(ReplaceDocUrlGatewayFilterFactory.Config.class);
     }
 
     @Override
@@ -133,9 +133,7 @@ public class PleaseJustWork extends AbstractGatewayFilterFactory<PleaseJustWork.
         private String targetUrl;
     }
 
-    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange,
-        GatewayFilterChain chain,
-        PleaseJustWork.Config config) {
+    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange, GatewayFilterChain chain, ReplaceDocUrlGatewayFilterFactory.Config config) {
         LOGGER.info(String.format(LOG_TEMPLATE,
             config.getBaseMessage(),
             prepareHeaderLog(exchange.getRequest().getHeaders()),
