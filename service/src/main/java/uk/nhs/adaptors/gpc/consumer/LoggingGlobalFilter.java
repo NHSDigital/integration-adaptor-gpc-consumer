@@ -30,7 +30,7 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private static final String PROXY_LOG_TEMPLATE = "Global filter log: %s Request Url: %s, Destination Request Url: %s";
     private static final String LOG_TEMPLATE = "Global filter log: %s Request Url: %s";
     private static final String HEADERS_PREFIX = "Headers: ";
-    private static final String EQUAL_SIGN = " = ";
+    private static final String EQUAL_SIGN = "=";
     private static final int PRIORITY = -2;
 
     @Override
@@ -84,6 +84,8 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
                 LOGGER.error(StandardCharsets.UTF_8.decode(dataBuffer.asByteBuffer()).toString());
+            } else {
+                LOGGER.info("Request was successful");
             }
 
             return response.writeWith(Mono.just(dataBuffer));
