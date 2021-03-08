@@ -1,6 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,8 +38,8 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
         if (route != null) {
             LOGGER.info(String.format(PROXY_LOG_TEMPLATE,
                 prepareHeaderLog(exchange.getRequest().getHeaders()),
-                exchange.getRequest().getURI(),
-                route.getUri() + exchange.getRequest().getPath().toString()));
+                exchange.getRequest().getURI().getPath(),
+                route.getUri().getPath() + exchange.getRequest().getPath().toString()));
         } else {
             LOGGER.info(String.format(LOG_TEMPLATE,
                 prepareHeaderLog(exchange.getRequest().getHeaders()),
@@ -83,7 +82,6 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
         if (response != null && dataBuffer != null) {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
-                LOGGER.error(StandardCharsets.UTF_8.decode(dataBuffer.asByteBuffer()).toString());
             } else {
                 LOGGER.info("Request was successful");
             }
