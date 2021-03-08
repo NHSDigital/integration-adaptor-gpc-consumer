@@ -2,7 +2,7 @@ package uk.nhs.adaptors.gpc.consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.time.Duration;
 
@@ -18,9 +18,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CloudGatewayTest {
     private static final int WIREMOCK_PORT = 8210;
@@ -65,13 +62,10 @@ public class CloudGatewayTest {
 
     @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
-        WIRE_MOCK_SERVER.stubFor(post(urlEqualTo(STRUCTURED_URI))
+        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(STRUCTURED_URI))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
                 .withBody(EXAMPLE_STRUCTURED_BODY)));
-
-        LOGGER.info("Stub mappings: " + WIRE_MOCK_SERVER.getStubMappings().toString());
-        LOGGER.info("Base wiremock url: " + WIRE_MOCK_SERVER.baseUrl());
 
         webTestClient.post()
             .uri(STRUCTURED_URI)
