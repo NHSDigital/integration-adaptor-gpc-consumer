@@ -1,7 +1,6 @@
 package uk.nhs.adaptors.gpc.consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -35,9 +34,9 @@ public class CloudGatewayTest {
         + ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]},"
         + "\"type\":\"collection\",\"entry\":[]}";
 
-    private static final String EXAMPLE_FIND_PATIENT_BODY = "{\"resourceType\":\"Bundle\",\"id\":\"2fd9c6e5-0197-4a78-923d-f8ed3c937880" +
-        "\",\"meta\":{\"lastUpdated\":\"2021-03-04T15:40:22.932+00:00\"},\"type\":\"searchset\"," +
-        "\"entry\":[{\"resource\":{\"resourceType\":\"Patient\",\"id\":\"2\"}}]}";
+    private static final String EXAMPLE_FIND_PATIENT_BODY = "{\"resourceType\":\"Bundle\",\"id\":\"2fd9c6e5-0197-4a78-923d-f8ed3c937880"
+        + "\",\"meta\":{\"lastUpdated\":\"2021-03-04T15:40:22.932+00:00\"},\"type\":\"searchset\","
+        + "\"entry\":[{\"resource\":{\"resourceType\":\"Patient\",\"id\":\"2\"}}]}";
 
     @LocalServerPort
     private int port = 0;
