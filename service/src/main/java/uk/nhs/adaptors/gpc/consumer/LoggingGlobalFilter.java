@@ -29,8 +29,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
-    private static final String PROXY_LOG_TEMPLATE = "Gateway filter log: %s Request Url: %s, Destination Request Url: %s";
-    private static final String LOG_TEMPLATE = "Gateway filter log: %s Request Url: %s";
+    private static final String PROXY_LOG_TEMPLATE = "Global filter log: %s Request Url: %s, Destination Request Url: %s";
+    private static final String LOG_TEMPLATE = "Global filter log: %s Request Url: %s";
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = " = ";
     private static final int PRIORITY = -2;
