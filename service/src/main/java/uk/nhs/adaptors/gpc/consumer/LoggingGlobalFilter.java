@@ -98,9 +98,4 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private boolean isErrorResponseCode(ServerHttpResponse response) {
         return response.getStatusCode() != null && !response.getStatusCode().is2xxSuccessful();
     }
-
-    @Setter
-    @Getter
-    public static class Config {
-    }
 }
