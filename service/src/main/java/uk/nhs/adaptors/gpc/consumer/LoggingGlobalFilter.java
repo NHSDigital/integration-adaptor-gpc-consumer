@@ -14,14 +14,12 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -94,8 +92,8 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
         return Mono.empty();
     }
 
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private boolean isErrorResponseCode(ServerHttpResponse response) {
-        return response.getStatusCode() != null && !response.getStatusCode().is2xxSuccessful();
+        HttpStatus httpStatus = response.getStatusCode();
+        return httpStatus != null && !httpStatus.is2xxSuccessful();
     }
 }
