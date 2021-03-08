@@ -26,11 +26,11 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<LoggingGatewayFilterFactory.Config> {
-    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To");
+    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
     private static final String LOG_TEMPLATE = "Gateway filter log: %s %s URL: %s";
     private static final String HEADERS_PREFIX = "Headers: { ";
     private static final String HEADERS_SUFFIX = "}";
-    private static final String COLON = ": ";
+    private static final String EQUAL_SIGN = " = ";
     private static final int PRIORITY = -2;
 
     public LoggingGatewayFilterFactory() {
@@ -58,7 +58,7 @@ public class LoggingGatewayFilterFactory extends AbstractGatewayFilterFactory<Lo
         LOGGABLE_HEADER_KEYS.forEach(key -> {
             if (httpHeaders.containsKey(key)) {
                 headersLogBuilder.append(key)
-                    .append(COLON)
+                    .append(EQUAL_SIGN)
                     .append(httpHeaders.get(key))
                     .append(StringUtils.SPACE);
             }
