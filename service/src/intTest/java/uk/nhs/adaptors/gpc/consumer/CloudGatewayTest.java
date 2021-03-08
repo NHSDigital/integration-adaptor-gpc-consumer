@@ -18,6 +18,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CloudGatewayTest {
     private static final int WIREMOCK_PORT = 8210;
@@ -66,6 +69,9 @@ public class CloudGatewayTest {
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
                 .withBody(EXAMPLE_STRUCTURED_BODY)));
+
+        LOGGER.info("Stub mappings: " + WIRE_MOCK_SERVER.getStubMappings().toString());
+        LOGGER.info("Base wiremock url: " + WIRE_MOCK_SERVER.baseUrl());
 
         webTestClient.post()
             .uri(STRUCTURED_URI)
