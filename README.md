@@ -28,6 +28,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | -------------------------------------|----------------------------------------------------------------|-------------
 | GPC_CONSUMER_GPC_GET_URL             | http://localhost:8110                                          | Base URL for GPC service.
 | GPC_CONSUMER_GPC_STRUCTURED_PATH     | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
+| GPC_CONSUMER_GPC_GET_PATIENT_PATH	   | /GP0001/STU3/1/gpconnect/fhir/Patient                          | Patient record path
 
 Logging levels are ane of: DEBUG, INFO, WARN, ERROR
 
