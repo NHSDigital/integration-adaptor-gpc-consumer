@@ -8,7 +8,7 @@ logging:
     org:
       springframework:
         cloud:
-          gateway: TRACE
+          gateway: ERROR
 
 spring:
   application:

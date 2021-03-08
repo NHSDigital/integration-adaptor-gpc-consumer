@@ -2,7 +2,7 @@ package uk.nhs.adaptors.gpc.consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.time.Duration;
 
@@ -62,7 +62,7 @@ public class CloudGatewayTest {
 
     @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
-        WIRE_MOCK_SERVER.stubFor(post(urlEqualTo(STRUCTURED_URI))
+        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(STRUCTURED_URI))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
                 .withBody(EXAMPLE_STRUCTURED_BODY)));
