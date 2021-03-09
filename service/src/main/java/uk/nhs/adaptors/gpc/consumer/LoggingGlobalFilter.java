@@ -3,7 +3,6 @@ package uk.nhs.adaptors.gpc.consumer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
