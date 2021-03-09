@@ -75,4 +75,13 @@ public class CloudGatewayTest {
             .expectBody()
             .json(EXAMPLE_STRUCTURED_BODY);
     }
+
+    @Test
+    public void When_MakingRequestForNonExistingStructuredDocument_Expect_NotFoundResponse() {
+        webTestClient.post()
+            .uri(STRUCTURED_URI)
+            .exchange()
+            .expectStatus()
+            .isNotFound();
+    }
 }
