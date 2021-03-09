@@ -1,14 +1,7 @@
 package uk.nhs.adaptors.gpc.consumer;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
@@ -33,17 +26,17 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
-public class ReplaceDocUrlGatewayFilterFactory extends AbstractGatewayFilterFactory<ReplaceDocUrlGatewayFilterFactory.Config> {
+public class FindAPatientDocsGatewayFilterFactory extends AbstractGatewayFilterFactory<FindAPatientDocsGatewayFilterFactory.Config> {
 
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To");
     private static final String LOG_TEMPLATE = "Gateway filter log: %s %s URL: %s";
     private static final String HEADERS_PREFIX = "Headers: { ";
     private static final String HEADERS_SUFFIX = "}";
     private static final String COLON = ": ";
-    private static final int PRIORITY = -3;
+    private static final int PRIORITY = -2;
 
-    public ReplaceDocUrlGatewayFilterFactory() {
-        super(ReplaceDocUrlGatewayFilterFactory.Config.class);
+    public FindAPatientDocsGatewayFilterFactory() {
+        super(FindAPatientDocsGatewayFilterFactory.Config.class);
     }
 
     @Override
@@ -66,16 +59,16 @@ public class ReplaceDocUrlGatewayFilterFactory extends AbstractGatewayFilterFact
         return headersLogBuilder.toString();
     }
 
-
+    @SneakyThrows
     private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer, Config config) {
         if (response != null && dataBuffer != null) {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
                 LOGGER.error(StandardCharsets.UTF_8.decode(dataBuffer.asByteBuffer()).toString());
             } else {
-                var decompressedResponseString = decompressGZIPInputStream(dataBuffer);
-                var responseWithProxyUrlReplacement = decompressedResponseString.replace(config.getTargetUrl(), config.gpcConsumerurl);
-                var responseBodyGzipByteArrayOS = compressStringToGZIPByteArrayOS(response, responseWithProxyUrlReplacement);
+                var decompressedResponseString = FindAPatientDocsUtil.unzipInputStreamToString(dataBuffer.asInputStream());
+                var responseWithProxyUrlReplacement = FindAPatientDocsUtil.replaceUrl(config, decompressedResponseString);
+                var responseBodyGzipByteArrayOS = FindAPatientDocsUtil.zipStringToOutputStream(responseWithProxyUrlReplacement);
 
                 DataBuffer buffer = response.bufferFactory().wrap(responseBodyGzipByteArrayOS.toByteArray());
                 return response.writeWith(Mono.just(buffer));
@@ -83,31 +76,6 @@ public class ReplaceDocUrlGatewayFilterFactory extends AbstractGatewayFilterFact
         }
 
         return Mono.empty();
-    }
-
-    @SneakyThrows
-    private ByteArrayOutputStream compressStringToGZIPByteArrayOS(ServerHttpResponse response, String responseWithProxyUrlReplacement) {
-        ByteArrayOutputStream obj=new ByteArrayOutputStream();
-        GZIPOutputStream gzip = new GZIPOutputStream(obj);
-        gzip.write(responseWithProxyUrlReplacement.getBytes(UTF_8));
-        gzip.close();
-
-        return obj;
-    }
-
-    @SneakyThrows
-    private String decompressGZIPInputStream(DataBuffer dataBuffer) {
-        StringBuilder outStr = new StringBuilder();
-        GZIPInputStream gis = new GZIPInputStream(dataBuffer.asInputStream());
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(gis, UTF_8));
-
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            outStr.append(line);
-        }
-        bufferedReader.close();
-
-        return outStr.toString();
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
@@ -133,7 +101,7 @@ public class ReplaceDocUrlGatewayFilterFactory extends AbstractGatewayFilterFact
         private String targetUrl;
     }
 
-    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange, GatewayFilterChain chain, ReplaceDocUrlGatewayFilterFactory.Config config) {
+    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange, GatewayFilterChain chain, FindAPatientDocsGatewayFilterFactory.Config config) {
         LOGGER.info(String.format(LOG_TEMPLATE,
             config.getBaseMessage(),
             prepareHeaderLog(exchange.getRequest().getHeaders()),

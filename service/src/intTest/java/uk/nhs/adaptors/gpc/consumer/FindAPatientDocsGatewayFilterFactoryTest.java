@@ -1,5 +1,7 @@
 package uk.nhs.adaptors.gpc.consumer;
 
+import static org.apache.commons.fileupload.FileUploadBase.CONTENT_TYPE;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -20,15 +22,14 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import com.github.tomakehurst.wiremock.WireMockServer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ReplaceDocuUrlTest {
+public class FindAPatientDocsGatewayFilterFactoryTest {
     private static final int WIREMOCK_PORT = 8210;
     private static final int MAX_TIMEOUT = 10;
     private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
     private static final String FIND_PATIENT_DOCS_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/2/DocumentReference?_include=DocumentReference%3Asubject%3APatient&_include=DocumentReference%3Acustodian%3AOrganization&_include=DocumentReference%3Aauthor%3AOrganization&_include=DocumentReference%3Aauthor%3APractitioner&_revinclude%3Arecurse=PractitionerRole%3Apractitioner";
     private static final String LOCALHOST_URI = "http://localhost:";
-    private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\","
-        + "\"meta\":{\"profile\":[\"https://fhir.nhs"
-        + ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]},"
+    private static final String EXAMPLE_MESSAGE_BODY = "{\"resourceType\":\"Bundle\","
+        + "\"meta\":{\"profile\":[\"https://fhir.nhs.uk/STU3/StructureDefinition/GPConnect-Searchset-Bundle-1\"]},"
         + "\"type\":\"collection\",\"entry\":[]}";
 
     @LocalServerPort
@@ -66,7 +67,8 @@ public class ReplaceDocuUrlTest {
         WIRE_MOCK_SERVER.stubFor(get(urlEqualTo(FIND_PATIENT_DOCS_URI))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
-                .withBody(EXAMPLE_STRUCTURED_BODY)));
+                .withHeader(CONTENT_TYPE, "application/fhir+json;charset=UTF-8")
+                .withBody(EXAMPLE_MESSAGE_BODY)));
 
         DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(WIRE_MOCK_SERVER.baseUrl());
         factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
@@ -77,7 +79,7 @@ public class ReplaceDocuUrlTest {
             .expectStatus()
             .isOk()
             .expectBody()
-            .json(EXAMPLE_STRUCTURED_BODY);
+            .json(EXAMPLE_MESSAGE_BODY);
     }
 
     @Test
