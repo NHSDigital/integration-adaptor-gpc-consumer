@@ -86,7 +86,7 @@ public class SdsClientComponentTest {
 
     @BeforeAll
     public static void beforeAll() {
-        WireMock.configureFor(Integer.parseInt(System.getProperty("GP2GP_WIREMOCK_PORT")));
+        WireMock.configureFor(Integer.parseInt(System.getProperty("GPC_CONSUMER_WIREMOCK_PORT")));
     }
 
     private void stubEndpoint(String interaction, String response) {

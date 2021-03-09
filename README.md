@@ -35,10 +35,10 @@ The adaptor uses the GP Connect API to fetch patient records and documents.
 
 | Environment Variable                 | Default                                       | Description
 | -------------------------------------|-----------------------------------------------|-------------
-| GP2GP_SPINE_CLIENT_CERT              |                                               | The content of the PEM-formatted client endpoint certificate
-| GP2GP_SPINE_CLIENT_KEY               |                                               | The content of the PEM-formatted client private key
-| GP2GP_SPINE_ROOT_CA_CERT             |                                               | The content of the PEM-formatted certificate of the issuing Root CA.
-| GP2GP_SPINE_SUB_CA_CERT              |                                               | The content of the PEM-formatted certificate of the issuing Sub CA.
+| GPC_CONSUMER_SPINE_CLIENT_CERT              |                                               | The content of the PEM-formatted client endpoint certificate
+| GPC_CONSUMER_SPINE_CLIENT_KEY               |                                               | The content of the PEM-formatted client private key
+| GPC_CONSUMER_SPINE_ROOT_CA_CERT             |                                               | The content of the PEM-formatted certificate of the issuing Root CA.
+| GPC_CONSUMER_SPINE_SUB_CA_CERT              |                                               | The content of the PEM-formatted certificate of the issuing Sub CA.
 
 ### SDS API Configuration Options
 
@@ -46,8 +46,8 @@ The GP2GP uses the [SDS API]() to discover GPC endpoints.
 
 | Environment Variable                 | Default                                       | Description
 | -------------------------------------|-----------------------------------------------|-------------
-| GP2GP_SDS_URL                        | http://localhost:8110/                        | URL to the SDS API
-| GP2GP_SDS_APIKEY                     |                                               | Secret key used to authenticate with the API
+| GPC_CONSUMER_SDS_URL                        | http://localhost:8110/                        | URL to the SDS API
+| GPC_CONSUMER_SDS_APIKEY                     |                                               | Secret key used to authenticate with the API
 
 Logging levels are ane of: DEBUG, INFO, WARN, ERROR
 

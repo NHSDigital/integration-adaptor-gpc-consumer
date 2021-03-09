@@ -39,7 +39,7 @@ public class WiremockExtension implements BeforeAllCallback, BeforeEachCallback 
 
         var sdsConfiguration = configurableApplicationContext.getBean(SdsConfiguration.class);
         sdsConfiguration.setUrl(wireMockServer.baseUrl());
-        System.setProperty("GP2GP_WIREMOCK_PORT", String.valueOf(wireMockServer.port()));
+        System.setProperty("GPC_CONSUMER_WIREMOCK_PORT", String.valueOf(wireMockServer.port()));
 
         return wireMockServer;
     }

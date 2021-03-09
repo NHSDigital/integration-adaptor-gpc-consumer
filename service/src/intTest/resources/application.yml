@@ -32,10 +32,10 @@ management:
 
 gpc-consumer:
   gpc:
-    clientCert: ${GP2GP_SPINE_CLIENT_CERT:}
-    clientKey: ${GP2GP_SPINE_CLIENT_KEY:}
-    rootCA: ${GP2GP_SPINE_ROOT_CA_CERT:}
-    subCA: ${GP2GP_SPINE_SUB_CA_CERT:}
+    clientCert: ${GPC_CONSUMER_SPINE_CLIENT_CERT:}
+    clientKey: ${GPC_CONSUMER_SPINE_CLIENT_KEY:}
+    rootCA: ${GPC_CONSUMER_SPINE_ROOT_CA_CERT:}
+    subCA: ${GPC_CONSUMER_SPINE_SUB_CA_CERT:}
   sds:
-    url: ${GP2GP_SDS_URL:http://localhost:8110/}
-    apiKey: ${GP2GP_SDS_APIKEY}
+    url: ${GPC_CONSUMER_SDS_URL:http://localhost:8110/}
+    apiKey: ${GPC_CONSUMER_SDS_APIKEY}

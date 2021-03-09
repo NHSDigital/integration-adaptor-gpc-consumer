@@ -47,16 +47,16 @@ public class RequestBuilderService {
 
         var missingSslProperties = new ArrayList<String>();
         if (StringUtils.isBlank(clientKey)) {
-            missingSslProperties.add("GP2GP_SPINE_CLIENT_KEY");
+            missingSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_KEY");
         }
         if (StringUtils.isBlank(clientCert)) {
-            missingSslProperties.add("GP2GP_SPINE_CLIENT_CERT");
+            missingSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_CERT");
         }
         if (StringUtils.isBlank(rootCert)) {
-            missingSslProperties.add("GP2GP_SPINE_ROOT_CA_CERT");
+            missingSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
         }
         if (StringUtils.isBlank(subCert)) {
-            missingSslProperties.add("GP2GP_SPINE_SUB_CA_CERT");
+            missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
         }
 
         if (missingSslProperties.size() == allSslProperties) {
@@ -66,7 +66,7 @@ public class RequestBuilderService {
             LOGGER.debug("All TLS MA properties were provided. Configuration an SSL context.");
             return true;
         } else {
-            throw new GpConnectException("All or none of the GP2GP_SPINE_ variables must be defined. Missing variables: "
+            throw new GpConnectException("All or none of the GPC_CONSUMER_SPINE_ variables must be defined. Missing variables: "
                 + String.join(",", missingSslProperties));
         }
     }
