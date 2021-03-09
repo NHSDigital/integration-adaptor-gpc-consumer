@@ -42,7 +42,7 @@ The adaptor uses the GP Connect API to fetch patient records and documents.
 
 ### SDS API Configuration Options
 
-The GP2GP uses the [SDS API]() to discover GPC endpoints.
+The GPC_CONSUMER uses the [SDS API]() to discover GPC endpoints.
 
 | Environment Variable                 | Default                                       | Description
 | -------------------------------------|-----------------------------------------------|-------------
