@@ -107,7 +107,7 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     }
 
     private static void applyRequestId(String requestId) {
-        MDC.put("RequestId", requestId);
+        MDC.put(REQUEST_ID, requestId);
     }
 
     private static void resetMDCKeys() {
