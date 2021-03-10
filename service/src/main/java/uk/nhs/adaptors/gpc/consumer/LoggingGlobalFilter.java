@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
@@ -19,11 +21,13 @@ import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
     private static final String PROXY_LOG_TEMPLATE = "Global filter log: %s Request Url: %s, Destination Request Url: %s";
@@ -31,10 +35,12 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
     private static final int PRIORITY = -2;
+    private static final String REQUEST_ID = "RequestId";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+        applyRequestId(exchange.getLogPrefix());
         if (route != null) {
             LOGGER.info(String.format(PROXY_LOG_TEMPLATE,
                 prepareHeaderLog(exchange.getRequest().getHeaders()),
@@ -45,7 +51,7 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
                 prepareHeaderLog(exchange.getRequest().getHeaders()),
                 exchange.getRequest().getURI()));
         }
-
+        resetMDCKeys();
         return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange)).build());
     }
 
@@ -73,19 +79,20 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
             @Override
             public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
                 return DataBufferUtils.join(body)
-                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer));
+                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer, exchange.getLogPrefix()));
             }
         };
     }
 
-    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer) {
+    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer, String requestId) {
+        applyRequestId(requestId);
         if (response != null && dataBuffer != null) {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
             } else {
                 LOGGER.info("Request was successful");
             }
-
+            resetMDCKeys();
             return response.writeWith(Mono.just(dataBuffer));
         }
 
@@ -95,5 +102,13 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private boolean isErrorResponseCode(ServerHttpResponse response) {
         HttpStatus httpStatus = response.getStatusCode();
         return httpStatus != null && !httpStatus.is2xxSuccessful();
+    }
+
+    private static void applyRequestId(String requestId) {
+        MDC.put(REQUEST_ID, requestId);
+    }
+
+    private static void resetMDCKeys() {
+        MDC.clear();
     }
 }

@@ -7,8 +7,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-public class GetStructuredRecordTest extends CloudGatewayTest {
-    private static final String STRUCTURED_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord";
+public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
+
+    private static final String STRUCTURED_URI = FHIR_PATIENT_URI + "/$gpc.getstructuredrecord";
     private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\","
         + "\"meta\":{\"profile\":[\"https://fhir.nhs"
         + ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]},"
@@ -38,4 +39,5 @@ public class GetStructuredRecordTest extends CloudGatewayTest {
             .expectStatus()
             .isNotFound();
     }
+
 }

@@ -7,7 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-public class GetDocumentTest extends CloudGatewayTest {
+public class GetDocumentTest extends CloudGatewayRouteBaseTest {
     private static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510";
     private static final String EXPECTED_DOCUMENT_BODY = "{\"resourceType\": \"Binary\","
         + "\"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
