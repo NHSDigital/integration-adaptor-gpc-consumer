@@ -53,5 +53,4 @@ public class CloudGatewayTest {
     public void tearDown() {
         WIRE_MOCK_SERVER.resetAll();
     }
-
 }

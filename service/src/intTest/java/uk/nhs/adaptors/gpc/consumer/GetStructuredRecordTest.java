@@ -29,4 +29,13 @@ public class GetStructuredRecordTest extends CloudGatewayTest {
             .expectBody()
             .json(EXAMPLE_STRUCTURED_BODY);
     }
+
+    @Test
+    public void When_MakingRequestForNonExistingStructuredDocument_Expect_NotFoundResponse() {
+        getWebTestClient().post()
+            .uri(STRUCTURED_URI)
+            .exchange()
+            .expectStatus()
+            .isNotFound();
+    }
 }
