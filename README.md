@@ -79,7 +79,6 @@ cp vars.local.sh vars.sh
 
 ### Using the helper script for Docker Compose
 ```bash
-cd docker/
 ./start-local-environment.sh
 ```
 
