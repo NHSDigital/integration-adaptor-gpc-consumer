@@ -24,7 +24,7 @@ spring:
         - id: get-document
           uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
-            - Path=${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}}
+            - Path=${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Binary/*}
             - Method=GET
 
 management:
