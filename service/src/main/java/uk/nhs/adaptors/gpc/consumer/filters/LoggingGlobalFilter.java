@@ -1,4 +1,4 @@
-package uk.nhs.adaptors.gpc.consumer;
+package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.util.List;
 import java.util.Objects;

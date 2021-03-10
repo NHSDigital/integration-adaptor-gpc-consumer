@@ -27,21 +27,20 @@ spring:
           - Path=${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}}
           - Method=GET
         - id: find-a-patient
-          uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8210}
+          uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
           - Path=${GPC_CONSUMER_GPC_GET_PATIENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient}
           - Method=GET
         - id: search-patients-documents
           uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
-            - Path=${GP2GP_GPC_GET_PATIENT_ENDPOINT:/GP0001/STU3/1/gpconnect/fhir/Patient/**}
+            - Path=${GP2GP_GPC_GET_PATIENT_DOCUMENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient/**}
             - Method=GET
           filters:
-            - name: ReplaceDocUrl
+            - name: FindAPatientDocs
               args:
-                baseMessage: "Search for a patient's documents: "
-                gpcConsumerurl: ${GPC_CONSUMER_URL:http://localhost:8080}
-                targetUrl: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
+                gpcConsumerUrl: ${GPC_CONSUMER_URL:http://localhost:8080}
+                gpcUrl: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
 
 management:
   endpoints:

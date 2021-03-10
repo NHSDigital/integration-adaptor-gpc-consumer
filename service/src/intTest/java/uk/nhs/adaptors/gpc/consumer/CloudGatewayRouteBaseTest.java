@@ -24,7 +24,7 @@ public class CloudGatewayRouteBaseTest {
     @LocalServerPort
     private int port = 0;
     @Getter
-    private WebTestClient webTestClient;;
+    private WebTestClient webTestClient;
     private String baseUri;
 
     @BeforeAll

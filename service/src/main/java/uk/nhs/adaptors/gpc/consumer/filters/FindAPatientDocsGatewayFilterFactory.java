@@ -1,4 +1,4 @@
-package uk.nhs.adaptors.gpc.consumer;
+package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -23,13 +23,13 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 
 @Component
 @Slf4j
 public class FindAPatientDocsGatewayFilterFactory extends AbstractGatewayFilterFactory<FindAPatientDocsGatewayFilterFactory.Config> {
-
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To");
-    private static final String LOG_TEMPLATE = "Gateway filter log: %s %s URL: %s";
+    private static final String LOG_TEMPLATE = "Gateway filter log: %s URL: %s";
     private static final String HEADERS_PREFIX = "Headers: { ";
     private static final String HEADERS_SUFFIX = "}";
     private static final String COLON = ": ";
@@ -96,14 +96,13 @@ public class FindAPatientDocsGatewayFilterFactory extends AbstractGatewayFilterF
     @Setter
     @Getter
     public static class Config {
-        private String baseMessage;
-        private String gpcConsumerurl;
-        private String targetUrl;
+        private String gpcConsumerUrl;
+        private String gpcUrl;
     }
 
-    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange, GatewayFilterChain chain, FindAPatientDocsGatewayFilterFactory.Config config) {
+    private Mono<Void> prepareGatewayFilterMono(ServerWebExchange exchange, GatewayFilterChain chain,
+        FindAPatientDocsGatewayFilterFactory.Config config) {
         LOGGER.info(String.format(LOG_TEMPLATE,
-            config.getBaseMessage(),
             prepareHeaderLog(exchange.getRequest().getHeaders()),
             exchange.getRequest().getURI()));
 

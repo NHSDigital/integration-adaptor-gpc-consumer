@@ -1,4 +1,4 @@
-package uk.nhs.adaptors.gpc.consumer;
+package uk.nhs.adaptors.gpc.consumer.utils;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -11,14 +11,14 @@ import java.util.zip.GZIPOutputStream;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import uk.nhs.adaptors.gpc.consumer.filters.FindAPatientDocsGatewayFilterFactory;
 
 @UtilityClass
 @Slf4j
 public class FindAPatientDocsUtil {
-
     public static String replaceUrl(FindAPatientDocsGatewayFilterFactory.Config config, String body) {
-        LOGGER.info(String.format("Replace host: %s, to: %s", config.getTargetUrl(), config.getGpcConsumerurl()));
-        return body.replace(config.getTargetUrl(), config.getGpcConsumerurl());
+        LOGGER.info(String.format("Replace host: %s, to: %s", config.getGpcUrl(), config.getGpcConsumerUrl()));
+        return body.replace(config.getGpcUrl(), config.getGpcConsumerUrl());
     }
 
     public ByteArrayOutputStream zipStringToOutputStream(String responseWithProxyUrlReplacement) throws Exception {
