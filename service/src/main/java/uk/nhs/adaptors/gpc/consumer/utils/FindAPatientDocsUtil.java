@@ -32,8 +32,8 @@ public class FindAPatientDocsUtil {
 
             return obj;
         } catch (Exception e) {
-            LOGGER.error("Error occuring compressing response: %s", e);
-            throw new Exception("Error occuring compressing response", e);
+            LOGGER.error("Error occurring compressing response: %s", e);
+            throw new Exception("Error occurring compressing response", e);
         }
     }
 
