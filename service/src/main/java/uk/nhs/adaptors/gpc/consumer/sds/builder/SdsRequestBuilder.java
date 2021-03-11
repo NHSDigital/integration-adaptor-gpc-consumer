@@ -37,7 +37,6 @@ public class SdsRequestBuilder {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
 
     private static final String API_KEY_HEADER = "apikey";
-    private static final String X_CORRELATION_ID = "X-Correlation-Id";
 
     private final SdsConfiguration sdsConfiguration;
     private final RequestBuilderService requestBuilderService;
@@ -69,8 +68,7 @@ public class SdsRequestBuilder {
                 .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + odsCode)
                 .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE + interaction)
                 .build())
-            .header(API_KEY_HEADER, sdsConfiguration.getApiKey())
-            .header(X_CORRELATION_ID, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+            .header(API_KEY_HEADER, sdsConfiguration.getApiKey());
     }
 
     private WebClient buildWebClient(HttpClient httpClient) {
