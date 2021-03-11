@@ -1,16 +1,9 @@
 package uk.nhs.adaptors.gpc.consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.zip.GZIPOutputStream;
 
 import org.junit.jupiter.api.Test;
 
-import lombok.SneakyThrows;
 import uk.nhs.adaptors.gpc.consumer.filters.FindAPatientDocsGatewayFilterFactory;
 import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 
@@ -24,53 +17,8 @@ public class FindAPatientDocsTest {
     public void When_GPCBaseUrlPresentInBody_Expect_GPCConsumerBaseUrlReplacementInBody() {
         var expectedGpcConsumerResponse = String.format(RESPONSE_BODY_TEMPLATE, GPC_CONSUMER_BASE_URL);
         FindAPatientDocsGatewayFilterFactory.Config config = new FindAPatientDocsGatewayFilterFactory.Config();
-        config.setGpcUrl(GPC_BASE_URL);
-        config.setGpcConsumerUrl(GPC_CONSUMER_BASE_URL);
 
-        var replacedUrlBody = FindAPatientDocsUtil.replaceUrl(config, GPC_RESPONSE_BODY);
+        var replacedUrlBody = FindAPatientDocsUtil.replaceUrl(GPC_CONSUMER_BASE_URL, GPC_BASE_URL, GPC_RESPONSE_BODY);
         assertThat(replacedUrlBody).isEqualTo(expectedGpcConsumerResponse);
-    }
-
-    @Test
-    public void When_ZipPramsString_Expect_ByteArrayOutputStream() throws Exception {
-        var outputStream = FindAPatientDocsUtil.zipStringToOutputStream(GPC_RESPONSE_BODY);
-        assertThat(outputStream.getClass()).isEqualTo(ByteArrayOutputStream.class);
-    }
-
-    @Test
-    public void When_ZipPramsNull_Expect_ExceptionThrow() {
-        var exception = assertThrows(FindAPatientDocsException.class, () -> FindAPatientDocsUtil.zipStringToOutputStream(null));
-        assertThat(exception.getMessage()).isEqualTo("Error occurring compressing response");
-    }
-
-    @Test
-    public void When_UnzipPramsInputStream_Expect_String() throws Exception {
-        InputStream targetStream = new ByteArrayInputStream(GPC_RESPONSE_BODY.getBytes());
-        var inputStream = createGzipInputStreamFromString(targetStream);
-
-        var stringResponseBody = FindAPatientDocsUtil.unzipInputStreamToString(inputStream);
-        assertThat(stringResponseBody).isEqualTo(GPC_RESPONSE_BODY);
-    }
-
-    @Test
-    public void When_UnzipPramsNull_Expect_String() {
-        var exception = assertThrows(FindAPatientDocsException.class, () -> FindAPatientDocsUtil.unzipInputStreamToString(null));
-        assertThat(exception.getMessage()).isEqualTo("Error occurring decompressing response");
-    }
-
-    @SuppressWarnings("InnerAssignment")
-    @SneakyThrows
-    public static InputStream createGzipInputStreamFromString(InputStream inputStream) {
-        ByteArrayOutputStream bytesOutput = new ByteArrayOutputStream();
-        GZIPOutputStream gzipOutput = new GZIPOutputStream(bytesOutput);
-        final int size = 10240;
-        byte[] buffer = new byte[size];
-        for (int length = 0; (length = inputStream.read(buffer)) != -1;) {
-            gzipOutput.write(buffer, 0, length);
-        }
-        inputStream.close();
-        gzipOutput.close();
-        var zipInputStream = new ByteArrayInputStream(bytesOutput.toByteArray());
-        return zipInputStream;
     }
 }

@@ -34,7 +34,7 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     private static final String LOG_TEMPLATE = "Global filter log: %s Request Url: %s";
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
-    private static final int PRIORITY = -2;
+    private static final int PRIORITY = -3;
     private static final String REQUEST_ID = "RequestId";
 
     @Override
