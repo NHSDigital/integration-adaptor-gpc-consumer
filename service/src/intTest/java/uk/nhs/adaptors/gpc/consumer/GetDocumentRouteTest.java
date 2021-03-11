@@ -7,23 +7,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-public class GetDocumentTest extends CloudGatewayRouteBaseTest {
+public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
     private static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510";
     private static final String EXPECTED_DOCUMENT_BODY = "{\"resourceType\": \"Binary\","
         + "\"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
         + "\"contentType\": \"application/msword\","
         + "\"content\": \"response content\"}";
     private static final String NOT_FOUND_GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Binary/00000000-732b-461e-86b6-edb665c45510";
-    private static final String EXPECTED_NOT_FOUND_BODY = "{\"resourceType\": \"OperationOutcome\",\"meta\": {\"profile\": "
-        + "[\"https://fhir.nhs.uk/StructureDefinition/gpconnect-operationoutcome-1\" ]},\"issue\": [{\"severity\": \"error\","
-        + "\"code\": \"invalid\",\"details\": {\"coding\":[{\"system\": \"https://fhir.nhs.uk/ValueSet/gpconnect-error-or-warning-code-1\","
-        + "\"code\": \"NO_RECORD_FOUND\",\"display\": \"No Record Found\"}]},\"diagnostics\": \"No record found\"}]}";
-    private static final String SSP_FROM_HEADER = "Ssp-From";
-    private static final String SSP_TO_HEADER = "Ssp-To";
-    private static final String SSP_INTERACTION_ID_HEADER = "Ssp-InteractionID";
-    private static final String SSP_TRACE_ID_HEADER = "Ssp-TraceID";
     private static final String DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
-    private static final String ANY_STRING = "any";
 
     @Test
     public void When_MakingRequestForSpecificDocument_Expect_OkResponse() {
@@ -31,6 +22,10 @@ public class GetDocumentTest extends CloudGatewayRouteBaseTest {
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
                 .withBody(EXPECTED_DOCUMENT_BODY)));
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.SC_OK)
+                .withBody(EXAMPLE_SDS_BODY)));
 
         getWebTestClient().get()
             .uri(GET_DOCUMENT_URI)
@@ -51,6 +46,10 @@ public class GetDocumentTest extends CloudGatewayRouteBaseTest {
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_NOT_FOUND)
                 .withBody(EXPECTED_NOT_FOUND_BODY)));
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.SC_OK)
+                .withBody(EXAMPLE_SDS_BODY)));
 
         getWebTestClient().get()
             .uri(NOT_FOUND_GET_DOCUMENT_URI)
