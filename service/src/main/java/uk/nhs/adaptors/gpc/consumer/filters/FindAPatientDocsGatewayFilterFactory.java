@@ -12,12 +12,12 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -78,9 +78,9 @@ public class FindAPatientDocsGatewayFilterFactory extends AbstractGatewayFilterF
         return Mono.empty();
     }
 
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private boolean isErrorResponseCode(ServerHttpResponse response) {
-        return response.getStatusCode() != null && !response.getStatusCode().is2xxSuccessful();
+        HttpStatus statusCode = response.getStatusCode();
+        return statusCode != null && !statusCode.is2xxSuccessful();
     }
 
     private ServerHttpResponseDecorator prepareErrorHandlingResponseDecorator(ServerWebExchange exchange, Config config) {

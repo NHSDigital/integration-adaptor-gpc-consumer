@@ -34,7 +34,7 @@ spring:
         - id: search-patients-documents
           uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8210}
           predicates:
-            - Path=${GP2GP_GPC_GET_PATIENT_ENDPOINT:/GP0001/STU3/1/gpconnect/fhir/Patient/**}
+            - Path=${GPC_CONSUMER_GPC_GET_PATIENT_DOCUMENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient/**}
             - Method=GET
           filters:
             - name: FindAPatientDocs

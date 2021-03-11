@@ -11,6 +11,7 @@ import java.util.zip.GZIPOutputStream;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import uk.nhs.adaptors.gpc.consumer.FindAPatientDocsException;
 import uk.nhs.adaptors.gpc.consumer.filters.FindAPatientDocsGatewayFilterFactory;
 
 @UtilityClass
@@ -21,7 +22,7 @@ public class FindAPatientDocsUtil {
         return body.replace(config.getGpcUrl(), config.getGpcConsumerUrl());
     }
 
-    public ByteArrayOutputStream zipStringToOutputStream(String responseWithProxyUrlReplacement) throws Exception {
+    public ByteArrayOutputStream zipStringToOutputStream(String responseWithProxyUrlReplacement) throws FindAPatientDocsException {
         try {
             ByteArrayOutputStream obj = new ByteArrayOutputStream();
             GZIPOutputStream gzip = new GZIPOutputStream(obj);
@@ -32,12 +33,12 @@ public class FindAPatientDocsUtil {
 
             return obj;
         } catch (Exception e) {
-            LOGGER.error("Error occurring compressing response: %s", e);
-            throw new Exception("Error occurring compressing response", e);
+            LOGGER.error(String.format("Error occurring compressing response: %s", e.getMessage()));
+            throw new FindAPatientDocsException("Error occurring compressing response");
         }
     }
 
-    public String unzipInputStreamToString(InputStream inputStream) throws Exception {
+    public String unzipInputStreamToString(InputStream inputStream) throws FindAPatientDocsException {
         try {
             StringBuilder outStr = new StringBuilder();
             GZIPInputStream gis = new GZIPInputStream(inputStream);
@@ -53,8 +54,8 @@ public class FindAPatientDocsUtil {
 
             return outStr.toString();
         } catch (Exception e) {
-            LOGGER.error("Error occurring decompressing response: %s", e);
-            throw new Exception("Error occurring decompressing response", e);
+            LOGGER.error(String.format("Error occurring decompressing response: %s", e.getMessage()));
+            throw new FindAPatientDocsException("Error occurring decompressing response");
         }
     }
 

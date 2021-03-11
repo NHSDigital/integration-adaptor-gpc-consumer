@@ -33,29 +33,29 @@ public class FindAPatientDocsTest {
 
     @Test
     public void When_ZipPramsString_Expect_ByteArrayOutputStream() throws Exception {
-        var os = FindAPatientDocsUtil.zipStringToOutputStream(GPC_RESPONSE_BODY);
-        assertThat(os.getClass()).isEqualTo(ByteArrayOutputStream.class);
+        var outputStream = FindAPatientDocsUtil.zipStringToOutputStream(GPC_RESPONSE_BODY);
+        assertThat(outputStream.getClass()).isEqualTo(ByteArrayOutputStream.class);
     }
 
     @Test
     public void When_ZipPramsNull_Expect_ExceptionThrow() {
-        var exception = assertThrows(Exception.class, () -> FindAPatientDocsUtil.zipStringToOutputStream(null));
-        assertThat(exception.getMessage()).isEqualTo("Error occuring compressing response");
+        var exception = assertThrows(FindAPatientDocsException.class, () -> FindAPatientDocsUtil.zipStringToOutputStream(null));
+        assertThat(exception.getMessage()).isEqualTo("Error occurring compressing response");
     }
 
     @Test
     public void When_UnzipPramsInputStream_Expect_String() throws Exception {
         InputStream targetStream = new ByteArrayInputStream(GPC_RESPONSE_BODY.getBytes());
-        var is = createGzipInputStreamFromString(targetStream);
+        var inputStream = createGzipInputStreamFromString(targetStream);
 
-        var os = FindAPatientDocsUtil.unzipInputStreamToString(is);
-        assertThat(os).isEqualTo(GPC_RESPONSE_BODY);
+        var stringResponseBody = FindAPatientDocsUtil.unzipInputStreamToString(inputStream);
+        assertThat(stringResponseBody).isEqualTo(GPC_RESPONSE_BODY);
     }
 
     @Test
     public void When_UnzipPramsNull_Expect_String() {
-        var exception = assertThrows(Exception.class, () -> FindAPatientDocsUtil.unzipInputStreamToString(null));
-        assertThat(exception.getMessage()).isEqualTo("Error occuring decompressing response");
+        var exception = assertThrows(FindAPatientDocsException.class, () -> FindAPatientDocsUtil.unzipInputStreamToString(null));
+        assertThat(exception.getMessage()).isEqualTo("Error occurring decompressing response");
     }
 
     @SuppressWarnings("InnerAssignment")
