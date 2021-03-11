@@ -53,8 +53,8 @@ public class FindAPatientDocsUtil {
 
             return outStr.toString();
         } catch (Exception e) {
-            LOGGER.error("Error occuring decompressing response: %s", e);
-            throw new Exception("Error occuring decompressing response", e);
+            LOGGER.error("Error occurring decompressing response: %s", e);
+            throw new Exception("Error occurring decompressing response", e);
         }
     }
 
