@@ -20,7 +20,7 @@ import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class SdsRequestBuilder {
-    private static final String PIPE_ENCODED = "|";
+    private static final String PIPE = "|";
     private static final String ORG_CODE_PARAMETER = "organization";
     private static final String ORG_CODE_IDENTIFIER = "https://fhir.nhs.uk/Id/ods-organization-code";
     private static final String INTERACTION_PARAMETER = "identifier";
@@ -66,8 +66,8 @@ public class SdsRequestBuilder {
             .get()
             .uri(uriBuilder -> uriBuilder
                 .path(ENDPOINT)
-                .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE_ENCODED + odsCode)
-                .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE_ENCODED + interaction)
+                .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + odsCode)
+                .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE + interaction)
                 .build())
             .header(API_KEY_HEADER, sdsConfiguration.getApiKey())
             .header(X_CORRELATION_ID, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
