@@ -47,5 +47,5 @@ gpc-consumer:
     rootCA: ${GPC_CONSUMER_SPINE_ROOT_CA_CERT:}
     subCA: ${GPC_CONSUMER_SPINE_SUB_CA_CERT:}
   sds:
-    url: ${GPC_CONSUMER_SDS_URL:http://localhost:8110/}
+    url: ${GPC_CONSUMER_SDS_URL:http://localhost:8210/}
     apiKey: ${GPC_CONSUMER_SDS_APIKEY}
