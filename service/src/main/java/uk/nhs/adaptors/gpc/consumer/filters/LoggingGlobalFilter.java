@@ -1,4 +1,4 @@
-package uk.nhs.adaptors.gpc.consumer;
+package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

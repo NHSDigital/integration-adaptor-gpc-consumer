@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import ca.uhn.fhir.parser.IParser;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
@@ -70,10 +71,12 @@ public class SdsClient {
     private String performRequest(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request) {
         return request.retrieve()
             .bodyToMono(String.class)
+            .share()
             .block();
     }
 
     @Builder
+    @Getter
     @EqualsAndHashCode
     public static class SdsResponseData {
         private final String address;
