@@ -28,6 +28,7 @@ public class FindAPatientDocsUtil {
             GZIPOutputStream gzip = new GZIPOutputStream(obj);
             gzip.write(responseWithProxyUrlReplacement.getBytes(UTF_8));
             gzip.close();
+            obj.close();
 
             LOGGER.info("Response body successfully compress");
 
@@ -49,6 +50,7 @@ public class FindAPatientDocsUtil {
                 outStr.append(line);
             }
             bufferedReader.close();
+            gis.close();
 
             LOGGER.info("Response body successfully uncompressed");
 

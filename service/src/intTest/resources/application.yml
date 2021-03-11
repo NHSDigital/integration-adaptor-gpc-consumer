@@ -40,7 +40,7 @@ spring:
             - name: FindAPatientDocs
               args:
                 gpcConsumerurl: ${GPC_CONSUMER_URL:http://localhost:8080}
-                gpcUrl: ${GPC_CONSUMER_GPC_URL:http://localhost:8210}
+                gpcUrl: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8210}
 
 management:
   endpoints:
