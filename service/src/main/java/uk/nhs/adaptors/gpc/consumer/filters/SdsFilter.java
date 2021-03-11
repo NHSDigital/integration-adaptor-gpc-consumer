@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
-import io.micrometer.core.instrument.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -39,8 +39,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String SLASH = "/";
-    private static final String SCHEMA_SEPARATOR = "://";
-    private static final String COLON = ":";
+    private static final String FHIR_SEPARATOR = "fhir/";
+    private static final String DOCUMENTS_SEPARATOR = "documents/";
+    private static final String DOUBLE_SEPARATOR = DOCUMENTS_SEPARATOR + FHIR_SEPARATOR;
 
     private final SdsClient sdsClient;
 
@@ -49,15 +50,20 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
-        Optional<SdsClient.SdsResponseData> response = handleRequest(serverHttpRequest);
+        Optional<String> interactionId = extractInteractionId(serverHttpRequest.getHeaders());
 
-        if (response.isPresent()) {
-            String address = response.get()
-                .getAddress();
-            prepareLookupUri(address, serverHttpRequest.getPath()).ifPresent(uri -> exchange.getAttributes()
-                .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-        } else {
-            LOGGER.error("SDS filter request was unsuccessful.");
+        if (interactionId.isPresent()) {
+            Optional<SdsClient.SdsResponseData> response
+                = performRequestAccordingToInteractionId(interactionId.get(), serverHttpRequest);
+
+            if (response.isPresent()) {
+                String address = response.get()
+                    .getAddress();
+                prepareLookupUri(address, serverHttpRequest.getPath()).ifPresent(uri -> exchange.getAttributes()
+                    .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+            } else {
+                LOGGER.error("SDS filter request was unsuccessful.");
+            }
         }
 
         return chain.filter(exchange);
@@ -75,19 +81,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
             PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
             DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
-    }
-
-    private Optional<SdsClient.SdsResponseData> handleRequest(ServerHttpRequest serverHttpRequest) {
-        HttpHeaders httpHeaders = serverHttpRequest.getHeaders();
-
-        if (httpHeaders.containsKey(SSP_INTERACTION_ID)) {
-            Optional<String> interactionId = extractInteractionId(httpHeaders);
-
-            if (interactionId.isPresent()) {
-                return performRequestAccordingToInteractionId(interactionId.get(), serverHttpRequest);
-            }
-        }
-        return Optional.empty();
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
@@ -125,29 +118,38 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
-        List<String> interactionIds = httpHeaders.get(SSP_INTERACTION_ID);
-        if (!CollectionUtils.isEmpty(interactionIds)) {
-            return Optional.of(interactionIds.get(0));
-        }
+        if (httpHeaders.containsKey(SSP_INTERACTION_ID)) {
+            List<String> interactionIds = httpHeaders.get(SSP_INTERACTION_ID);
 
+            if (!CollectionUtils.isEmpty(interactionIds)) {
+                return Optional.of(interactionIds.get(0));
+            }
+        }
         return Optional.empty();
     }
 
     private Optional<URI> prepareLookupUri(String address, RequestPath requestPath) {
+        String path = requestPath.value();
         if (StringUtils.isNotBlank(address)) {
             try {
-                URI uri = new URI(address);
-                String baseUri = uri.getScheme() + SCHEMA_SEPARATOR + uri.getHost();
-
-                if (uri.getPort() != -1) {
-                    baseUri += COLON + uri.getPort();
-                }
-                return Optional.of(new URI(baseUri + requestPath.value()));
+                String uri = address + extractUriSuffix(path);
+                return Optional.of(new URI(uri));
             } catch (URISyntaxException e) {
                 LOGGER.error("Invalid address in SDS: " + address);
                 return Optional.empty();
             }
         }
         return Optional.empty();
+    }
+
+    private String extractUriSuffix(String path) {
+        if (path.contains(DOUBLE_SEPARATOR)) {
+            return path.split(DOUBLE_SEPARATOR)[1];
+        } else if (path.contains(FHIR_SEPARATOR)) {
+            return path.split(FHIR_SEPARATOR)[1];
+        } else if (path.contains(DOCUMENTS_SEPARATOR)) {
+            return path.split(DOCUMENTS_SEPARATOR)[1];
+        }
+        return StringUtils.EMPTY;
     }
 }
