@@ -19,7 +19,7 @@ import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 @Component
 @Slf4j
 public class FindAPatientDocsGatewayFilterFactory extends AbstractGatewayFilterFactory<FindAPatientDocsGatewayFilterFactory.Config> {
-    private static final int PRIORITY = -2;
+    private static final int PRIORITY = -1;
     @Value("${gpc-consumer.gpc.gpcConsumerUrl}")
     private String gpcConsumerUrl;
     @Value("${gpc-consumer.gpc.gpcUrl}")
@@ -39,10 +39,17 @@ public class FindAPatientDocsGatewayFilterFactory extends AbstractGatewayFilterF
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()
-            .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
-                .filters(f -> f.prefixPath("/httpbin")
-                    .modifyResponseBody(String.class, String.class,
-                        (exchange, s) -> handleResponse(s))).uri(gpcUrl + findPatientDocPath))
+            .route("r1", r -> r.host("thisshouldnotwork")
+                .and()
+                .path("/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord")
+                .uri("http://localhost:8080"))
+            .route("r1", r -> r.host(gpcUrl)
+                .and()
+                .path("/GP0001/STU3/1/gpconnect/fhir/Patient")
+                .uri("http://localhost:8080"))
+            .route("FindAPatientDocs", r -> r.path(findPatientDocPath)
+                .filters(f -> f.modifyResponseBody(String.class, String.class,
+                    (exchange, s) -> handleResponse(s))).uri(gpcUrl + findPatientDocPath))
             .build();
     }
 

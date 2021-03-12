@@ -39,5 +39,4 @@ public class FindPatientRouteTest extends CloudGatewayRouteBaseTest {
             .expectStatus()
             .isNotFound();
     }
-
 }
