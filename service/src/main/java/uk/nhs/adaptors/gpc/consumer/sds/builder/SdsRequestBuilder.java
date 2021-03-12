@@ -37,7 +37,6 @@ public class SdsRequestBuilder {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
 
     private static final String API_KEY_HEADER = "apikey";
-    
     private final SdsConfiguration sdsConfiguration;
     private final RequestBuilderService requestBuilderService;
     private final WebClientFilterService webClientFilterService;
