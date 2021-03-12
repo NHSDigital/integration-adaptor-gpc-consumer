@@ -129,12 +129,4 @@ public class SdsFilter implements GlobalFilter, Ordered {
             throw new SdsException("Invalid address in SDS: " + address);
         }
     }
-
-    private URI prepareGpcUri(String uri) {
-        try {
-            return new URI(uri);
-        } catch (URISyntaxException e) {
-            throw new SdsException("Invalid GPC URI: " + uri);
-        }
-    }
 }
