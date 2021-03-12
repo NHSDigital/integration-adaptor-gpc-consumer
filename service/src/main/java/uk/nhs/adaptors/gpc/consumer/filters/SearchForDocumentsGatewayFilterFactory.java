@@ -19,7 +19,7 @@ import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 @Component
 @Slf4j
 public class SearchForDocumentsGatewayFilterFactory extends AbstractGatewayFilterFactory<SearchForDocumentsGatewayFilterFactory.Config> {
-    private static final int PRIORITY = -1;
+    private static final int PRIORITY = -3;
     @Value("${gpc-consumer.gpc.gpcConsumerUrl}")
     private String gpcConsumerUrl;
     @Value("${gpc-consumer.gpc.gpcUrl}")
