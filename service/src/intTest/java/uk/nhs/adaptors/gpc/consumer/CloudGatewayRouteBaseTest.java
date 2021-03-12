@@ -1,4 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer;
+
 import java.time.Duration;
 
 import org.junit.jupiter.api.AfterAll;
@@ -19,6 +20,7 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_TIMEOUT = 10;
     private static final String LOCALHOST_URI = "http://localhost:";
     protected static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
+    protected static final String GPC_URL_ENVIRONMENT_VARIABLE_NAME = "GP2GP_GPC_GET_URL";
     protected static final String FHIR_PATIENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient";
     protected static final String ENDPOINT = "/Endpoint";
     protected static final String SSP_FROM_HEADER = "Ssp-From";
@@ -38,7 +40,7 @@ public class CloudGatewayRouteBaseTest {
     @LocalServerPort
     private int port = 0;
     @Getter
-    private WebTestClient webTestClient;;
+    private WebTestClient webTestClient;
     private String baseUri;
 
     @BeforeAll
@@ -63,5 +65,6 @@ public class CloudGatewayRouteBaseTest {
     @AfterEach
     public void tearDown() {
         WIRE_MOCK_SERVER.resetAll();
+        System.clearProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME);
     }
 }

@@ -63,4 +63,26 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
             .expectBody()
             .json(EXPECTED_NOT_FOUND_BODY);
     }
+
+    @Test
+    public void When_MakingRequestForSpecificDocument_Given_GpcUrlEnvVariable_Expect_OkResponse() {
+        System.setProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME, ANY_STRING);
+
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(GET_DOCUMENT_URI))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.SC_OK)
+                .withBody(EXPECTED_DOCUMENT_BODY)));
+
+        getWebTestClient().get()
+            .uri(GET_DOCUMENT_URI)
+            .header(SSP_FROM_HEADER, ANY_STRING)
+            .header(SSP_TO_HEADER, ANY_STRING)
+            .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_INTERACTION_ID)
+            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody()
+            .json(EXPECTED_DOCUMENT_BODY);
+    }
 }

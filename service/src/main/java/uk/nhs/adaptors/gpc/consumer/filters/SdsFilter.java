@@ -32,6 +32,7 @@ import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
+    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GP2GP_GPC_GET_URL";
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
@@ -49,21 +50,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest serverHttpRequest = exchange.getRequest();
-        Optional<String> interactionId = extractInteractionId(serverHttpRequest.getHeaders());
-
-        if (interactionId.isPresent()) {
-            Optional<SdsClient.SdsResponseData> response
-                = performRequestAccordingToInteractionId(interactionId.get(), serverHttpRequest);
-
-            if (response.isPresent()) {
-                String address = response.get()
-                    .getAddress();
-                prepareLookupUri(address, serverHttpRequest.getPath()).ifPresent(uri -> exchange.getAttributes()
-                    .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-            } else {
-                LOGGER.error("SDS filter request was unsuccessful.");
-            }
+        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
+            ServerHttpRequest serverHttpRequest = exchange.getRequest();
+            extractInteractionId(serverHttpRequest.getHeaders())
+                .ifPresent(id -> proceedSdsLookup(serverHttpRequest, exchange, id));
         }
 
         return chain.filter(exchange);
@@ -75,12 +65,29 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     @PostConstruct
-    public void initializeFunctions() {
+    @SuppressWarnings("unused")
+    public void initializeSdsRequestFunctions() {
         sdsRequestFunctions = Map.of(
             STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
             PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
             DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
+    }
+
+    private void proceedSdsLookup(ServerHttpRequest serverHttpRequest,
+            ServerWebExchange exchange,
+            String integrationId) {
+        Optional<SdsClient.SdsResponseData> response
+            = performRequestAccordingToInteractionId(integrationId, serverHttpRequest);
+
+        if (response.isPresent()) {
+            String address = response.get()
+                .getAddress();
+            prepareLookupUri(address, serverHttpRequest.getPath()).ifPresent(uri -> exchange.getAttributes()
+                .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+        } else {
+            LOGGER.error("SDS filter request was unsuccessful.");
+        }
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
