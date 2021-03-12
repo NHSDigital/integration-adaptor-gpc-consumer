@@ -90,19 +90,13 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
             String organisation) {
-        if (isRequestFunctionAvailable(interactionId)) {
+        if (sdsRequestFunctions.containsKey(interactionId)) {
             LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
                 .apply(organisation);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
-    }
-
-    private boolean isRequestFunctionAvailable(String interactionId) {
-        return sdsRequestFunctions.keySet()
-            .stream()
-            .anyMatch(key -> key.equals(interactionId));
     }
 
     private String extractOrganisation(RequestPath requestPath) {
