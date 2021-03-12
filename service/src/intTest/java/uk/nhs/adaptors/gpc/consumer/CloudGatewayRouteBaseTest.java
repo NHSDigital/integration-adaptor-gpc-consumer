@@ -21,7 +21,6 @@ public class CloudGatewayRouteBaseTest {
     private static final String LOCALHOST_URI = "http://localhost:";
     protected static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
     protected static final String GPC_URL_ENVIRONMENT_VARIABLE_NAME = "GP2GP_GPC_GET_URL";
-    protected static final String FHIR_PATIENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient";
     protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
     protected static final String ENDPOINT = "/Endpoint";
     protected static final String SSP_FROM_HEADER = "Ssp-From";
@@ -32,7 +31,7 @@ public class CloudGatewayRouteBaseTest {
     protected static final String EXAMPLE_SDS_BODY = "{\"resourceType\":\"Bundle\","
         + "\"id\":\"47DBB1CA-256D-410E-B00B-C19C1F13E9F6\","
         + "\"entry\":[{\"resource\":{\"resourceType\":\"Endpoint\",\"id\":\"307B4278-DFED-4A27-8B51-1539DB1B2C62\","
-        + "\"address\":\"{{request.baseUrl}}/GP0001/STU3/1/gpconnect/\"}}]}";
+        + "\"address\":\"%s/GP0001/STU3/1/gpconnect/\"}}]}";
     protected static final String EXPECTED_NOT_FOUND_BODY = "{\"resourceType\": \"OperationOutcome\",\"meta\": {\"profile\": "
         + "[\"https://fhir.nhs.uk/StructureDefinition/gpconnect-operationoutcome-1\" ]},\"issue\": [{\"severity\": \"error\","
         + "\"code\": \"invalid\",\"details\": {\"coding\":[{\"system\": \"https://fhir.nhs.uk/ValueSet/gpconnect-error-or-warning-code-1\","

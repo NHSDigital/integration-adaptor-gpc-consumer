@@ -9,7 +9,7 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
-    private static final String STRUCTURED_URI = FHIR_PATIENT_URI + "/$gpc.getstructuredrecord";
+    private static final String STRUCTURED_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord";
     private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\","
         + "\"meta\":{\"profile\":[\"https://fhir.nhs"
         + ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]},"
@@ -26,7 +26,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
         WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
-                .withBody(EXAMPLE_SDS_BODY)));
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         getWebTestClient().post()
             .uri(STRUCTURED_URI)
@@ -50,7 +50,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
         WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
-                .withBody(EXAMPLE_SDS_BODY)));
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         getWebTestClient().post()
             .uri(STRUCTURED_URI)

@@ -3,6 +3,7 @@ package uk.nhs.adaptors.gpc.consumer;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,10 @@ public class FindPatientRouteTest extends CloudGatewayRouteBaseTest {
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
                 .withBody(EXAMPLE_FIND_PATIENT_BODY)));
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.SC_OK)
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         getWebTestClient().get()
             .uri(FIND_PATIENT_URI)
@@ -32,6 +37,11 @@ public class FindPatientRouteTest extends CloudGatewayRouteBaseTest {
 
     @Test
     public void When_MakingRequestForFindPatientWithoutIdentifier_Expect_NotFoundResponse() {
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.SC_OK)
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
+
         getWebTestClient().get()
             .uri(DOCUMENT_PATIENT_URI)
             .exchange()

@@ -17,6 +17,7 @@ import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
+import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 
 @Component
 @Slf4j
@@ -39,10 +41,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
-    private static final String SLASH = "/";
-    private static final String FHIR_SEPARATOR = "fhir/";
-    private static final String DOCUMENTS_SEPARATOR = "documents/";
-    private static final String DOUBLE_SEPARATOR = DOCUMENTS_SEPARATOR + FHIR_SEPARATOR;
+    private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
 
@@ -77,33 +76,27 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private void proceedSdsLookup(ServerHttpRequest serverHttpRequest,
             ServerWebExchange exchange,
             String integrationId) {
-        Optional<SdsClient.SdsResponseData> response
-            = performRequestAccordingToInteractionId(integrationId, serverHttpRequest);
-
-        if (response.isPresent()) {
-            String address = response.get()
-                .getAddress();
-            prepareLookupUri(address, serverHttpRequest.getPath()).ifPresent(uri -> exchange.getAttributes()
+        String organisation = extractOrganisation(serverHttpRequest.getPath());
+        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation)
+            .orElseThrow(() -> new SdsException(
+                String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
+                    integrationId,
+                    organisation))
+            );
+        prepareLookupUri(response.getAddress(), serverHttpRequest.getPath())
+            .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-        } else {
-            LOGGER.error("SDS filter request was unsuccessful.");
-        }
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            ServerHttpRequest serverHttpRequest) {
+            String organisation) {
         if (isRequestFunctionAvailable(interactionId)) {
-            Optional<String> organisation = extractOrganisation(serverHttpRequest
-                .getPath());
-
-            if (organisation.isPresent()) {
-                LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
-                    organisation.get(), interactionId);
-                return sdsRequestFunctions.get(interactionId)
-                    .apply(organisation.get());
-            }
+            LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
+                organisation, interactionId);
+            return sdsRequestFunctions.get(interactionId)
+                .apply(organisation);
         }
-        return Optional.empty();
+        throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
 
     private boolean isRequestFunctionAvailable(String interactionId) {
@@ -112,16 +105,13 @@ public class SdsFilter implements GlobalFilter, Ordered {
             .anyMatch(key -> key.equals(interactionId));
     }
 
-    private Optional<String> extractOrganisation(RequestPath requestPath) {
-        String path = requestPath.toString();
-        if (path.contains(SLASH)) {
-            String[] pathElements = path.split(SLASH);
-
-            if (pathElements.length > 1) {
-                return Optional.of(pathElements[1]);
-            }
-        }
-        return Optional.empty();
+    private String extractOrganisation(RequestPath requestPath) {
+        return requestPath.elements()
+            .stream()
+            .skip(1)
+            .findFirst()
+            .map(PathContainer.Element::value)
+            .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
     }
 
     private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
@@ -136,27 +126,13 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<URI> prepareLookupUri(String address, RequestPath requestPath) {
-        String path = requestPath.value();
-        if (StringUtils.isNotBlank(address)) {
-            try {
-                String uri = address + extractUriSuffix(path);
-                return Optional.of(new URI(uri));
-            } catch (URISyntaxException e) {
-                LOGGER.error("Invalid address in SDS: " + address);
-                return Optional.empty();
-            }
+        String uri = address + requestPath.subPath(SDS_URI_OFFSET)
+            .toString()
+            .substring(1);
+        try {
+            return Optional.of(new URI(uri));
+        } catch (URISyntaxException e) {
+            throw new SdsException("Invalid address in SDS: " + address);
         }
-        return Optional.empty();
-    }
-
-    private String extractUriSuffix(String path) {
-        if (path.contains(DOUBLE_SEPARATOR)) {
-            return path.split(DOUBLE_SEPARATOR)[1];
-        } else if (path.contains(FHIR_SEPARATOR)) {
-            return path.split(FHIR_SEPARATOR)[1];
-        } else if (path.contains(DOCUMENTS_SEPARATOR)) {
-            return path.split(DOCUMENTS_SEPARATOR)[1];
-        }
-        return StringUtils.EMPTY;
     }
 }

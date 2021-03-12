@@ -13,7 +13,8 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
         + "\"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
         + "\"contentType\": \"application/msword\","
         + "\"content\": \"response content\"}";
-    private static final String NOT_FOUND_GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/documents/Binary/00000000-732b-461e-86b6-edb665c45510";
+    private static final String NOT_FOUND_GET_DOCUMENT_URI =
+        "/GP0001/STU3/1/gpconnect/documents/Binary/00000000-732b-461e-86b6-edb665c45510";
     private static final String DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
 
     @Test
@@ -25,7 +26,7 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
         WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
-                .withBody(EXAMPLE_SDS_BODY)));
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         getWebTestClient().get()
             .uri(GET_DOCUMENT_URI)
@@ -49,7 +50,7 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
         WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
-                .withBody(EXAMPLE_SDS_BODY)));
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         getWebTestClient().get()
             .uri(NOT_FOUND_GET_DOCUMENT_URI)
