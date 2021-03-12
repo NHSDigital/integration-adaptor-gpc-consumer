@@ -6,4 +6,4 @@ export GPC_CONSUMER_GPC_STRUCTURED_PATH="/B82617/STU3/1/gpconnect/fhir/Patient/\
 export GPC_CONSUMER_GPC_GET_DOCUMENT_PATH="/B82617/STU3/1/gpconnect/fhir/Binary/{documentId}"
 export GPC_CONSUMER_GPC_GET_PATIENT_PATH="/B82617/STU3/1/gpconnect/fhir/Patient"
 export GPC_CONSUMER_URL="http://localhost:8080"
-export GPC_CONSUMER_GPC_GET_PATIENT_DOCUMENT_PATH="/B82617/STU3/1/gpconnect/fhir/Patient/**"
+export GPC_CONSUMER_SEARCH_DOCUMENTS_PATH="/B82617/STU3/1/gpconnect/fhir/Patient/**"

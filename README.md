@@ -31,7 +31,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | GPC_CONSUMER_GPC_STRUCTURED_PATH            | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
 | GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
 | GPC_CONSUMER_GPC_GET_PATIENT_PATH	          | /GP0001/STU3/1/gpconnect/fhir/Patient                          | Patient record path.
-| GPC_CONSUMER_GPC_GET_PATIENT_DOCUMENT_PATH  | /GP0001/STU3/1/gpconnect/fhir/Patient/**                       | Search for a Patient's Document path.
+| GPC_CONSUMER_SEARCH_DOCUMENTS_PATH          | /GP0001/STU3/1/gpconnect/fhir/Patient/**                       | Search for a Patient's Document path.
 
 ### GP Connect API Configuration Options
 

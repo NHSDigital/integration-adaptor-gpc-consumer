@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import uk.nhs.adaptors.gpc.consumer.filters.FindAPatientDocsGatewayFilterFactory;
+import uk.nhs.adaptors.gpc.consumer.filters.SearchForDocumentsGatewayFilterFactory;
 import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 
 public class FindAPatientDocsTest {
@@ -16,7 +16,7 @@ public class FindAPatientDocsTest {
     @Test
     public void When_GPCBaseUrlPresentInBody_Expect_GPCConsumerBaseUrlReplacementInBody() {
         var expectedGpcConsumerResponse = String.format(RESPONSE_BODY_TEMPLATE, GPC_CONSUMER_BASE_URL);
-        FindAPatientDocsGatewayFilterFactory.Config config = new FindAPatientDocsGatewayFilterFactory.Config();
+        SearchForDocumentsGatewayFilterFactory.Config config = new SearchForDocumentsGatewayFilterFactory.Config();
 
         var replacedUrlBody = FindAPatientDocsUtil.replaceUrl(GPC_CONSUMER_BASE_URL, GPC_BASE_URL, GPC_RESPONSE_BODY);
         assertThat(replacedUrlBody).isEqualTo(expectedGpcConsumerResponse);
