@@ -24,12 +24,12 @@ spring:
         - id: get-document
           uri: http://localhost:8210
           predicates:
-          - Path=/{odsCode}/STU3/1/gpconnect/fhir/Binary/{documentId}
+          - Path=/{odsCode}/STU3/1/gpconnect/documents/Binary/{documentId}
           - Method=GET
         - id: find-a-patient
           uri: http://localhost:8210
           predicates:
-          - Path=/{odsCode}/STU3/1/gpconnect/fhir/Patient
+          - Path=/{odsCode}/STU3/1/gpconnect/documents/Patient
           - Method=GET
 
 management:

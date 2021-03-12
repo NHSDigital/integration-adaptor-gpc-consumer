@@ -22,6 +22,7 @@ public class CloudGatewayRouteBaseTest {
     protected static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
     protected static final String GPC_URL_ENVIRONMENT_VARIABLE_NAME = "GP2GP_GPC_GET_URL";
     protected static final String FHIR_PATIENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient";
+    protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
     protected static final String ENDPOINT = "/Endpoint";
     protected static final String SSP_FROM_HEADER = "Ssp-From";
     protected static final String SSP_TO_HEADER = "Ssp-To";
