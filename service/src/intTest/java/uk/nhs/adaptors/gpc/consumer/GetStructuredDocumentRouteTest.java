@@ -67,7 +67,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
 
     @Test
     public void When_MakingRequestForStructuredDocument_Given_GpcUrlEnvVariable_Expect_OkResponse() {
-        System.setProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME, ANY_STRING);
+        System.setProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME, WIRE_MOCK_SERVER.baseUrl());
 
         WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(STRUCTURED_URI))
             .willReturn(aResponse()

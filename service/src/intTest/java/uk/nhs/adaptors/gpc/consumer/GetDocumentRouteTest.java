@@ -67,7 +67,7 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
 
     @Test
     public void When_MakingRequestForSpecificDocument_Given_GpcUrlEnvVariable_Expect_OkResponse() {
-        System.setProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME, ANY_STRING);
+        System.setProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME, WIRE_MOCK_SERVER.baseUrl());
 
         WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(GET_DOCUMENT_URI))
             .willReturn(aResponse()
