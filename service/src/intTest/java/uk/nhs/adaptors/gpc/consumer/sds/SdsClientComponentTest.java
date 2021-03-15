@@ -91,8 +91,8 @@ public class SdsClientComponentTest {
 
     private void stubEndpoint(String interaction, String response) {
         stubFor(get(urlPathEqualTo("/Endpoint"))
-                .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code%7C" + FROM_ODS_CODE))
-                .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId%7C" + interaction))
+                .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + FROM_ODS_CODE))
+                .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId|" + interaction))
                 .withHeader("apikey", matching(".*"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "application/fhir+json")
