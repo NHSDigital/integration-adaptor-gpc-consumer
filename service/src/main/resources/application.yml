@@ -19,17 +19,17 @@ spring:
         - id: get-structured-record
           uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
-          - Path=${GPC_CONSUMER_GPC_STRUCTURED_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord}
+          - Path=/{odsCode}/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord
           - Method=POST
         - id: get-document
           uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
-          - Path=${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}}
+          - Path=/{odsCode}/STU3/1/gpconnect/documents/Binary/{documentId}
           - Method=GET
         - id: find-a-patient
-          uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8210}
+          uri: ${GPC_CONSUMER_GPC_GET_URL:http://localhost:8110}
           predicates:
-          - Path=${GPC_CONSUMER_GPC_GET_PATIENT_PATH:/GP0001/STU3/1/gpconnect/fhir/Patient}
+          - Path=/{odsCode}/STU3/1/gpconnect/documents/Patient
           - Method=GET
 
 management:
@@ -48,4 +48,4 @@ gpc-consumer:
     subCA: ${GPC_CONSUMER_SPINE_SUB_CA_CERT:}
   sds:
     url: ${GPC_CONSUMER_SDS_URL:http://localhost:8110/}
-    apiKey: ${GPC_CONSUMER_SDS_APIKEY}
+    apiKey: ${GPC_CONSUMER_SDS_APIKEY:}
