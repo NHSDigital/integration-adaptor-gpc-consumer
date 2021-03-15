@@ -5,6 +5,7 @@ import static org.apache.commons.fileupload.FileUploadBase.CONTENT_TYPE;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SearchPatientDocsRouteTest extends CloudGatewayRouteBaseTest {
-    private static final String FIND_PATIENT_DOCS_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/2/DocumentReference?_include=DocumentReferen"
+    private static final String FIND_PATIENT_DOCS_URI = DOCUMENT_PATIENT_URI + "/2/DocumentReference?_include=DocumentReferen"
         + "ce%3Asubject%3APatient&_include=DocumentReference%3Acustodian%3AOrganization&_include=DocumentReference%3Aauthor%3AOrganization&"
         + "_include=DocumentReference%3Aauthor%3APractitioner&_revinclude%3Arecurse=PractitionerRole%3Apractitioner";
     private static final String EXAMPLE_MESSAGE_BODY = "{\"resourceType\":\"Bundle\","
@@ -28,6 +29,10 @@ public class SearchPatientDocsRouteTest extends CloudGatewayRouteBaseTest {
                 .withStatus(HttpStatus.SC_OK)
                 .withHeader(CONTENT_TYPE, "application/fhir+json;charset=UTF-8")
                 .withBody(EXAMPLE_MESSAGE_BODY)));
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.SC_OK)
+                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(WIRE_MOCK_SERVER.baseUrl());
         factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);

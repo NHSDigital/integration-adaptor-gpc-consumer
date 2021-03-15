@@ -44,7 +44,7 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
 
     @Test
     public void When_MakingRequestForSpecificDocument_Expect_ErrorResponse() {
-        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(GET_DOCUMENT_URI))
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(NOT_FOUND_GET_DOCUMENT_URI))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_NOT_FOUND)
                 .withBody(EXPECTED_NOT_FOUND_BODY)));
@@ -54,7 +54,7 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
                 .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
 
         getWebTestClient().get()
-            .uri(GET_DOCUMENT_URI)
+            .uri(NOT_FOUND_GET_DOCUMENT_URI)
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_INTERACTION_ID)
