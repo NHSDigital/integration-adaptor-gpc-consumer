@@ -16,11 +16,16 @@ public class FindAPatientDocsTest {
     private static final String GPC_BASE_URL = "http://localhost:8110";
     private static final String GPC_CONSUMER_BASE_URL = "http://localhost:8080";
 
-    private final InputStream inputStreamExpectedPatientsDocumentWithMultipleUrl = this.getClass().getClassLoader().getResourceAsStream("ExpectedSearchForPatientsDocumentMultipleUrl.json");
-    private final InputStream inputStreamExpectedPatientsDocumentWithSingleUrl = this.getClass().getClassLoader().getResourceAsStream("ExpectedSearchForPatientsDocumentSingleUrl.json");
-    private final InputStream inputStreampatientsDocumentWithMultipleUrl = this.getClass().getClassLoader().getResourceAsStream("SearchForPatientsDocumentMultipleUrl.json");
-    private final InputStream inputStreampatientsDocumentWithSingleUrl = this.getClass().getClassLoader().getResourceAsStream("SearchForPatientsDocumentSingleUrl.json");
-    private final InputStream inputStreampatientsDocumentWithNoUrl = this.getClass().getClassLoader().getResourceAsStream("SearchForPatientsDocumentWithNoUrl.json");
+    private final InputStream inputStreamExpectedPatientsDocumentWithMultipleUrl =
+        this.getClass().getClassLoader().getResourceAsStream("ExpectedSearchForPatientsDocumentMultipleUrl.json");
+    private final InputStream inputStreamExpectedPatientsDocumentWithSingleUrl =
+        this.getClass().getClassLoader().getResourceAsStream("ExpectedSearchForPatientsDocumentSingleUrl.json");
+    private final InputStream inputStreampatientsDocumentWithMultipleUrl =
+        this.getClass().getClassLoader().getResourceAsStream("SearchForPatientsDocumentMultipleUrl.json");
+    private final InputStream inputStreampatientsDocumentWithSingleUrl =
+        this.getClass().getClassLoader().getResourceAsStream("SearchForPatientsDocumentSingleUrl.json");
+    private final InputStream inputStreampatientsDocumentWithNoUrl =
+        this.getClass().getClassLoader().getResourceAsStream("SearchForPatientsDocumentWithNoUrl.json");
 
     @Test
     public void When_GPCBaseUrlPresentInBody_Expect_GPCConsumerBaseUrlReplacementInBody() {
