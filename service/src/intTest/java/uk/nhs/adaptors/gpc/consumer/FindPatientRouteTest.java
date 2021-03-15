@@ -8,7 +8,6 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class FindPatientRouteTest extends CloudGatewayRouteBaseTest {
-
     private static final String FIND_PATIENT_URI = FHIR_PATIENT_URI + "?identifier=https://fhir.nhs.uk/Id/nhs-number|9690937286";
     private static final String FIND_PATIENT_URI_ENCODED = FHIR_PATIENT_URI + "?identifier=https://fhir.nhs.uk/Id/nhs-number%7C9690937286";
     private static final String EXAMPLE_FIND_PATIENT_BODY = "{\"resourceType\":\"Bundle\",\"id\":\"2fd9c6e5-0197-4a78-923d-f8ed3c937880"

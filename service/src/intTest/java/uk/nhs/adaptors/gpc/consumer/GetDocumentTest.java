@@ -8,12 +8,11 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class GetDocumentTest extends CloudGatewayRouteBaseTest {
-    private static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510";
+    private static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510";
     private static final String EXPECTED_DOCUMENT_BODY = "{\"resourceType\": \"Binary\","
         + "\"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
         + "\"contentType\": \"application/msword\","
         + "\"content\": \"response content\"}";
-    private static final String NOT_FOUND_GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/fhir/Binary/00000000-732b-461e-86b6-edb665c45510";
     private static final String EXPECTED_NOT_FOUND_BODY = "{\"resourceType\": \"OperationOutcome\",\"meta\": {\"profile\": "
         + "[\"https://fhir.nhs.uk/StructureDefinition/gpconnect-operationoutcome-1\" ]},\"issue\": [{\"severity\": \"error\","
         + "\"code\": \"invalid\",\"details\": {\"coding\":[{\"system\": \"https://fhir.nhs.uk/ValueSet/gpconnect-error-or-warning-code-1\","
@@ -47,13 +46,13 @@ public class GetDocumentTest extends CloudGatewayRouteBaseTest {
 
     @Test
     public void When_MakingRequestForSpecificDocument_Expect_ErrorResponse() {
-        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(NOT_FOUND_GET_DOCUMENT_URI))
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(GET_DOCUMENT_URI))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_NOT_FOUND)
                 .withBody(EXPECTED_NOT_FOUND_BODY)));
 
         getWebTestClient().get()
-            .uri(NOT_FOUND_GET_DOCUMENT_URI)
+            .uri(GET_DOCUMENT_URI)
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_INTERACTION_ID)

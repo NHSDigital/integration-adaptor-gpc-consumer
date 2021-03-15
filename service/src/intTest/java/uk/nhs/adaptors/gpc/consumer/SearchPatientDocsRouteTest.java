@@ -13,7 +13,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class FindAPatientDocsGatewayFilterFactoryTest extends CloudGatewayRouteBaseTest {
+public class SearchPatientDocsRouteTest extends CloudGatewayRouteBaseTest {
     private static final String FIND_PATIENT_DOCS_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/2/DocumentReference?_include=DocumentReferen"
         + "ce%3Asubject%3APatient&_include=DocumentReference%3Acustodian%3AOrganization&_include=DocumentReference%3Aauthor%3AOrganization&"
         + "_include=DocumentReference%3Aauthor%3APractitioner&_revinclude%3Arecurse=PractitionerRole%3Apractitioner";

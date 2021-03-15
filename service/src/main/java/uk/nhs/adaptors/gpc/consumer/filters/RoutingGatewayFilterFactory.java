@@ -7,7 +7,7 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 
-@Component
+@Configuration
 @Slf4j
-public class SearchForDocumentsGatewayFilterFactory extends AbstractGatewayFilterFactory<SearchForDocumentsGatewayFilterFactory.Config> {
+public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<RoutingGatewayFilterFactory.Config> {
     private static final int PRIORITY = -3;
     @Value("${gpc-consumer.gpc.gpcConsumerUrl}")
     private String gpcConsumerUrl;
@@ -30,11 +30,8 @@ public class SearchForDocumentsGatewayFilterFactory extends AbstractGatewayFilte
     private String structuredPath;
     @Value("${gpc-consumer.gpc.findPatientPath}")
     private String findPatientPath;
-
-
-    public SearchForDocumentsGatewayFilterFactory() {
-        super(SearchForDocumentsGatewayFilterFactory.Config.class);
-    }
+    @Value("${gpc-consumer.gpc.documentPath}")
+    private String documentPath;
 
     @Override
     public GatewayFilter apply(Config config) {
@@ -45,17 +42,19 @@ public class SearchForDocumentsGatewayFilterFactory extends AbstractGatewayFilte
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()
-            .route("get-structured-record", r -> r.host(gpcUrl)
+            .route("get-document", r -> r.path(documentPath)
                 .and()
-                .path(structuredPath)
-                .uri(gpcUrl))
-            .route("find-a-patient", r -> r.host(gpcUrl)
+                .uri(gpcUrl + documentPath))
+            .route("get-structured-record", r -> r.path(structuredPath)
                 .and()
-                .path(findPatientPath)
-                .uri(gpcUrl))
+                .uri(gpcUrl + structuredPath))
+            .route("find-a-patient", r -> r.path(findPatientPath)
+                .and()
+                .uri(gpcUrl + findPatientPath))
             .route("search-documents", r -> r.path(findSearchDocumentsPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class,
-                    (exchange, s) -> handleResponse(s))).uri(gpcUrl + findSearchDocumentsPath))
+                    (exchange, s) -> handleResponse(s)))
+                .uri(gpcUrl + findSearchDocumentsPath))
             .build();
     }
 

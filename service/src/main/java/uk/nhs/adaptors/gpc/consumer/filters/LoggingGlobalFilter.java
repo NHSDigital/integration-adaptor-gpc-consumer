@@ -75,18 +75,13 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
     }
 
     private ServerHttpResponseDecorator prepareErrorHandlingResponseDecorator(ServerWebExchange exchange) {
-        try {
-            return new ServerHttpResponseDecorator(exchange.getResponse()) {
-                @Override
-                public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
-                    return DataBufferUtils.join(body)
-                        .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer, exchange.getLogPrefix()));
-                }
-            };
-        } catch (Exception e) {
-            var a = 0;
-            return null;
-        }
+        return new ServerHttpResponseDecorator(exchange.getResponse()) {
+            @Override
+            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+                return DataBufferUtils.join(body)
+                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer, exchange.getLogPrefix()));
+            }
+        };
     }
 
     private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer, String requestId) {
