@@ -44,17 +44,17 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
         return builder.routes()
             .route("get-document", r -> r.path(documentPath)
                 .and()
-                .uri(gpcUrl + documentPath))
+                .uri(gpcUrl))
             .route("get-structured-record", r -> r.path(structuredPath)
                 .and()
-                .uri(gpcUrl + structuredPath))
+                .uri(gpcUrl))
             .route("find-a-patient", r -> r.path(findPatientPath)
                 .and()
-                .uri(gpcUrl + findPatientPath))
+                .uri(gpcUrl))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class,
                     (exchange, s) -> handleResponse(s)))
-                .uri(gpcUrl + searchForAPatientsDocumentsPath))
+                .uri(gpcUrl))
             .build();
     }
 
