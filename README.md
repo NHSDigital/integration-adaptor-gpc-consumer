@@ -27,7 +27,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | Environment Variable                        | Default                                                        | Description
 | --------------------------------------------|----------------------------------------------------------------|-------------
 | GPC_CONSUMER_URL                            | http://localhost:8080                                          | Base URL for GPC Consumer service.
-| GPC_CONSUMER_GPC_GET_URL                    | http://localhost:8110                                          | Base URL for GPC service.
+| GPC_CONSUMER_GPC_GET_URL                    | http://localhost:8110                                          | Base URL for GPC service. If it is not set, the SDS Filter will be omitted.
 | GPC_CONSUMER_GPC_STRUCTURED_PATH            | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
 | GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
 | GPC_CONSUMER_GPC_GET_PATIENT_PATH	          | /GP0001/STU3/1/gpconnect/fhir/Patient                          | Patient record path.

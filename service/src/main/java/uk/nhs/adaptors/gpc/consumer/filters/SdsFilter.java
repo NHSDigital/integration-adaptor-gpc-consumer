@@ -1,7 +1,6 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +22,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
-    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GP2GP_GPC_GET_URL";
+    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
@@ -83,7 +83,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
-        prepareLookupUri(response.getAddress(), serverHttpRequest.getPath())
+        prepareLookupUri(response.getAddress(), serverHttpRequest)
             .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
     }
@@ -119,14 +119,14 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return Optional.empty();
     }
 
-    private Optional<URI> prepareLookupUri(String address, RequestPath requestPath) {
-        String uri = address + requestPath.subPath(SDS_URI_OFFSET)
+    private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {
+        String uri = address + serverHttpRequest.getPath().subPath(SDS_URI_OFFSET)
             .toString()
             .substring(1);
-        try {
-            return Optional.of(new URI(uri));
-        } catch (URISyntaxException e) {
-            throw new SdsException("Invalid address in SDS: " + address);
-        }
+        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
+            .queryParams(serverHttpRequest.getQueryParams())
+            .build()
+            .toUri();
+        return Optional.of(constructedUri);
     }
 }
