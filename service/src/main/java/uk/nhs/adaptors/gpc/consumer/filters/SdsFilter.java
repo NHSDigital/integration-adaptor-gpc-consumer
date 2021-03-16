@@ -34,7 +34,7 @@ import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
-    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GP2GP_GPC_GET_URL";
+    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
