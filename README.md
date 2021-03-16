@@ -15,28 +15,30 @@ Variables without a default value and not marked optional, *MUST* be defined for
 
 ### General Configuration Options
 
-| Environment Variable                 | Default                   | Description
-| -------------------------------------|---------------------------|-------------
-| GPC_CONSUMER_SERVER_PORT             | 8080                      | The port on which the GPC Consumer Adaptor will run.
-| GPC_CONSUMER_ROOT_LOGGING_LEVEL      | WARN                      | The logging level applied to the entire application (including third-party dependencies).
-| GPC_CONSUMER_LOGGING_LEVEL           | INFO                      | The logging level applied to GPC Consumer Adaptor components.
-| GPC_CONSUMER_LOGGING_FORMAT          | (*)                       | Defines how to format log events on stdout
+| Environment Variable                        | Default                   | Description
+| --------------------------------------------|---------------------------|-------------
+| GPC_CONSUMER_SERVER_PORT                    | 8080                      | The port on which the GPC Consumer Adaptor will run.
+| GPC_CONSUMER_ROOT_LOGGING_LEVEL             | WARN                      | The logging level applied to the entire application (including third-party dependencies).
+| GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
+| GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
 
 ### Cloud Gateway Configuration Options
 
-| Environment Variable                 | Default                                                        | Description
-| -------------------------------------|----------------------------------------------------------------|-------------
-| GPC_CONSUMER_GPC_GET_URL             | http://localhost:8110                                          | Base URL for GPC service. If it is not set, the SDS Filter will be omitted.
-| GPC_CONSUMER_GPC_STRUCTURED_PATH     | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
-| GPC_CONSUMER_GPC_GET_DOCUMENT_PATH   | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
-| GPC_CONSUMER_GPC_GET_PATIENT_PATH	   | /GP0001/STU3/1/gpconnect/fhir/Patient                          | Patient record path
+| Environment Variable                        | Default                                                        | Description
+| --------------------------------------------|----------------------------------------------------------------|-------------
+| GPC_CONSUMER_URL                            | http://localhost:8080                                          | Base URL for GPC Consumer service.
+| GPC_CONSUMER_GPC_GET_URL                    | http://localhost:8110                                          | Base URL for GPC service. If it is not set, the SDS Filter will be omitted.
+| GPC_CONSUMER_GPC_STRUCTURED_PATH            | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
+| GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
+| GPC_CONSUMER_GPC_GET_PATIENT_PATH	          | /GP0001/STU3/1/gpconnect/fhir/Patient                          | Patient record path.
+| GPC_CONSUMER_SEARCH_DOCUMENTS_PATH          | /GP0001/STU3/1/gpconnect/fhir/Patient/**                       | Search for a Patient's Document path.
 
 ### GP Connect API Configuration Options
 
 The adaptor uses the GP Connect API to fetch patient records and documents.
 
-| Environment Variable                 | Default                                       | Description
-| -------------------------------------|-----------------------------------------------|-------------
+| Environment Variable                        | Default                                       | Description
+| --------------------------------------------|-----------------------------------------------|-------------
 | GPC_CONSUMER_SPINE_CLIENT_CERT              |                                               | The content of the PEM-formatted client endpoint certificate
 | GPC_CONSUMER_SPINE_CLIENT_KEY               |                                               | The content of the PEM-formatted client private key
 | GPC_CONSUMER_SPINE_ROOT_CA_CERT             |                                               | The content of the PEM-formatted certificate of the issuing Root CA.
@@ -46,8 +48,8 @@ The adaptor uses the GP Connect API to fetch patient records and documents.
 
 The GPC_CONSUMER uses the [SDS API]() to discover GPC endpoints.
 
-| Environment Variable                 | Default                                       | Description
-| -------------------------------------|-----------------------------------------------|-------------
+| Environment Variable                        | Default                                       | Description
+| --------------------------------------------|-----------------------------------------------|-------------
 | GPC_CONSUMER_SDS_URL                        | http://localhost:8110/                        | URL to the SDS API
 | GPC_CONSUMER_SDS_APIKEY                     |                                               | Secret key used to authenticate with the API
 
