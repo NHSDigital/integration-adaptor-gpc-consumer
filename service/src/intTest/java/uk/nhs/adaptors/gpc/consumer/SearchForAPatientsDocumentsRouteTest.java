@@ -12,15 +12,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class SearchPatientDocsRouteTest extends CloudGatewayRouteBaseTest {
+public class SearchForAPatientsDocumentsRouteTest extends CloudGatewayRouteBaseTest {
     private static final String FIND_PATIENT_DOCS_URI = DOCUMENT_PATIENT_URI + "/2/DocumentReference?_include=DocumentReferen"
         + "ce%3Asubject%3APatient&_include=DocumentReference%3Acustodian%3AOrganization&_include=DocumentReference%3Aauthor%3AOrganization&"
         + "_include=DocumentReference%3Aauthor%3APractitioner&_revinclude%3Arecurse=PractitionerRole%3Apractitioner";
     private static final String EXAMPLE_MESSAGE_BODY = "{\"resourceType\":\"Bundle\","
         + "\"meta\":{\"profile\":[\"https://fhir.nhs.uk/STU3/StructureDefinition/GPConnect-Searchset-Bundle-1\"]},"
         + "\"type\":\"collection\",\"entry\":[]}";
+    private static final String DOCUMENT_SEARCH_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
 
     @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
@@ -39,6 +39,10 @@ public class SearchPatientDocsRouteTest extends CloudGatewayRouteBaseTest {
 
         getWebTestClient().get()
             .uri(factory.expand(FIND_PATIENT_DOCS_URI))
+            .header(SSP_FROM_HEADER, ANY_STRING)
+            .header(SSP_TO_HEADER, ANY_STRING)
+            .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_SEARCH_ID)
+            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
             .exchange()
             .expectStatus()
             .isOk()

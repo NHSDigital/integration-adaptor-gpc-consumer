@@ -24,8 +24,8 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String gpcConsumerUrl;
     @Value("${gpc-consumer.gpc.gpcUrl}")
     private String gpcUrl;
-    @Value("${gpc-consumer.gpc.findSearchDocumentsPath}")
-    private String findSearchDocumentsPath;
+    @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
+    private String searchForAPatientsDocumentsPath;
     @Value("${gpc-consumer.gpc.structuredPath}")
     private String structuredPath;
     @Value("${gpc-consumer.gpc.findPatientPath}")
@@ -51,10 +51,10 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
             .route("find-a-patient", r -> r.path(findPatientPath)
                 .and()
                 .uri(gpcUrl + findPatientPath))
-            .route("search-documents", r -> r.path(findSearchDocumentsPath)
+            .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class,
                     (exchange, s) -> handleResponse(s)))
-                .uri(gpcUrl + findSearchDocumentsPath))
+                .uri(gpcUrl + searchForAPatientsDocumentsPath))
             .build();
     }
 
