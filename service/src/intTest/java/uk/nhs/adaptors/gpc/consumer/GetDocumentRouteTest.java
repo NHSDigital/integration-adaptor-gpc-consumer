@@ -16,7 +16,6 @@ public class GetDocumentRouteTest extends CloudGatewayRouteBaseTest {
     private static final String NOT_FOUND_GET_DOCUMENT_URI =
         "/GP0001/STU3/1/gpconnect/documents/Binary/00000000-732b-461e-86b6-edb665c45510";
     private static final String DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
-    private static final String ANY_STRING = "any";
 
     @Test
     public void When_MakingRequestForSpecificDocument_Expect_OkResponse() {
