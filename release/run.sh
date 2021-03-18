@@ -20,9 +20,6 @@ fi
 echo -e "${LIGHT_GREEN}Stopping running containers${NC}"
 docker-compose down
 
-echo -e "${LIGHT_GREEN}Building and starting dependencies${NC}"
-docker-compose up -d activemq mongodb wiremock mock-mhs-adaptor
-
 if [ "$1" == "-n" ];
 then
   echo -e "${RED}Skipping docker image pull for pre-release testing${NC}"
