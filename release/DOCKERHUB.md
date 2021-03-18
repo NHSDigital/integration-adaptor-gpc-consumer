@@ -4,7 +4,7 @@
 - Where to file issues: https://github.com/nhsconnect/integration-adaptor-gpc-consumer/issues
 
 # What is the GPC Consumer?
-GPC Consumer is a proxy service between GP2GP adaptor and external services. Every request performed by GP2GP goes through GPC consumer.
+The GPC Consumer adaptor proxies requests to GP Connect provider endpoints. The adaptor simplifies your GP Connect integration by performing service discovery via Spine Directory Service and routing over Spine Security Proxy. We only support the interactions required for GP2GP over GP Connect and the [GP2GP Adaptor](https://github.com/nhsconnect/integration-adaptor-gp2gp).
 
 # How to use this image
 
@@ -56,7 +56,7 @@ cd ../release
 
 ## Start the adaptor
 
-The script pulls the released GPC COnsumer container image from Docker Hub. It builds containers for its dependencies
+The script pulls the released GPC Consumer adaptor container image from Docker Hub. It builds containers for its dependencies
 from the Dockerfiles in the repository.
 
 ```bash
