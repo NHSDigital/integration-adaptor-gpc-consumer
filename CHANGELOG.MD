@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.1] - 2021-03-17
 
 ### Known Issues and Limitations
-None known issues were found.
+
+* Routing via Spine Security Proxy is not yet supported
+* Using TLS MA to authenticate GP Connect requests is not yet supported
 
 ### Added
 
