@@ -28,6 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-Information Disclosure [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415] in com.google.guava:guava@29.0-jre
-HTTP Request Smuggling [Medium Severity][https://snyk.io/vuln/SNYK-JAVA-IONETTY-1083991] in io.netty:netty-codec-http2@4.1.59.Final
-Comparison Using Wrong Factors [High Severity][https://snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448] in org.bouncycastle:bcprov-jdk15on@1.66
+* Information Disclosure [Medium Severity](https://snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415) in com.google.guava:guava@29.0-jre
+* HTTP Request Smuggling [Medium Severity](https://snyk.io/vuln/SNYK-JAVA-IONETTY-1083991) in io.netty:netty-codec-http2@4.1.59.Final
+* Comparison Using Wrong Factors [High Severity](https://snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448) in org.bouncycastle:bcprov-jdk15on@1.66
