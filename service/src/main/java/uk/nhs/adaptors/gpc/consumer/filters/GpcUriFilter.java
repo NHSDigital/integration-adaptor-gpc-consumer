@@ -27,6 +27,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.filters.uri.SspUriBuilder;
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
@@ -51,17 +52,24 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
-        URI initialUri = request.getURI();
-        Optional<URI> sdsLookupUri = getSdsLookUpPath(exchange);
-        Optional<URI> finalUri;
+        Optional<URI> finalUri = getSdsLookUpPath(exchange);
 
         if (gpcConfiguration.getSspEnabled()) {
-            finalUri = sdsLookupUri
-                .map(uri -> prepareSspWithSDSLookupUri(uri.getPath(), exchange.getRequest(), initialUri.getPath()))
-                .orElseGet(() -> prepareSspWithGPCUri(exchange.getRequest(), initialUri.getPath()));
-        } else {
-            finalUri = sdsLookupUri;
+            ServerHttpRequest request = exchange.getRequest();
+            SspUriBuilder sspUriBuilder = new SspUriBuilder()
+                .sspDomain(gpcConfiguration.getSspDomain())
+                .initialPath(request.getURI().getPath());
+
+            finalUri = finalUri
+                .map(uri -> sspUriBuilder
+                    .address(uri.getPath())
+                    .structuredFhirBaseRegex(gpcConfiguration.getStructuredFhirBasePathRegex())
+                    .buildSDS(request)
+                )
+                .orElseGet(() -> sspUriBuilder
+                    .address(gpcConfiguration.getGpcUrl())
+                    .buildDirectGPC(request)
+                );
         }
 
         finalUri.ifPresent(uri -> exchange.getAttributes()
@@ -96,7 +104,7 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<URI> proceedSdsLookup(ServerHttpRequest serverHttpRequest,
-            String integrationId) {
+        String integrationId) {
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation)
             .orElseThrow(() -> new SdsException(
@@ -108,7 +116,7 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            String organisation) {
+        String organisation) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
             LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
@@ -146,29 +154,6 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
             .queryParams(serverHttpRequest.getQueryParams())
             .build()
             .toUri();
-        return Optional.of(constructedUri);
-    }
-
-    private Optional<URI> prepareSspWithSDSLookupUri(String sdsLookupAddress, ServerHttpRequest serverHttpRequest, String initialPath) {
-        String requestPath = initialPath.replaceFirst(gpcConfiguration.getStructuredFhirBasePathRegex(), StringUtils.EMPTY);
-        String uri = String.format("https://%s/%s/%s", gpcConfiguration.getSspDomain(), sdsLookupAddress, requestPath);
-
-        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
-            .queryParams(serverHttpRequest.getQueryParams())
-            .build()
-            .toUri();
-
-        return Optional.of(constructedUri);
-    }
-
-    private Optional<URI> prepareSspWithGPCUri(ServerHttpRequest serverHttpRequest, String initialPath) {
-        String uri = String.format("https://%s/%s%s", gpcConfiguration.getSspDomain(), gpcConfiguration.getGpcUrl(), initialPath);
-
-        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
-            .queryParams(serverHttpRequest.getQueryParams())
-            .build()
-            .toUri();
-
         return Optional.of(constructedUri);
     }
 }

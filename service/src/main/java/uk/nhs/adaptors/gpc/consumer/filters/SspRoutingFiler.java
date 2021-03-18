@@ -28,13 +28,16 @@ public class SspRoutingFiler extends NettyRoutingFilter {
     @Value("${gpc-consumer.gpc.sspEnabled}")
     private String sspEnabled;
 
-    public SspRoutingFiler(HttpClient httpClient, ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider, HttpClientProperties properties) {
+    public SspRoutingFiler(
+        HttpClient httpClient,
+        ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
+        HttpClientProperties properties) {
         super(httpClient, headersFiltersProvider, properties);
     }
 
     @Override
     protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
-        if(sspEnabled.equals("true")) {
+        if (sspEnabled.equals("true")) {
             String clientKey = PemFormatter.format(this.clientKey);
             String clientCert = PemFormatter.format(this.clientCert);
             String rootCA = PemFormatter.format(this.rootCA);
