@@ -27,13 +27,13 @@ if [ "$1" == "-n" ];
 then
   echo -e "${RED}Skipping docker image pull for pre-release testing${NC}"
 else
-  echo -e "${LIGHT_GREEN}Pulling GP2GP adaptor image ${RELEASE_VERSION}${NC}"
-  export GP2GP_IMAGE="nhsdev/nia-gp2gp-adaptor:${RELEASE_VERSION}"
-  docker pull "$GP2GP_IMAGE"
+  echo -e "${LIGHT_GREEN}Pulling GPC consumer image ${RELEASE_VERSION}${NC}"
+  export GPCC_IMAGE="nhsdev/nia-gpc-consumer:${RELEASE_VERSION}"
+  docker pull "$GPCC_IMAGE"
 fi
 
-echo -e "${LIGHT_GREEN}Starting GP2GP adaptor ${RELEASE_VERSION}${NC}"
-docker-compose up -d --no-build gp2gp
+echo -e "${LIGHT_GREEN}Starting GPC consumer ${RELEASE_VERSION}${NC}"
+docker-compose up -d --no-build gpc-consumer
 
 echo -e "${LIGHT_GREEN}Verify all containers are up${NC}"
 docker-compose ps
