@@ -26,7 +26,7 @@ then
 else
   echo -e "${LIGHT_GREEN}Pulling GPC consumer image ${RELEASE_VERSION}${NC}"
   export GPC_CONSUMER_IMAGE="nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}"
-  docker pull "GPC_CONSUMER_IMAGE"
+  docker pull "$GPC_CONSUMER_IMAGE"
 fi
 
 echo -e "${LIGHT_GREEN}Starting GPC consumer ${RELEASE_VERSION}${NC}"
