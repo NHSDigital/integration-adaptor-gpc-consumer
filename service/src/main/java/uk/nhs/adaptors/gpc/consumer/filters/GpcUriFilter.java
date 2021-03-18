@@ -30,7 +30,6 @@ import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
-import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 
 @Component
 @Slf4j
@@ -47,7 +46,6 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
 
     private final SdsClient sdsClient;
     private final GpcConfiguration gpcConfiguration;
-    private final RequestBuilderService requestBuilderService;
 
     private Map<String, Function<String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
@@ -73,7 +71,7 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<URI> getSdsLookUpPath(ServerWebExchange exchange) {
-        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
+        if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
             ServerHttpRequest serverHttpRequest = exchange.getRequest();
             return extractInteractionId(serverHttpRequest.getHeaders())
                 .flatMap(id -> proceedSdsLookup(serverHttpRequest, id));

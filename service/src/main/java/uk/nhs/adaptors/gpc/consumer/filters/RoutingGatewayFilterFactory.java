@@ -24,7 +24,7 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String gpcConsumerUrl;
     @Value("${gpc-consumer.gpc.gpcUrl}")
     private String gpcUrl;
-    @Value("${gpc-consumer.gpc.clientCert}")
+    @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
     private String searchForAPatientsDocumentsPath;
     @Value("${gpc-consumer.gpc.structuredPath}")
     private String structuredPath;

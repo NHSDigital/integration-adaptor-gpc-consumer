@@ -58,8 +58,7 @@ public class SdsRequestBuilder {
     }
 
     private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildRequest(String odsCode, String interaction) {
-        var sslContext = requestBuilderService.buildSSLContext();
-        var httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
+        var httpClient = HttpClient.create();
         return buildWebClient(httpClient)
             .get()
             .uri(uriBuilder -> uriBuilder

@@ -22,10 +22,10 @@ public class RequestBuilderService {
     @SneakyThrows
     public SslContext buildSSLContext() {
         SslContextBuilderWrapper sslContextBuilderWrapper = new SslContextBuilderWrapper(
-            gpcConfiguration.getClientKey(),
-            gpcConfiguration.getClientCert(),
-            gpcConfiguration.getFormattedSubCA(),
-            gpcConfiguration.getFormattedRootCA());
+            gpcConfiguration.getFormattedClientKey(),
+            gpcConfiguration.getFormattedClientCert(),
+            gpcConfiguration.getFormattedRootCA(),
+            gpcConfiguration.getFormattedSubCA());
 
         return sslContextBuilderWrapper.buildSSLContext();
     }
