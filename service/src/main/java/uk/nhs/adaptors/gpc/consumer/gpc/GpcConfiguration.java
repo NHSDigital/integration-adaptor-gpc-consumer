@@ -16,6 +16,11 @@ public class GpcConfiguration {
     private String clientKey;
     private String rootCA;
     private String subCA;
+    private String gpcConsumerUrl;
+    private String gpcUrl;
+    private String structuredFhirBasePathRegex;
+    private String sspDomain;
+    private Boolean sspEnabled;
 
     public String getFormattedClientCert() {
         return PemFormatter.format(getClientCert());

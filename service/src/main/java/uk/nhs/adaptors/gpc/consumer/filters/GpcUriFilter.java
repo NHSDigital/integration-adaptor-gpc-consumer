@@ -27,14 +27,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
+import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class SdsFilter implements GlobalFilter, Ordered {
-    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
+public class GpcUriFilter implements GlobalFilter, Ordered {
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
@@ -44,18 +45,40 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
+    private final GpcConfiguration gpcConfiguration;
+    private final RequestBuilderService requestBuilderService;
 
     private Map<String, Function<String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
-            ServerHttpRequest serverHttpRequest = exchange.getRequest();
-            extractInteractionId(serverHttpRequest.getHeaders())
-                .ifPresent(id -> proceedSdsLookup(serverHttpRequest, exchange, id));
+        ServerHttpRequest request = exchange.getRequest();
+        URI initialUri = request.getURI();
+        Optional<URI> sdsLookupUri = getSdsLookUpPath(exchange);
+        Optional<URI> finalUri;
+
+        if (gpcConfiguration.getSspEnabled()) {
+            finalUri = sdsLookupUri
+                .map(uri -> prepareSspWithSDSLookupUri(uri.getPath(), exchange.getRequest(), initialUri.getPath()))
+                .orElseGet(() -> prepareSspWithGPCUri(exchange.getRequest(), initialUri.getPath()));
+        } else {
+            finalUri = sdsLookupUri;
         }
 
+        finalUri.ifPresent(uri -> exchange.getAttributes()
+            .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+
         return chain.filter(exchange);
+    }
+
+    private Optional<URI> getSdsLookUpPath(ServerWebExchange exchange) {
+        if (StringUtils.isBlank(gpcConfiguration.getGpcUrl())) {
+            ServerHttpRequest serverHttpRequest = exchange.getRequest();
+            return extractInteractionId(serverHttpRequest.getHeaders())
+                .flatMap(id -> proceedSdsLookup(serverHttpRequest, id));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -73,8 +96,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 
-    private void proceedSdsLookup(ServerHttpRequest serverHttpRequest,
-            ServerWebExchange exchange,
+    private Optional<URI> proceedSdsLookup(ServerHttpRequest serverHttpRequest,
             String integrationId) {
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation)
@@ -83,9 +105,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
-        prepareLookupUri(response.getAddress(), serverHttpRequest)
-            .ifPresent(uri -> exchange.getAttributes()
-                .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+        return prepareLookupUri(response.getAddress(), serverHttpRequest);
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
@@ -127,6 +147,29 @@ public class SdsFilter implements GlobalFilter, Ordered {
             .queryParams(serverHttpRequest.getQueryParams())
             .build()
             .toUri();
+        return Optional.of(constructedUri);
+    }
+
+    private Optional<URI> prepareSspWithSDSLookupUri(String sdsLookupAddress, ServerHttpRequest serverHttpRequest, String initialPath) {
+        String requestPath = initialPath.replaceFirst(gpcConfiguration.getStructuredFhirBasePathRegex(), StringUtils.EMPTY);
+        String uri = String.format("https://%s/%s/%s", gpcConfiguration.getSspDomain(), sdsLookupAddress, requestPath);
+
+        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
+            .queryParams(serverHttpRequest.getQueryParams())
+            .build()
+            .toUri();
+
+        return Optional.of(constructedUri);
+    }
+
+    private Optional<URI> prepareSspWithGPCUri(ServerHttpRequest serverHttpRequest, String initialPath) {
+        String uri = String.format("https://%s/%s%s", gpcConfiguration.getSspDomain(), gpcConfiguration.getGpcUrl(), initialPath);
+
+        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
+            .queryParams(serverHttpRequest.getQueryParams())
+            .build()
+            .toUri();
+
         return Optional.of(constructedUri);
     }
 }
