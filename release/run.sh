@@ -25,8 +25,8 @@ then
   echo -e "${RED}Skipping docker image pull for pre-release testing${NC}"
 else
   echo -e "${LIGHT_GREEN}Pulling GPC consumer image ${RELEASE_VERSION}${NC}"
-  export GPCC_IMAGE="nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}"
-  docker pull "$GPCC_IMAGE"
+  export GPC_CONSUMER_IMAGE="nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}"
+  docker pull "GPC_CONSUMER_IMAGE"
 fi
 
 echo -e "${LIGHT_GREEN}Starting GPC consumer ${RELEASE_VERSION}${NC}"
