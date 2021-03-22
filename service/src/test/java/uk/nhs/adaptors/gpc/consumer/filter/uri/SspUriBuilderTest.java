@@ -1,21 +1,17 @@
 package uk.nhs.adaptors.gpc.consumer.filter.uri;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
-import java.net.URI;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import uk.nhs.adaptors.gpc.consumer.filters.uri.SspUriBuilder;
+import uk.nhs.adaptors.gpc.consumer.filters.uri.SspUrlBuilder;
 
 @ExtendWith(MockitoExtension.class)
 public class SspUriBuilderTest {
@@ -28,38 +24,30 @@ public class SspUriBuilderTest {
         + "DocumentReference?_include=DocumentReference";
     private static final MultiValueMap<String, String> QUERY_PARAMS = new LinkedMultiValueMap<>();
 
-    @Mock
-    private ServerHttpRequest request;
-
-    @BeforeEach
-    public void setUp() {
-        when(request.getQueryParams()).thenReturn(QUERY_PARAMS);
-    }
-
     @Test
     public void When_BuildingSSPUriWithUriReturnedFromSDS_Expect_CorrectUriBuilt() {
-        Optional<URI> sspUriBuilder = new SspUriBuilder()
+        Optional<String> sspUrl = new SspUrlBuilder()
             .sspDomain(SSP_DOMAIN)
             .initialPath(INITIAL_REQUEST_PATH)
             .address(SDS_LOOKUP_ADDRESS)
             .structuredFhirBaseRegex(FHIR_RESOURCE_REGEX)
-            .buildSDS(request);
+            .buildSDS();
 
-        assertThat(sspUriBuilder.isPresent()).isTrue();
-        assertThat(sspUriBuilder.get().toString())
-            .isEqualTo("https://proxy.int.spine2.ncrs.nhs.uk/https:/supplierabc.internal.nhs.net/ABC/5/gpcdocuments/Patient/2/DocumentReference?_include=DocumentReference");
+        assertThat(sspUrl.isPresent()).isTrue();
+        assertThat(sspUrl.get())
+            .isEqualTo("https://proxy.int.spine2.ncrs.nhs.uk/https://supplierabc.internal.nhs.net/ABC/5/gpcdocuments/Patient/2/DocumentReference?_include=DocumentReference");
     }
 
     @Test
     public void When_BuildingSSPUriWithDirectGPCUrlFromConfiguration_Expect_CorrectUriBuilt() {
-        Optional<URI> sspUriBuilder = new SspUriBuilder()
+        Optional<String> sspUrl = new SspUrlBuilder()
             .sspDomain(SSP_DOMAIN)
             .initialPath(INITIAL_REQUEST_PATH)
             .address(GPC_ADDRESS)
-            .buildDirectGPC(request);
+            .buildDirectGPC();
 
-        assertThat(sspUriBuilder.isPresent()).isTrue();
-        assertThat(sspUriBuilder.get().toString())
-            .isEqualTo("https://proxy.int.spine2.ncrs.nhs.uk/https:/messagingportal.opentest.hscic.gov.uk:19192/GPABC123/STU3/1/gpconnect/documents/Patient/2/DocumentReference?_include=DocumentReference");
+        assertThat(sspUrl.isPresent()).isTrue();
+        assertThat(sspUrl.get())
+            .isEqualTo("https://proxy.int.spine2.ncrs.nhs.uk/https://messagingportal.opentest.hscic.gov.uk:19192/GPABC123/STU3/1/gpconnect/documents/Patient/2/DocumentReference?_include=DocumentReference");
     }
 }

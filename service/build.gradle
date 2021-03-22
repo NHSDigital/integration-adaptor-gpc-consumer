@@ -38,6 +38,7 @@ dependencies {
 	implementation 'com.heroku.sdk:env-keystore:1.1.6'
 
 	implementation 'org.apache.commons:commons-lang3:3.11'
+    implementation 'junit:junit:4.12'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
