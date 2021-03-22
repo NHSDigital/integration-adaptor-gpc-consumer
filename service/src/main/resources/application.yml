@@ -31,7 +31,7 @@ gpc-consumer:
     findPatientPath: ${GPC_CONSUMER_GPC_GET_PATIENT_PATH:/*/STU3/1/gpconnect/documents/Patient}
     documentPath: ${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/*/STU3/1/gpconnect/documents/Binary/**}
     structuredFhirBasePathRegex: (.*?)\/STU3/1/gpconnect/(.*?)\/
-    sspDomain: ${GPCC_SSP_FQDN:proxy.int.spine2.ncrs.nhs.uk}
+    sspDomain: ${GPCC_SSP_FQDN:proxy.opentest.hscic.gov.uk}
     sspEnabled: ${GPC_TLS_ENABLED:false}
   sds:
     url: ${GPC_CONSUMER_SDS_URL:http://localhost:8110/}

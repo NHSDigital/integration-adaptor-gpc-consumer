@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -79,11 +80,11 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<String> getSdsLookUpPathTransformation(ServerWebExchange exchange) {
-//        if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
-//            ServerHttpRequest serverHttpRequest = exchange.getRequest();
-//            return extractInteractionId(serverHttpRequest.getHeaders())
-//                .flatMap(id -> proceedSdsLookup(serverHttpRequest, id));
-//        }
+        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
+            ServerHttpRequest serverHttpRequest = exchange.getRequest();
+            return extractInteractionId(serverHttpRequest.getHeaders())
+                .flatMap(id -> proceedSdsLookup(serverHttpRequest, id));
+        }
 
         return Optional.empty();
     }
