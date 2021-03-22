@@ -40,7 +40,6 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
-    private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
     private final GpcConfiguration gpcConfiguration;
@@ -113,7 +112,7 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
-        return prepareLookupUrl(response.getAddress(), serverHttpRequest);
+        return Optional.of(response.getAddress());
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
@@ -145,12 +144,5 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
             }
         }
         return Optional.empty();
-    }
-
-    private Optional<String> prepareLookupUrl(String address, ServerHttpRequest serverHttpRequest) {
-        String url = address + serverHttpRequest.getPath().subPath(SDS_URI_OFFSET)
-            .toString()
-            .substring(1);
-        return Optional.of(url);
     }
 }
