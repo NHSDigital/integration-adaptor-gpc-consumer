@@ -4,31 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
-import io.netty.handler.ssl.SslContext;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import uk.nhs.adaptors.gpc.consumer.filters.SslContextBuilderWrapper;
-import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class RequestBuilderService {
     private static final int BYTE_COUNT = 16 * 1024 * 1024;
-
-    private final GpcConfiguration gpcConfiguration;
-
-    @SneakyThrows
-    public SslContext buildSSLContext() {
-        SslContextBuilderWrapper sslContextBuilderWrapper = new SslContextBuilderWrapper(
-            gpcConfiguration.getFormattedClientKey(),
-            gpcConfiguration.getFormattedClientCert(),
-            gpcConfiguration.getFormattedRootCA(),
-            gpcConfiguration.getFormattedSubCA());
-
-        return sslContextBuilderWrapper.buildSSLContext();
-    }
 
     public ExchangeStrategies buildExchangeStrategies() {
         return ExchangeStrategies

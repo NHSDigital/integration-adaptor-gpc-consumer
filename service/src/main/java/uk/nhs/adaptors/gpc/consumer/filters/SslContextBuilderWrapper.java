@@ -8,25 +8,40 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.lang3.StringUtils;
+
 import com.heroku.sdk.EnvKeyStore;
 
 import io.netty.handler.ssl.SslContext;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
+import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
 @Slf4j
 public class SslContextBuilderWrapper {
-    private final String clientKey;
-    private final String clientCert;
-    private final String rootCert;
-    private final String subCert;
+    private String clientKey;
+    private String clientCert;
+    private String rootCert;
+    private String subCert;
 
-    public SslContextBuilderWrapper(String clientKey, String clientCert, String rootCert, String subCert) {
-        this.clientCert = clientCert;
-        this.clientKey = clientKey;
-        this.rootCert = rootCert;
-        this.subCert = subCert;
+    public SslContextBuilderWrapper clientKey(String clientKey) {
+        this.clientKey = toPem(clientKey);
+        return this;
+    }
+
+    public SslContextBuilderWrapper clientCert(String clientCert) {
+        this.clientCert = toPem(clientCert);
+        return this;
+    }
+
+    public SslContextBuilderWrapper rootCert(String rootCert) {
+        this.rootCert = toPem(rootCert);
+        return this;
+    }
+
+    public SslContextBuilderWrapper subCert(String subCert) {
+        this.subCert = toPem(subCert);
+        return this;
     }
 
     @SneakyThrows
@@ -91,5 +106,9 @@ public class SslContextBuilderWrapper {
             .keyManager(keyManagerFactory)
             .trustManager(trustManagerFactory)
             .build();
+    }
+
+    private String toPem(String cert) {
+        return StringUtils.isNotBlank(cert) ? PemFormatter.format(cert) : StringUtils.EMPTY;
     }
 }

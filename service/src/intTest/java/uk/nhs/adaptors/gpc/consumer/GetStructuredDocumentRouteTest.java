@@ -9,17 +9,19 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
-    private static final String STRUCTURED_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord";
+    private static final String SDS_STRUCTURED_URI_ENCODED = SDS_LOOKUP_URI + "Patient/$gpc.getstructuredrecord";
+
     private static final String EXAMPLE_STRUCTURED_BODY = "{\"resourceType\":\"Bundle\","
         + "\"meta\":{\"profile\":[\"https://fhir.nhs"
         + ".uk/STU3/StructureDefinition/GPConnect-StructuredRecord-Bundle-1\"]},"
         + "\"type\":\"collection\",\"entry\":[]}";
     private static final String STRUCTURED_INTERACTION_ID =
         "urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1";
+    private static final String STRUCTURED_URI = "/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord";
 
     @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
-        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(STRUCTURED_URI))
+        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(SDS_STRUCTURED_URI_ENCODED))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)
                 .withBody(EXAMPLE_STRUCTURED_BODY)));
@@ -43,7 +45,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
 
     @Test
     public void When_MakingRequestForNonExistingStructuredDocument_Expect_NotFoundResponse() {
-        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(STRUCTURED_URI))
+        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo(SDS_STRUCTURED_URI_ENCODED))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_NOT_FOUND)
                 .withBody(EXPECTED_NOT_FOUND_BODY)));

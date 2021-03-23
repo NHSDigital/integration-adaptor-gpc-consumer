@@ -13,10 +13,9 @@ import org.springframework.web.server.ServerWebExchange;
 
 import io.netty.handler.ssl.SslContext;
 import reactor.netty.http.client.HttpClient;
-import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
 @Component
-public class SspRoutingFiler extends NettyRoutingFilter {
+public class TlsMutualAuthRoutingFilter extends NettyRoutingFilter {
     @Value("${gpc-consumer.gpc.clientKey}")
     private String clientKey;
     @Value("${gpc-consumer.gpc.clientCert}")
@@ -25,10 +24,8 @@ public class SspRoutingFiler extends NettyRoutingFilter {
     private String rootCA;
     @Value("${gpc-consumer.gpc.subCA}")
     private String subCA;
-    @Value("${gpc-consumer.gpc.sspEnabled}")
-    private String sspEnabled;
 
-    public SspRoutingFiler(
+    public TlsMutualAuthRoutingFilter(
         HttpClient httpClient,
         ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
         HttpClientProperties properties) {
@@ -37,14 +34,13 @@ public class SspRoutingFiler extends NettyRoutingFilter {
 
     @Override
     protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
-        if (sspEnabled.equals("true")) {
-            String clientKey = PemFormatter.format(this.clientKey);
-            String clientCert = PemFormatter.format(this.clientCert);
-            String rootCA = PemFormatter.format(this.rootCA);
-            String subCA = PemFormatter.format(this.subCA);
-            SslContext sslContext = new SslContextBuilderWrapper(clientKey, clientCert, rootCA, subCA).buildSSLContext();
-            return HttpClient.create().secure(t -> t.sslContext(sslContext));
-        }
-        return HttpClient.create();
+        SslContext sslContext = new SslContextBuilderWrapper()
+            .clientKey(clientKey)
+            .clientCert(clientCert)
+            .rootCert(rootCA)
+            .subCert(subCA)
+            .buildSSLContext();
+
+        return HttpClient.create().secure(t -> t.sslContext(sslContext));
     }
 }

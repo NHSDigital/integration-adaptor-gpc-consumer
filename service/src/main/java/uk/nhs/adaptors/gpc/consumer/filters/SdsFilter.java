@@ -1,5 +1,6 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.PathContainer;
@@ -20,19 +22,21 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-import uk.nhs.adaptors.gpc.consumer.filters.uri.SspUrlBuilder;
-import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
+import uk.nhs.adaptors.gpc.consumer.filters.uri.SdsUrlMapper;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class GpcUriFilter implements GlobalFilter, Ordered {
+public class SdsFilter implements GlobalFilter, Ordered {
+    public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+
     private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
@@ -42,55 +46,24 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
 
     private final SdsClient sdsClient;
-    private final GpcConfiguration gpcConfiguration;
+    private final SdsUrlMapper sdsUrlMapper;
 
     private Map<String, Function<String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        Optional<String> sdsLookUpUrl = getSdsLookUpPathTransformation(exchange);
-        Optional<String> sspUrl = Optional.empty();
-
-        if (gpcConfiguration.getSspEnabled()) {
-            ServerHttpRequest request = exchange.getRequest();
-            SspUrlBuilder sspUrlBuilder = new SspUrlBuilder()
-                .sspDomain(gpcConfiguration.getSspDomain())
-                .initialPath(request.getURI().getPath());
-
-            sspUrl = sdsLookUpUrl
-                .map(url -> sspUrlBuilder
-                    .address(url)
-                    .structuredFhirBaseRegex(gpcConfiguration.getStructuredFhirBasePathRegex())
-                    .buildSDS()
-                )
-                .orElseGet(() -> sspUrlBuilder
-                    .address(gpcConfiguration.getGpcUrl())
-                    .buildDirectGPC()
-                );
-        }
-
-        if (sspUrl.isPresent()) {
-            sspUrl.ifPresent(newUrl -> exchange.addUrlTransformer(url -> newUrl));
-        } else if (sdsLookUpUrl.isPresent()) {
-            sdsLookUpUrl.ifPresent(newUrl -> exchange.addUrlTransformer(url -> newUrl));
+        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
+            ServerHttpRequest serverHttpRequest = exchange.getRequest();
+            extractInteractionId(serverHttpRequest.getHeaders())
+                .ifPresent(id -> proceedSdsLookup(serverHttpRequest, exchange, id));
         }
 
         return chain.filter(exchange);
     }
 
-    private Optional<String> getSdsLookUpPathTransformation(ServerWebExchange exchange) {
-        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
-            ServerHttpRequest serverHttpRequest = exchange.getRequest();
-            return extractInteractionId(serverHttpRequest.getHeaders())
-                .flatMap(id -> proceedSdsLookup(serverHttpRequest, id));
-        }
-
-        return Optional.empty();
-    }
-
     @Override
     public int getOrder() {
-        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+        return SDS_FILTER_ORDER;
     }
 
     @PostConstruct
@@ -103,7 +76,8 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 
-    private Optional<String> proceedSdsLookup(ServerHttpRequest serverHttpRequest,
+    private void proceedSdsLookup(ServerHttpRequest serverHttpRequest,
+        ServerWebExchange exchange,
         String integrationId) {
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation)
@@ -112,7 +86,9 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
-        return Optional.of(response.getAddress());
+        prepareLookupUri(response.getAddress(), serverHttpRequest)
+            .ifPresent(uri -> exchange.getAttributes()
+                .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
@@ -144,5 +120,14 @@ public class GpcUriFilter implements GlobalFilter, Ordered {
             }
         }
         return Optional.empty();
+    }
+
+    private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {
+        String url = sdsUrlMapper.map(address, serverHttpRequest.getPath());
+        URI constructedUri = UriComponentsBuilder.fromUriString(url)
+            .queryParams(serverHttpRequest.getQueryParams())
+            .build()
+            .toUri();
+        return Optional.of(constructedUri);
     }
 }
