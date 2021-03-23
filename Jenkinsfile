@@ -1,6 +1,7 @@
 String tfProject      = "nia"
 String tfEnvironment  = "build1"
 String tfComponent    = "gpc-consumer"
+Boolean publishWiremockImage = false // true: To publish gpc-consumer wiremock image to AWS ECR gp2gp-wiremock
 
 pipeline {
     agent{
@@ -15,7 +16,9 @@ pipeline {
     environment {
         BUILD_TAG = sh label: 'Generating build tag', returnStdout: true, script: 'python3 scripts/tag.py ${GIT_BRANCH} ${BUILD_NUMBER} ${GIT_COMMIT}'
         ECR_REPO_DIR = "gpc-consumer"
+        WIREMOCK_ECR_REPO_DIR = "gpc-consumer-wiremock"
         DOCKER_IMAGE = "${DOCKER_REGISTRY}/${ECR_REPO_DIR}:${BUILD_TAG}"
+        WIREMOCK_DOCKER_IMAGE = "${DOCKER_REGISTRY}/${WIREMOCK_ECR_REPO_DIR}:${BUILD_TAG}"
     }
 
     stages {
@@ -60,6 +63,9 @@ pipeline {
                     steps {
                         script {
                             if (sh(label: 'Running gpc-consumer docker build', script: 'docker build -f docker/service/Dockerfile -t ${DOCKER_IMAGE} .', returnStatus: true) != 0) {error("Failed to build gpc-consumer Docker image")}
+                            if (publishWiremockImage) {
+                                if (sh(label: 'Running gpc-consumer-wiremock docker build', script: 'docker build -f docker/wiremock/Dockerfile -t ${WIREMOCK_DOCKER_IMAGE} docker/wiremock', returnStatus: true) != 0) {error("Failed to build gpc-consumerm-wiremock Docker image")}
+                            }
                         }
                     }
                 }
@@ -73,31 +79,37 @@ pipeline {
                             if (ecrLogin(TF_STATE_BUCKET_REGION) != 0 )  { error("Docker login to ECR failed") }
                             String dockerPushCommand = "docker push ${DOCKER_IMAGE}"
                             if (sh (label: "Pushing image", script: dockerPushCommand, returnStatus: true) !=0) { error("Docker push gpc-consumer image failed") }
+                            
+                            String dockerPushCommandWiremock = "docker push ${WIREMOCK_DOCKER_IMAGE}"
+                            if (publishWiremockImage) {
+                                if (sh (label: "Pushing Wiremock image", script: dockerPushCommandWiremock, returnStatus: true) !=0) { error("Docker push gpc-consumer-wiremock image failed") }
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    stage('Deploy & Test') {
-        options {
-            lock("${tfProject}-${tfEnvironment}-${tfComponent}")
-        }
-        stages {
+    
+        stage('Deploy & Test') {
+            options {
+                lock("${tfProject}-${tfEnvironment}-${tfComponent}")
+            }
+            stages {
 
-            stage('Deploy using Terraform') {
-                steps {
-                    script {
-                        String tfCodeBranch  = "develop"
-                        String tfCodeRepo    = "https://github.com/nhsconnect/integration-adaptors"
-                        String tfRegion      = "${TF_STATE_BUCKET_REGION}"
-                        List<String> tfParams = []
-                        Map<String,String> tfVariables = ["${tfComponent}_build_id": BUILD_TAG]
-                        dir ("integration-adaptors") {
-                            git (branch: tfCodeBranch, url: tfCodeRepo)
-                            dir ("terraform/aws") {
-                            if (terraformInit(TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion) !=0) { error("Terraform init failed")}
-                            if (terraform('apply', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { error("Terraform Apply failed")}
+                stage('Deploy using Terraform') {
+                    steps {
+                        script {
+                            String tfCodeBranch  = "develop"
+                            String tfCodeRepo    = "https://github.com/nhsconnect/integration-adaptors"
+                            String tfRegion      = "${TF_STATE_BUCKET_REGION}"
+                            List<String> tfParams = []
+                            Map<String,String> tfVariables = ["${tfComponent}_build_id": BUILD_TAG]
+                            dir ("integration-adaptors") {
+                                git (branch: tfCodeBranch, url: tfCodeRepo)
+                                dir ("terraform/aws") {
+                                if (terraformInit(TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion) !=0) { error("Terraform init failed")}
+                                if (terraform('apply', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { error("Terraform Apply failed")}
+                                }
                             }
                         }
                     }
