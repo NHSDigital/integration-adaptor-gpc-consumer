@@ -20,7 +20,6 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_TIMEOUT = 10;
     private static final String LOCALHOST_URI = "http://localhost:";
     protected static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
-    protected static final String GPC_URL_ENVIRONMENT_VARIABLE_NAME = "GPC_CONSUMER_GPC_GET_URL";
     protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
     protected static final String ENDPOINT = "/Endpoint";
     protected static final String SSP_FROM_HEADER = "Ssp-From";
@@ -65,6 +64,5 @@ public class CloudGatewayRouteBaseTest {
     @AfterEach
     public void tearDown() {
         WIRE_MOCK_SERVER.resetAll();
-        System.clearProperty(GPC_URL_ENVIRONMENT_VARIABLE_NAME);
     }
 }
