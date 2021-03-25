@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- NIAD-1153 make GP2GP adaptor uses GPC consumer
+- NIAD-1153 Fixes incorrect encoding of query parameters
 
 ## [0.0.1] - 2021-03-17
 
