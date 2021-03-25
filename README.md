@@ -17,7 +17,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 
 | Environment Variable                        | Default                   | Description
 | --------------------------------------------|---------------------------|-------------
-| GPC_CONSUMER_SERVER_PORT                    | 8080                      | The port on which the GPC Consumer Adaptor will run.
+| GPC_CONSUMER_SERVER_PORT                    | 8090                      | The port on which the GPC Consumer Adaptor will run.
 | GPC_CONSUMER_ROOT_LOGGING_LEVEL             | WARN                      | The logging level applied to the entire application (including third-party dependencies).
 | GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
@@ -26,7 +26,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 
 | Environment Variable                        | Default                                                        | Description
 | --------------------------------------------|----------------------------------------------------------------|-------------
-| GPC_CONSUMER_URL                            | http://localhost:8080                                          | Base URL for GPC Consumer service.
+| GPC_CONSUMER_URL                            | http://localhost:8090                                          | Base URL for GPC Consumer service.
 | GPC_CONSUMER_GPC_GET_URL                    | http://localhost:8110                                          | Base URL for GPC service. If it is not set, the SDS Filter will be omitted.
 | GPC_CONSUMER_GPC_STRUCTURED_PATH            | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
 | GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
