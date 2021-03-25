@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
+import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 
 @Component
 @Slf4j
@@ -41,6 +42,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
+    private static final String PIPE = "|";
+    private static final String COLON = ":";
+    private static final String ENCODED_COLON = "%3A";
     private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
@@ -49,11 +53,12 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (StringUtils.isBlank(System.getProperty(GPC_URL_ENVIRONMENT_VARIABLE))) {
+        if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
             ServerHttpRequest serverHttpRequest = exchange.getRequest();
             extractInteractionId(serverHttpRequest.getHeaders())
-                .ifPresent(id -> proceedSdsLookup(serverHttpRequest, exchange, id));
+                .ifPresent(id -> proceedSdsLookup(exchange, id));
         }
+        QueryParamsEncoder.encodeQueryParams(exchange);
 
         return chain.filter(exchange);
     }
@@ -73,9 +78,8 @@ public class SdsFilter implements GlobalFilter, Ordered {
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 
-    private void proceedSdsLookup(ServerHttpRequest serverHttpRequest,
-            ServerWebExchange exchange,
-            String integrationId) {
+    private void proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
+        ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation)
             .orElseThrow(() -> new SdsException(
