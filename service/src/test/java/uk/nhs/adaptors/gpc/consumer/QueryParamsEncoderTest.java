@@ -33,8 +33,6 @@ public class QueryParamsEncoderTest {
     private static final String TEST_URI = "http://www.testhost.com";
     private static final String TEST_URI_WITH_REGULAR_PARAMETERS
         = "http://www.testhost.com?first=firstValue&second=secondValue";
-    private static final String TEST_URI_WITH_ENCODING_PARAMETERS
-        = "http://www.testhost.com?first=test1:test2&second=tes1|test2";
     private static final String TEST_URI_WITH_ENCODED_PARAMETERS
         = "http://www.testhost.com?first=test1%3Atest2&second=test1%7Ctest2";
     private static final Map<String, Object> ATTRIBUTES = new HashMap<>();
@@ -86,8 +84,8 @@ public class QueryParamsEncoderTest {
     private static Stream<Arguments> uriParams() {
         return Stream.of(
             Arguments.of(TEST_URI, new LinkedMultiValueMap<>(), TEST_URI),
-            Arguments.of(TEST_URI_WITH_REGULAR_PARAMETERS, regularQueryParams, TEST_URI_WITH_REGULAR_PARAMETERS),
-            Arguments.of(TEST_URI_WITH_ENCODING_PARAMETERS, encodingQueryParams, TEST_URI_WITH_ENCODED_PARAMETERS)
+            Arguments.of(TEST_URI, regularQueryParams, TEST_URI_WITH_REGULAR_PARAMETERS),
+            Arguments.of(TEST_URI, encodingQueryParams, TEST_URI_WITH_ENCODED_PARAMETERS)
         );
     }
 
