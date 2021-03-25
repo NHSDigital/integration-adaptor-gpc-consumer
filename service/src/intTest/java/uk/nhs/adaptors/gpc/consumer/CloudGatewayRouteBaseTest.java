@@ -28,20 +28,43 @@ public class CloudGatewayRouteBaseTest {
     protected static final String SSP_TRACE_ID_HEADER = "Ssp-TraceID";
     protected static final String ANY_STRING = "any";
     protected static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/documents/Binary/07a6483f-732b-461e-86b6-edb665c45510";
-    protected static final String EXPECTED_DOCUMENT_BODY = "{\"resourceType\": \"Binary\","
-        + "\"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
-        + "\"contentType\": \"application/msword\","
-        + "\"content\": \"response content\"}";
+    protected static final String EXPECTED_DOCUMENT_BODY = "{"
+        + " \"resourceType\": \"Binary\","
+        + " \"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
+        + " \"contentType\": \"application/msword\","
+        + " \"content\": \"response content\""
+        + "}";
     protected static final String DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
     protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
-    protected static final String EXAMPLE_SDS_BODY = "{\"resourceType\":\"Bundle\","
-        + "\"id\":\"47DBB1CA-256D-410E-B00B-C19C1F13E9F6\","
-        + "\"entry\":[{\"resource\":{\"resourceType\":\"Endpoint\",\"id\":\"307B4278-DFED-4A27-8B51-1539DB1B2C62\","
-        + "\"address\":\"%s/GP0001/STU3/1/gpconnect/\"}}]}";
-    protected static final String EXPECTED_NOT_FOUND_BODY = "{\"resourceType\": \"OperationOutcome\",\"meta\": {\"profile\": "
-        + "[\"https://fhir.nhs.uk/StructureDefinition/gpconnect-operationoutcome-1\" ]},\"issue\": [{\"severity\": \"error\","
-        + "\"code\": \"invalid\",\"details\": {\"coding\":[{\"system\": \"https://fhir.nhs.uk/ValueSet/gpconnect-error-or-warning-code-1\","
-        + "\"code\": \"NO_RECORD_FOUND\",\"display\": \"No Record Found\"}]},\"diagnostics\": \"No record found\"}]}";
+    protected static final String EXAMPLE_SDS_BODY = "{"
+        + " \"resourceType\":\"Bundle\","
+        + " \"id\":\"47DBB1CA-256D-410E-B00B-C19C1F13E9F6\","
+        + " \"entry\":[{"
+        + "     \"resource\":{"
+        + "         \"resourceType\":\"Endpoint\","
+        + "         \"id\":\"307B4278-DFED-4A27-8B51-1539DB1B2C62\","
+        + "         \"address\":\"%s/GP0001/STU3/1/gpconnect/\""
+        + "     }"
+        + " }]"
+        + "}";
+    protected static final String EXPECTED_NOT_FOUND_BODY = "{"
+        + " \"resourceType\": \"OperationOutcome\","
+        + " \"meta\": {"
+        + "     \"profile\":[\"https://fhir.nhs.uk/StructureDefinition/gpconnect-operationoutcome-1\" ]"
+        + " },"
+        + " \"issue\": [{"
+        + "     \"severity\": \"error\","
+        + "     \"code\": \"invalid\","
+        + "     \"details\": {"
+        + "         \"coding\":[{"
+        + "             \"system\": \"https://fhir.nhs.uk/ValueSet/gpconnect-error-or-warning-code-1\","
+        + "             \"code\": \"NO_RECORD_FOUND\","
+        + "             \"display\": \"No Record Found\""
+        + "         }]"
+        + "     },"
+        + "     \"diagnostics\": \"No record found\""
+        + " }]"
+        + "}";
 
     @LocalServerPort
     private int port = 0;
