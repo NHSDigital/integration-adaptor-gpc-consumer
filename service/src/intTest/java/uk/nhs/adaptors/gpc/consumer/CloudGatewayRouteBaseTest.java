@@ -20,13 +20,20 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_TIMEOUT = 10;
     private static final String LOCALHOST_URI = "http://localhost:";
     protected static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
-    protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
+    protected static final String GPC_URL_ENVIRONMENT_VARIABLE_NAME = "GPC_CONSUMER_GPC_GET_URL";
     protected static final String ENDPOINT = "/Endpoint";
     protected static final String SSP_FROM_HEADER = "Ssp-From";
     protected static final String SSP_TO_HEADER = "Ssp-To";
     protected static final String SSP_INTERACTION_ID_HEADER = "Ssp-InteractionID";
     protected static final String SSP_TRACE_ID_HEADER = "Ssp-TraceID";
     protected static final String ANY_STRING = "any";
+    protected static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/documents/Binary/07a6483f-732b-461e-86b6-edb665c45510";
+    protected static final String EXPECTED_DOCUMENT_BODY = "{\"resourceType\": \"Binary\","
+        + "\"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
+        + "\"contentType\": \"application/msword\","
+        + "\"content\": \"response content\"}";
+    protected static final String DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
+    protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
     protected static final String EXAMPLE_SDS_BODY = "{\"resourceType\":\"Bundle\","
         + "\"id\":\"47DBB1CA-256D-410E-B00B-C19C1F13E9F6\","
         + "\"entry\":[{\"resource\":{\"resourceType\":\"Endpoint\",\"id\":\"307B4278-DFED-4A27-8B51-1539DB1B2C62\","
