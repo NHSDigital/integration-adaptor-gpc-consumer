@@ -24,13 +24,19 @@ public class SspFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         if (isSspEnabled()) {
-            exchange.addUrlTransformer(url -> getSspUrlPrefix() + url);
+            var sspPrefix = gpcConfiguration.getSspDomain();
+            LOGGER.info("SSP is enabled. Prepending the destination URL the the SSP URL: {}", sspPrefix);
+            exchange.addUrlTransformer(this::transformUrl);
+        } else {
+            LOGGER.info("SSP is disabled");
         }
         return chain.filter(exchange);
     }
 
-    private String getSspUrlPrefix() {
-        return gpcConfiguration.getSspDomain();
+    private String transformUrl(String url) {
+        var transformed = gpcConfiguration.getSspDomain() + url;
+        LOGGER.info("Replacing original destination URL {} with the SSP url {}", url, transformed);
+        return transformed;
     }
 
     private boolean isSspEnabled() {

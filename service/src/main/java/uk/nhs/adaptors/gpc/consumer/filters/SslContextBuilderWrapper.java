@@ -47,8 +47,10 @@ public class SslContextBuilderWrapper {
     @SneakyThrows
     public SslContext buildSSLContext() {
         if (shouldBuildSslContext()) {
+            LOGGER.info("Building an SSL context with client certificates for TLS MA");
             return buildSSLContextWithClientCertificates();
         }
+        LOGGER.info("Building a standard SSL context without client certificates");
         return io.netty.handler.ssl.SslContextBuilder.forClient().build();
     }
 
