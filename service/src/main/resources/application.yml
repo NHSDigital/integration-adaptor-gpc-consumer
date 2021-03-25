@@ -10,9 +10,6 @@ logging:
         cloud:
           gateway: ERROR
 
-zuul:
-  forceOriginalQueryStringEncoding: true
-
 management:
   endpoints:
     web:
