@@ -11,7 +11,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-public class QueryParamsEncoder {
+public final class QueryParamsEncoder {
     private QueryParamsEncoder() {
     }
 
