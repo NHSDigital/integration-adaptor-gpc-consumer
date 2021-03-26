@@ -127,10 +127,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     private String extractSspTraceId(HttpHeaders httpHeaders) {
         if (httpHeaders.containsKey(SSP_TRACE_ID)) {
-            List<String> interactionIds = httpHeaders.get(SSP_TRACE_ID);
+            List<String> sspTraceIds = httpHeaders.get(SSP_TRACE_ID);
 
-            if (!CollectionUtils.isEmpty(interactionIds)) {
-                return interactionIds.get(0);
+            if (!CollectionUtils.isEmpty(sspTraceIds)) {
+                return sspTraceIds.get(0);
             }
         }
         throw new SdsException("Missing Ssp-TraceID Header for X-Correlation-Id for SDS Request");
