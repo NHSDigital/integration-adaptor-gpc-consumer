@@ -4,6 +4,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
+import java.util.UUID;
+
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +33,7 @@ public class EnvironmentSdsFilterTest extends CloudGatewayRouteBaseTest {
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_INTERACTION_ID)
-            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
+            .header(SSP_TRACE_ID_HEADER, RANDOM_UUID)
             .exchange()
             .expectStatus()
             .isOk()

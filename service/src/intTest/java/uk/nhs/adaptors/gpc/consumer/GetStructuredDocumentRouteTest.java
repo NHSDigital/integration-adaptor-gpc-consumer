@@ -18,7 +18,6 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
         + "\"type\":\"collection\",\"entry\":[]}";
     private static final String STRUCTURED_INTERACTION_ID =
         "urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1";
-    private static final String RANDOM_UUID = String.valueOf(UUID.randomUUID());
 
     @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
