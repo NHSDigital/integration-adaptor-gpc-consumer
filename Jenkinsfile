@@ -90,32 +90,32 @@ pipeline {
             }
         }
     
-        stage('Deploy & Test') {
-            options {
-                lock("${tfProject}-${tfEnvironment}-${tfComponent}")
-            }
-            stages {
+        // stage('Deploy & Test') {
+        //     options {
+        //         lock("${tfProject}-${tfEnvironment}-${tfComponent}")
+        //     }
+        //     stages {
 
-                stage('Deploy using Terraform') {
-                    steps {
-                        script {
-                            String tfCodeBranch  = "develop"
-                            String tfCodeRepo    = "https://github.com/nhsconnect/integration-adaptors"
-                            String tfRegion      = "${TF_STATE_BUCKET_REGION}"
-                            List<String> tfParams = []
-                            Map<String,String> tfVariables = ["${tfComponent}_build_id": BUILD_TAG]
-                            dir ("integration-adaptors") {
-                                git (branch: tfCodeBranch, url: tfCodeRepo)
-                                dir ("terraform/aws") {
-                                if (terraformInit(TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion) !=0) { error("Terraform init failed")}
-                                if (terraform('apply', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { error("Terraform Apply failed")}
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //         stage('Deploy using Terraform') {
+        //             steps {
+        //                 script {
+        //                     String tfCodeBranch  = "develop"
+        //                     String tfCodeRepo    = "https://github.com/nhsconnect/integration-adaptors"
+        //                     String tfRegion      = "${TF_STATE_BUCKET_REGION}"
+        //                     List<String> tfParams = []
+        //                     Map<String,String> tfVariables = ["${tfComponent}_build_id": BUILD_TAG]
+        //                     dir ("integration-adaptors") {
+        //                         git (branch: tfCodeBranch, url: tfCodeRepo)
+        //                         dir ("terraform/aws") {
+        //                         if (terraformInit(TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion) !=0) { error("Terraform init failed")}
+        //                         if (terraform('apply', TF_STATE_BUCKET, tfProject, tfEnvironment, tfComponent, tfRegion, tfVariables) !=0 ) { error("Terraform Apply failed")}
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }  //stage Deploy & Test
     }
     post {
         always {
