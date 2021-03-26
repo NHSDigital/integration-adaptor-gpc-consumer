@@ -12,7 +12,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.UUID;
+import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 
@@ -41,6 +42,7 @@ import uk.nhs.adaptors.gpc.consumer.testcontainers.WiremockExtension;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SdsClientComponentTest {
     private static final String FROM_ODS_CODE = "ABC123";
+    private static final String SSP_TRACE_ID = String.valueOf(UUID.randomUUID());
     private static final String ADDRESS = "http://test/";
 
     private static final String GET_STRUCTURED_INTERACTION =
@@ -73,7 +75,7 @@ public class SdsClientComponentTest {
     @Value("classpath:sds/sds_error_response.json")
     private Resource sdsErrorResponse;
 
-    private static List<Pair<String, Function<String, Optional<SdsClient.SdsResponseData>>>> allInteractions;
+    private static List<Pair<String, BiFunction<String, String, Optional<SdsClient.SdsResponseData>>>> allInteractions;
 
     @PostConstruct
     public void postConstruct() {
@@ -94,6 +96,7 @@ public class SdsClientComponentTest {
                 .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + FROM_ODS_CODE))
                 .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId|" + interaction))
                 .withHeader("apikey", matching(".*"))
+                .withHeader("X-Correlation-Id", matching("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "application/fhir+json")
                 .withBody(response)));
@@ -112,7 +115,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID);
             assertThat(retrievedSdsData)
                 .isNotEmpty()
                 .hasValue(SdsClient.SdsResponseData.builder().address(ADDRESS).build());
@@ -125,7 +128,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoResultResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID);
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -137,7 +140,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoAddressResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID);
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -149,7 +152,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE))
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID))
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });

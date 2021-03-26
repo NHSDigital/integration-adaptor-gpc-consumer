@@ -37,27 +37,28 @@ public class SdsRequestBuilder {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
 
     private static final String API_KEY_HEADER = "apikey";
+    private static final String X_CORRELATION_ID_HEADER ="X-Correlation-Id";
     private final SdsConfiguration sdsConfiguration;
     private final RequestBuilderService requestBuilderService;
     private final WebClientFilterService webClientFilterService;
 
-    public WebClient.RequestHeadersSpec<?> buildGetStructuredRecordRequest(String fromOdsCode) {
-        return buildRequest(fromOdsCode, GET_STRUCTURED_INTERACTION);
+    public WebClient.RequestHeadersSpec<?> buildGetStructuredRecordRequest(String fromOdsCode, String correlationId) {
+        return buildRequest(fromOdsCode, GET_STRUCTURED_INTERACTION, correlationId);
     }
 
-    public WebClient.RequestHeadersSpec<?> buildPatientSearchAccessDocumentRequest(String fromOdsCode) {
-        return buildRequest(fromOdsCode, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
+    public WebClient.RequestHeadersSpec<?> buildPatientSearchAccessDocumentRequest(String fromOdsCode, String correlationId) {
+        return buildRequest(fromOdsCode, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION, correlationId);
     }
 
-    public WebClient.RequestHeadersSpec<?> buildSearchForDocumentRequest(String fromOdsCode) {
-        return buildRequest(fromOdsCode, SEARCH_FOR_DOCUMENT_INTERACTION);
+    public WebClient.RequestHeadersSpec<?> buildSearchForDocumentRequest(String fromOdsCode, String correlationId) {
+        return buildRequest(fromOdsCode, SEARCH_FOR_DOCUMENT_INTERACTION, correlationId);
     }
 
-    public WebClient.RequestHeadersSpec<?> buildRetrieveDocumentRequest(String fromOdsCode) {
-        return buildRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION);
+    public WebClient.RequestHeadersSpec<?> buildRetrieveDocumentRequest(String fromOdsCode, String correlationId) {
+        return buildRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION, correlationId);
     }
 
-    private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildRequest(String odsCode, String interaction) {
+    private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildRequest(String odsCode, String interaction, String correlationId) {
         var sslContext = requestBuilderService.buildSSLContext();
         var httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
         return buildWebClient(httpClient)
@@ -67,7 +68,8 @@ public class SdsRequestBuilder {
                 .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + odsCode)
                 .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE + interaction)
                 .build())
-            .header(API_KEY_HEADER, sdsConfiguration.getApiKey());
+            .header(API_KEY_HEADER, sdsConfiguration.getApiKey())
+            .header(X_CORRELATION_ID_HEADER, correlationId);
     }
 
     private WebClient buildWebClient(HttpClient httpClient) {
