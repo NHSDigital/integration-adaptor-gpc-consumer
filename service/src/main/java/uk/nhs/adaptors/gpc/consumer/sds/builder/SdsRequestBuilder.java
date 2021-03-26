@@ -37,7 +37,7 @@ public class SdsRequestBuilder {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
 
     private static final String API_KEY_HEADER = "apikey";
-    private static final String X_CORRELATION_ID_HEADER ="X-Correlation-Id";
+    private static final String X_CORRELATION_ID_HEADER = "X-Correlation-Id";
     private final SdsConfiguration sdsConfiguration;
     private final RequestBuilderService requestBuilderService;
     private final WebClientFilterService webClientFilterService;
@@ -58,7 +58,8 @@ public class SdsRequestBuilder {
         return buildRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION, correlationId);
     }
 
-    private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildRequest(String odsCode, String interaction, String correlationId) {
+    private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildRequest(String odsCode, String interaction,
+        String correlationId) {
         var sslContext = requestBuilderService.buildSSLContext();
         var httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
         return buildWebClient(httpClient)
