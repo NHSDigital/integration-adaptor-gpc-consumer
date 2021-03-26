@@ -1,16 +1,21 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+
+import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -24,40 +29,33 @@ import org.springframework.web.server.ServerWebExchange;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class LoggingGlobalFilter implements Ordered, GlobalFilter {
-    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
-    private static final String PROXY_LOG_TEMPLATE = "Global filter log: %s Request Url: %s, Destination Request Url: %s";
-    private static final String LOG_TEMPLATE = "Global filter log: %s Request Url: %s";
+public class LoggingGlobalFilter implements GlobalFilter, Ordered {
+    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To");
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
-    private static final int PRIORITY = -2;
-    private static final String REQUEST_ID = "RequestId";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-        applyRequestId(exchange.getLogPrefix());
-        if (route != null) {
-            LOGGER.info(String.format(PROXY_LOG_TEMPLATE,
-                prepareHeaderLog(exchange.getRequest().getHeaders()),
-                exchange.getRequest().getURI().getPath(),
-                route.getUri().getPath() + exchange.getRequest().getPath().toString()));
-        } else {
-            LOGGER.info(String.format(LOG_TEMPLATE,
-                prepareHeaderLog(exchange.getRequest().getHeaders()),
-                exchange.getRequest().getURI()));
-        }
-        resetMDCKeys();
+        MdcUtil.applyHeadersToMdc(exchange);
+        Set<URI> uris = exchange.getAttributeOrDefault(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, Collections.emptySet());
+        String originalUri = uris.isEmpty() ? exchange.getRequest().getURI().toString() : uris.iterator().next().toString();
+        URI routeUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+        Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+        String routeId = route != null ? route.getId() : StringUtils.EMPTY;
+        LOGGER.info("Incoming request {} is routed to id: {}, uri: {} with headers: {}",
+            originalUri, routeId, routeUri,
+            prepareHeaderLog(exchange.getRequest().getHeaders()));
         return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange)).build());
     }
 
     @Override
     public int getOrder() {
-        return PRIORITY;
+        return LOWEST_PRECEDENCE;
     }
 
     private String prepareHeaderLog(HttpHeaders httpHeaders) {
@@ -79,36 +77,25 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
             @Override
             public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
                 return DataBufferUtils.join(body)
-                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer, exchange.getLogPrefix()));
+                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer));
             }
         };
     }
 
-    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer, String requestId) {
-        applyRequestId(requestId);
+    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer) {
         if (response != null && dataBuffer != null) {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
             } else {
                 LOGGER.info("Request was successful");
             }
-            resetMDCKeys();
             return response.writeWith(Mono.just(dataBuffer));
         }
-
         return Mono.empty();
     }
 
     private boolean isErrorResponseCode(ServerHttpResponse response) {
         HttpStatus httpStatus = response.getStatusCode();
         return httpStatus != null && !httpStatus.is2xxSuccessful();
-    }
-
-    private static void applyRequestId(String requestId) {
-        MDC.put(REQUEST_ID, requestId);
-    }
-
-    private static void resetMDCKeys() {
-        MDC.clear();
     }
 }
