@@ -29,7 +29,10 @@ public class DirectGpcFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (StringUtils.isNotBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
+        var gpcProviderUrlOverride = System.getenv(GPC_URL_ENVIRONMENT_VARIABLE);
+        if (StringUtils.isNotBlank(gpcProviderUrlOverride)) {
+            LOGGER.info("SDS is not enabled. Using the value of {} for the GPC Provider endpoint: {}",
+                GPC_URL_ENVIRONMENT_VARIABLE, gpcProviderUrlOverride);
             URI requestUri = exchange.getRequest().getURI();
             URI resolvedUri = requestUri.resolve(
                 requestUri

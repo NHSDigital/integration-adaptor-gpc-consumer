@@ -53,6 +53,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
+            LOGGER.info("SDS is enabled. Using SDS API for service discovery");
             ServerHttpRequest serverHttpRequest = exchange.getRequest();
             extractInteractionId(serverHttpRequest.getHeaders())
                 .ifPresent(id -> proceedSdsLookup(exchange, id));
@@ -86,6 +87,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
+        LOGGER.info("Found GP connect provider endpoint in sds: {}", response.getAddress());
         prepareLookupUri(response.getAddress(), serverHttpRequest)
             .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));

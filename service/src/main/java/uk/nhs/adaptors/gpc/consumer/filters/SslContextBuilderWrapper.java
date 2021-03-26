@@ -47,8 +47,10 @@ public class SslContextBuilderWrapper {
     @SneakyThrows
     public SslContext buildSSLContext() {
         if (shouldBuildSslContext()) {
+            LOGGER.info("Using SSL context with client certificates for TLS mutual authentication.");
             return buildSSLContextWithClientCertificates();
         }
+        LOGGER.info("Using standard SSL context. TLS mutual authentication is not enabled.");
         return io.netty.handler.ssl.SslContextBuilder.forClient().build();
     }
 

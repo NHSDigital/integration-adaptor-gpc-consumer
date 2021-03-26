@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
-    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
+    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID", "Authorization");
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
     private static final String REQUEST_ID = "RequestId";
