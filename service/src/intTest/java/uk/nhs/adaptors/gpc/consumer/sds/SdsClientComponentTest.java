@@ -42,7 +42,7 @@ import uk.nhs.adaptors.gpc.consumer.testcontainers.WiremockExtension;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SdsClientComponentTest {
     private static final String FROM_ODS_CODE = "ABC123";
-    private static final String SSP_TRACE_ID = String.valueOf(UUID.randomUUID());
+    private static final String X_CORRELATION_ID = String.valueOf(UUID.randomUUID());
     private static final String ADDRESS = "http://test/";
 
     private static final String GET_STRUCTURED_INTERACTION =
@@ -115,7 +115,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID);
             assertThat(retrievedSdsData)
                 .isNotEmpty()
                 .hasValue(SdsClient.SdsResponseData.builder().address(ADDRESS).build());
@@ -128,7 +128,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoResultResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID);
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -140,7 +140,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoAddressResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID);
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -152,7 +152,29 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, SSP_TRACE_ID))
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID))
+                .isInstanceOf(SdsException.class);
+            wireMockServer.resetAll();
+        });
+    }
+
+    @Test
+    public void When_NoXCorrelationIdPresent_Expect_Exception() {
+        allInteractions.forEach(pair -> {
+            wireMockServer.resetAll();
+            stubEndpointError();
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, null))
+                .isInstanceOf(SdsException.class);
+            wireMockServer.resetAll();
+        });
+    }
+
+    @Test
+    public void When_InvalidXCorrelationId_Expect_Exception() {
+        allInteractions.forEach(pair -> {
+            wireMockServer.resetAll();
+            stubEndpointError();
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, "not-UUID"))
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });

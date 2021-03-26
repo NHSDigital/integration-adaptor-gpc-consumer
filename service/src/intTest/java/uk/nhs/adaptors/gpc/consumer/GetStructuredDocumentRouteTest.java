@@ -5,6 +5,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
+import java.util.UUID;
+
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +18,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
         + "\"type\":\"collection\",\"entry\":[]}";
     private static final String STRUCTURED_INTERACTION_ID =
         "urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1";
+    private static final String RANDOM_UUID = String.valueOf(UUID.randomUUID());
 
     @Test
     public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
@@ -33,7 +36,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, STRUCTURED_INTERACTION_ID)
-            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
+            .header(SSP_TRACE_ID_HEADER, RANDOM_UUID)
             .exchange()
             .expectStatus()
             .isOk()
@@ -57,7 +60,7 @@ public class GetStructuredDocumentRouteTest extends CloudGatewayRouteBaseTest {
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, STRUCTURED_INTERACTION_ID)
-            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
+            .header(SSP_TRACE_ID_HEADER, RANDOM_UUID)
             .exchange()
             .expectStatus()
             .isNotFound()
