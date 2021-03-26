@@ -39,9 +39,12 @@ dependencies {
 
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
 	testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
+	testImplementation 'uk.org.webcompere:system-stubs-jupiter:1.2.0'
+	testImplementation "org.assertj:assertj-core:3.18.1"
 
 	constraints {
 		implementation('org.bouncycastle:bcprov-jdk15on:1.68') {
