@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 
@@ -36,6 +36,8 @@ import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
+    public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+
     private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
@@ -43,19 +45,18 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
-    private static final String PIPE = "|";
-    private static final String COLON = ":";
-    private static final String ENCODED_COLON = "%3A";
+    private static final String SSP_TRACE_ID = "Ssp-TraceID";
     private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
 
-    private Map<String, Function<String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
+    private Map<String, BiFunction<String, String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         MdcUtil.applyHeadersToMdc(exchange);
         if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
+            LOGGER.info("SDS is enabled. Using SDS API for service discovery");
             ServerHttpRequest serverHttpRequest = exchange.getRequest();
             extractInteractionId(serverHttpRequest.getHeaders())
                 .ifPresent(id -> proceedSdsLookup(exchange, id));
@@ -83,24 +84,26 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private void proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOrganisation(serverHttpRequest.getPath());
-        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation)
+        var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
+        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId)
             .orElseThrow(() -> new SdsException(
                 String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
                     integrationId,
                     organisation))
             );
+        LOGGER.info("Found GP connect provider endpoint in sds: {}", response.getAddress());
         prepareLookupUri(response.getAddress(), serverHttpRequest)
             .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            String organisation) {
+            String organisation, String sspTraceId) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
             LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
-                .apply(organisation);
+                .apply(organisation, sspTraceId);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
@@ -123,6 +126,17 @@ public class SdsFilter implements GlobalFilter, Ordered {
             }
         }
         return Optional.empty();
+    }
+
+    private String extractSspTraceId(HttpHeaders httpHeaders) {
+        if (httpHeaders.containsKey(SSP_TRACE_ID)) {
+            List<String> sspTraceIds = httpHeaders.get(SSP_TRACE_ID);
+
+            if (!CollectionUtils.isEmpty(sspTraceIds)) {
+                return sspTraceIds.get(0);
+            }
+        }
+        throw new SdsException("Missing Ssp-TraceID Header for X-Correlation-Id for SDS Request");
     }
 
     private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {

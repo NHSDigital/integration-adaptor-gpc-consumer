@@ -34,13 +34,10 @@ import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
 @Component
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class LoggingGlobalFilter implements Ordered, GlobalFilter {
+public class LoggingGlobalFilter implements GlobalFilter, Ordered {
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
-    private static final String PROXY_LOG_TEMPLATE = "Global filter log: %s Request Url: %s, Destination Request Url: %s";
-    private static final String LOG_TEMPLATE = "Global filter log: %s Request Url: %s";
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
-    private static final int PRIORITY = -2;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -58,7 +55,7 @@ public class LoggingGlobalFilter implements Ordered, GlobalFilter {
 
     @Override
     public int getOrder() {
-        return PRIORITY;
+        return LOWEST_PRECEDENCE;
     }
 
     private String prepareHeaderLog(HttpHeaders httpHeaders) {

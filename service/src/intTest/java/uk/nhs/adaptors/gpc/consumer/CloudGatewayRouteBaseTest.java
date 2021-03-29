@@ -1,6 +1,7 @@
 package uk.nhs.adaptors.gpc.consumer;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +28,7 @@ public class CloudGatewayRouteBaseTest {
     protected static final String SSP_INTERACTION_ID_HEADER = "Ssp-InteractionID";
     protected static final String SSP_TRACE_ID_HEADER = "Ssp-TraceID";
     protected static final String ANY_STRING = "any";
+    protected static final String RANDOM_UUID = String.valueOf(UUID.randomUUID());
     protected static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/documents/Binary/07a6483f-732b-461e-86b6-edb665c45510";
     protected static final String EXPECTED_DOCUMENT_BODY = "{"
         + " \"resourceType\": \"Binary\","

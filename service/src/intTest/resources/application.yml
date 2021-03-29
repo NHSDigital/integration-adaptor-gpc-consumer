@@ -30,6 +30,7 @@ gpc-consumer:
     structuredPath: ${GPC_CONSUMER_GPC_STRUCTURED_PATH:/*/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord}
     findPatientPath: ${GPC_CONSUMER_GPC_GET_PATIENT_PATH:/*/STU3/1/gpconnect/documents/Patient}
     documentPath: ${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/*/STU3/1/gpconnect/documents/Binary/**}
+    sspDomain: ""
   sds:
     url: ${GPC_CONSUMER_SDS_URL:http://localhost:8210/}
     apiKey: ${GPC_CONSUMER_SDS_APIKEY}
