@@ -74,7 +74,6 @@ from the Dockerfiles in the repository.
 We provide shell scripts in the release/tests directory to help you start testing.
 
 * `healthcheck.sh` verifies that the adaptor's healthcheck endpoint is available
-* `e2e.sh` starts a docker container that runs the adaptor's end-to-end tests
 
 ```bash
 cd tests/
