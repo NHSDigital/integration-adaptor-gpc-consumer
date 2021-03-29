@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2021-03-29
+
+### Known Issues and Limitations
+
+- Same as for 0.0.2
+
+### Added
+
+NIAD-1153: Fixes incorrect encoding of query parameters
+NIAD-1126: Connect to GPC via SSP
+NIAD-1225: SDS API requests must use X-Correlation-Id
+
 ## [0.0.2] - 2021-03-25
 
 ### Known Issues and Limitations
