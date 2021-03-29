@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import lombok.Getter;
 import lombok.Setter;
-import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
 @Component
 @ConfigurationProperties(prefix = "gpc-consumer.gpc")
@@ -16,20 +15,8 @@ public class GpcConfiguration {
     private String clientKey;
     private String rootCA;
     private String subCA;
-
-    public String getFormattedClientCert() {
-        return PemFormatter.format(getClientCert());
-    }
-
-    public String getFormattedClientKey() {
-        return PemFormatter.format(getClientKey());
-    }
-
-    public String getFormattedSubCA() {
-        return PemFormatter.format(getSubCA());
-    }
-
-    public String getFormattedRootCA() {
-        return PemFormatter.format(getRootCA());
-    }
+    private String gpcConsumerUrl;
+    private String gpcUrl;
+    private String structuredFhirBasePathRegex;
+    private String sspDomain;
 }
