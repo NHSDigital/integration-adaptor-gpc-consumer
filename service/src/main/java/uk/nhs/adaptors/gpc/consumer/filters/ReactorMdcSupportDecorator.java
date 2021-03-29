@@ -19,18 +19,14 @@ import reactor.core.publisher.Operators;
 import reactor.util.context.Context;
 
 @Configuration
-public class ReactorMdcSupport {
+public class ReactorMdcSupportDecorator {
 
     private static final String MDC_HOOK_KEY = "MDC";
     private static final Function<? super Publisher<Object>, ? extends Publisher<Object>> LIFTER =
         Operators.liftPublisher(
-            publisher -> {
-                if (MDC.getCopyOfContextMap() == null) {
-                    return false;
-                }
-                return !(publisher instanceof Fuseable.ScalarCallable);
-            },
-            ((publisher, coreSubscriber) -> new MdcPropagatingSubscriber<>(coreSubscriber))
+            publisher -> MDC.getCopyOfContextMap() != null
+                    && !(publisher instanceof Fuseable.ScalarCallable),
+            (publisher, coreSubscriber) -> new MdcPropagatingSubscriber<>(coreSubscriber)
         );
 
     @PostConstruct
@@ -52,14 +48,9 @@ public class ReactorMdcSupport {
         MdcPropagatingSubscriber(CoreSubscriber<T> delegate) {
             this.delegate = delegate;
             Context currentContext = this.delegate.currentContext();
-            Context context;
-            if (currentContext.hasKey(MDC_CONTEXT_KEY)) {
-                context = currentContext;
-            } else {
-                Map<String, String> map = new HashMap<>(MDC.getCopyOfContextMap());
-                context = currentContext.put(MDC_CONTEXT_KEY, map);
-            }
-            this.context = context;
+            this.context = currentContext.hasKey(MDC_CONTEXT_KEY)
+                ? currentContext
+                : currentContext.put(MDC_CONTEXT_KEY, new HashMap<>(MDC.getCopyOfContextMap()));
         }
 
         @Override
