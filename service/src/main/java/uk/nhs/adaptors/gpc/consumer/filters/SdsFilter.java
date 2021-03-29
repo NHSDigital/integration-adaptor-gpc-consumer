@@ -45,6 +45,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String SSP_TRACE_ID = "Ssp-TraceID";
+    private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
     private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
@@ -53,13 +54,17 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest serverHttpRequest = exchange.getRequest();
+
         if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
             LOGGER.info("SDS is enabled. Using SDS API for service discovery");
-            ServerHttpRequest serverHttpRequest = exchange.getRequest();
             extractInteractionId(serverHttpRequest.getHeaders())
                 .ifPresent(id -> proceedSdsLookup(exchange, id));
         }
-        QueryParamsEncoder.encodeQueryParams(exchange);
+
+        if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+            QueryParamsEncoder.encodeQueryParams(exchange);
+        }
 
         return chain.filter(exchange);
     }

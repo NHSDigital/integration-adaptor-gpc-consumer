@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class FindPatientRouteTest extends CloudGatewayRouteBaseTest {
     private static final String FIND_PATIENT_URI = DOCUMENT_PATIENT_URI + "?identifier=https://fhir.nhs.uk/Id/nhs-number|9690937286";
     private static final String FIND_PATIENT_URI_ENCODED = DOCUMENT_PATIENT_URI
-        + "?identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fnhs-number%7C9690937286";
+        + "?identifier=https://fhir.nhs.uk/Id/nhs-number%7C9690937286";
     private static final String EXAMPLE_FIND_PATIENT_BODY = "{\"resourceType\":\"Bundle\",\"id\":\"2fd9c6e5-0197-4a78-923d-f8ed3c937880"
         + "\",\"meta\":{\"lastUpdated\":\"2021-03-04T15:40:22.932+00:00\"},\"type\":\"searchset\","
         + "\"entry\":[{\"resource\":{\"resourceType\":\"Patient\",\"id\":\"2\"}}]}";
