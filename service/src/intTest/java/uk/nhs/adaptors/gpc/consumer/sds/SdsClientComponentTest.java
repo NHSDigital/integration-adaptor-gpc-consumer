@@ -12,11 +12,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -74,7 +73,7 @@ public class SdsClientComponentTest {
     @Value("classpath:sds/sds_error_response.json")
     private Resource sdsErrorResponse;
 
-    private static List<Pair<String, BiFunction<String, String, Optional<SdsClient.SdsResponseData>>>> allInteractions;
+    private static List<Pair<String, Function<String, Optional<SdsClient.SdsResponseData>>>> allInteractions;
 
     @PostConstruct
     public void postConstruct() {
@@ -113,7 +112,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, StringUtils.EMPTY);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE);
             assertThat(retrievedSdsData)
                 .isNotEmpty()
                 .hasValue(SdsClient.SdsResponseData.builder().address(ADDRESS).build());
@@ -126,7 +125,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoResultResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, StringUtils.EMPTY);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE);
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -138,7 +137,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoAddressResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, StringUtils.EMPTY);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE);
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -150,7 +149,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, StringUtils.EMPTY))
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE))
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });

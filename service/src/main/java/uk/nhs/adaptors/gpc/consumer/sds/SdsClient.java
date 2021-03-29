@@ -24,23 +24,23 @@ public class SdsClient {
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
-    public Optional<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String traceId) {
-        var request = sdsRequestBuilder.buildGetStructuredRecordRequest(fromOdsCode, traceId);
+    public Optional<SdsResponseData> callForGetStructuredRecord(String fromOdsCode) {
+        var request = sdsRequestBuilder.buildGetStructuredRecordRequest(fromOdsCode);
         return retrieveData(request);
     }
 
-    public Optional<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String traceId) {
-        var request = sdsRequestBuilder.buildPatientSearchAccessDocumentRequest(fromOdsCode, traceId);
+    public Optional<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode) {
+        var request = sdsRequestBuilder.buildPatientSearchAccessDocumentRequest(fromOdsCode);
         return retrieveData(request);
     }
 
-    public Optional<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String traceId) {
-        var request = sdsRequestBuilder.buildSearchForDocumentRequest(fromOdsCode, traceId);
+    public Optional<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode) {
+        var request = sdsRequestBuilder.buildSearchForDocumentRequest(fromOdsCode);
         return retrieveData(request);
     }
 
-    public Optional<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String traceId) {
-        var request = sdsRequestBuilder.buildRetrieveDocumentRequest(fromOdsCode, traceId);
+    public Optional<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode) {
+        var request = sdsRequestBuilder.buildRetrieveDocumentRequest(fromOdsCode);
         return retrieveData(request);
     }
 
