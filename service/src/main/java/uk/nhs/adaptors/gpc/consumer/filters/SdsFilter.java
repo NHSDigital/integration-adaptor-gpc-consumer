@@ -35,6 +35,8 @@ import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
+    public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+
     private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
@@ -55,6 +57,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
 
         if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
+            LOGGER.info("SDS is enabled. Using SDS API for service discovery");
             extractInteractionId(serverHttpRequest.getHeaders())
                 .ifPresent(id -> proceedSdsLookup(exchange, id));
         }
@@ -91,6 +94,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
+        LOGGER.info("Found GP connect provider endpoint in sds: {}", response.getAddress());
         prepareLookupUri(response.getAddress(), serverHttpRequest)
             .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
