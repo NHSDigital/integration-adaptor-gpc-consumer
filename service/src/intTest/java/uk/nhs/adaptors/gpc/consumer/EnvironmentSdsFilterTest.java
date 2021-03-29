@@ -31,7 +31,7 @@ public class EnvironmentSdsFilterTest extends CloudGatewayRouteBaseTest {
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_INTERACTION_ID)
-            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
+            .header(SSP_TRACE_ID_HEADER, RANDOM_UUID)
             .exchange()
             .expectStatus()
             .isOk()
