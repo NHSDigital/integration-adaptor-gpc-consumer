@@ -1,6 +1,4 @@
-# integration-adaptor-gpc-consumer
-
-National Integration Adaptor - GP Connect Consumer
+# National Integration Adaptor - GP Connect Consumer
 
 ## Introduction
 
@@ -11,8 +9,6 @@ The adaptor proxies GP Connect API requests to the correct GP Connect producer. 
 ## Adaptor API
 
 The GP Connect Consumer Adaptor adheres to the GP Connect API specifications.
-
-### Supported Endpoints
 
 We only support the four endpoints required for the GP2GP use case:
 
