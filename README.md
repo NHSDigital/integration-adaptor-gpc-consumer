@@ -71,7 +71,7 @@ with the value of the `GPC_CONSUMER_URL` environment variable.
 ```
 ...
         {
-            "fullUrl": "https://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+            "fullUrl": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
             "resource": {
                 "resourceType": "DocumentReference",
                 ...
@@ -79,7 +79,7 @@ with the value of the `GPC_CONSUMER_URL` environment variable.
                     {
                         "attachment": {
                             "contentType": "application/msword",
-                            "url": "https://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "url": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
                             "size": 3654
                         }
                     }
@@ -106,6 +106,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | Environment Variable                        | Default                   | Description
 | --------------------------------------------|---------------------------|-------------
 | GPC_CONSUMER_SERVER_PORT                    | 8090                      | The port on which the GPC Consumer Adaptor will run.
+| GPC_CONSUMER_URL                            | http://localhost:8090                                          | The scheme, host, and port of the GP Connect Consumer Adaptor. This is the address GP Connect Consumers use to make requests to the adaptor.
 | GPC_CONSUMER_ROOT_LOGGING_LEVEL             | WARN                      | The logging level applied to the entire application (including third-party dependencies).
 | GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
@@ -117,17 +118,6 @@ The level DEBUG **MUST NOT** be used when handling live patient data.
 (*) GP2GP API uses logback (http://logback.qos.ch/). The built-in [logback.xml](service/src/main/resources/logback.xml) 
 defines the default log format. This value can be overridden using the `GP2GP_LOGGING_FORMAT` environment variable.
 You can provide an external `logback.xml` file using the `-Dlogback.configurationFile` JVM parameter.
-
-### API Configuration Options
-
-| Environment Variable                        | Default                                                        | Description
-| --------------------------------------------|----------------------------------------------------------------|-------------
-| GPC_CONSUMER_URL                            | http://localhost:8090                                          | The scheme, host, and port of the GP Connect Consumer Adaptor. This is the address GP Connect Consumers use to make requests to the adaptor.
-| GPC_CONSUMER_GPC_GET_URL                    | http://localhost:8110                                          | Base URL for GPC service. If it is not set, the SDS Filter will be omitted.
-| GPC_CONSUMER_GPC_STRUCTURED_PATH            | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
-| GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
-| GPC_CONSUMER_GPC_GET_PATIENT_PATH	          | /GP0001/STU3/1/gpconnect/fhir/Patient                          | Patient record path.
-| GPC_CONSUMER_SEARCH_DOCUMENTS_PATH          | /GP0001/STU3/1/gpconnect/fhir/Patient/**                       | Search for a Patient's Document path.
 
 ### GP Connect API Configuration Options
 
@@ -143,20 +133,33 @@ The adaptor uses the GP Connect API to fetch patient records and documents.
 
 ### SDS API Configuration Options
 
-The GPC_CONSUMER uses the [SDS API]() to discover GPC endpoints.
+You need an [API-M API Key](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation/application-restricted-restful-apis-api-key-authentication)
+ for the [SDS FHIR API](https://digital.nhs.uk/developer/api-catalogue/spine-directory-service-fhir) 
+to use the adaptor in the integration and production environments.
 
-| Environment Variable                        | Default                                       | Description
-| --------------------------------------------|-----------------------------------------------|-------------
-| GPC_CONSUMER_SDS_URL                        | http://localhost:8110/                        | URL to the SDS API
-| GPC_CONSUMER_SDS_APIKEY                     |                                               | Secret key used to authenticate with the API
+| Environment Variable                        | Default                         | Description
+| ------------------------|-----------------------------------------------------|-------------
+| GPC_CONSUMER_SDS_URL    | https://sandbox.api.service.nhs.uk/spine-directory/ | URL of the SDS FHIR API
+| GPC_CONSUMER_SDS_APIKEY |                                                     | Secret key used to authenticate with the API
 
-Logging levels are ane of: DEBUG, INFO, WARN, ERROR
+### Testing Configuration Options
 
-The level DEBUG **MUST NOT** be used when handling live patient data.
+| Environment Variable     | Default | Description
+| -------------------------|---------|-------------
+| GPC_CONSUMER_GPC_GET_URL |         | Overrides the base URL for GPC service. If set, the adaptor proxies GP Connect requests to this host using the FHIR base of the original request. The adaptor does not use the SDS FHIR API when this variable is set. Example: `http://localhost:8110`
 
-(*) GPC Consumer adaptor uses logback (http://logback.qos.ch/). The built-in [logback.xml](service/src/main/resources/logback.xml) 
-defines the default log format. This value can be overridden using the `GPC_CONSUMER_LOGGING_FORMAT` environment variable.
-You can provide an external `logback.xml` file using the `-Dlogback.configurationFile` JVM parameter.
+### API Configuration Options
+
+**Warning**: We don't recommend overriding these default values. The values are paths of 
+[Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway) routes. The defaults conform to the GP Connect 
+Service URL scheme.
+
+| Environment Variable                        | Default                                                              | Description
+| --------------------------------------------|----------------------------------------------------------------------|-------------
+| GPC_CONSUMER_GPC_STRUCTURED_PATH            | /*/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
+| GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /\*/STU3/1/gpconnect/documents/fhir/Binary/**                        | Get Document record path.
+| GPC_CONSUMER_GPC_GET_PATIENT_PATH	          | /*/STU3/1/gpconnect/documents/fhir/Patient                           | Patient record path.
+| GPC_CONSUMER_SEARCH_DOCUMENTS_PATH          | /\*/STU3/1/gpconnect/documents/fhir/Patient/**                       | Search for a Patient's Document path.
 
 ## How to run service:
 
@@ -167,15 +170,19 @@ adequate infrastructure and connections to external APIs.
 ### Copy a configuration example
 
 We provide several example configurations:
-An example configuration:
-* `vars.local.sh` to run the adaptor with mock services
-* `vars.public.sh` to run the adaptor with the GP Connect public demonstrator
-* `vars.opentest.sh` to run the adaptor with providers and responders in OpenTest
+
+* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](https://orange.testlab.nhs.uk/) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
+* `vars.opentest.sh` runs the adaptor on the OpenTest environment using the Spine Security Proxy and the GP Connect 
+provider. The SDS FHIR API is not available in OpenTest; this configuration uses `GPC_CONSUMER_GPC_GET_URL` to hardcode
+the provider endpoint.
+* `vars.integration.sh` runs the adaptor on the Integration environment.
 
 ```bash
 cd docker/
-cp vars.local.sh vars.sh
+cp vars.opentest.sh vars.sh
 ```
+
+Edit `vars.sh` to add any missing values e.g. Spine certificates.
 
 ### Using the helper script for Docker Compose
 ```bash
