@@ -32,5 +32,5 @@ gpc-consumer:
     documentPath: ${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/*/STU3/1/gpconnect/documents/fhir/Binary/**}
     sspDomain: ${GPC_CONSUMER_SSP_FQDN:}
   sds:
-    url: ${GPC_CONSUMER_SDS_URL:https://sandbox.api.service.nhs.uk/spine-directory/}
+    url: ${GPC_CONSUMER_SDS_URL:}
     apiKey: ${GPC_CONSUMER_SDS_APIKEY:}
