@@ -1,7 +1,3 @@
-String tfProject      = "nia"
-String tfEnvironment  = "build1"
-String tfComponent    = "gpc-consumer"
-
 pipeline {
     agent{
         label 'jenkins-workers'
@@ -73,7 +69,6 @@ pipeline {
                             if (ecrLogin(TF_STATE_BUCKET_REGION) != 0 )  { error("Docker login to ECR failed") }
                             String dockerPushCommand = "docker push ${DOCKER_IMAGE}"
                             if (sh (label: "Pushing image", script: dockerPushCommand, returnStatus: true) !=0) { error("Docker push gpc-consumer image failed") }
-                            
                         }
                     }
                 }
