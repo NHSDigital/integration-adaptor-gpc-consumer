@@ -12,7 +12,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -30,6 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
 
 @Component
 @Slf4j
@@ -38,11 +38,10 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
     private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
-    private static final String REQUEST_ID = "RequestId";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        applyRequestId(exchange.getLogPrefix());
+        MdcUtil.applyHeadersToMdc(exchange);
         Set<URI> uris = exchange.getAttributeOrDefault(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, Collections.emptySet());
         String originalUri = uris.isEmpty() ? exchange.getRequest().getURI().toString() : uris.iterator().next().toString();
         URI routeUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
@@ -51,7 +50,6 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
         LOGGER.info("Incoming request {} is routed to id: {}, uri: {} with headers: {}",
             originalUri, routeId, routeUri,
             prepareHeaderLog(exchange.getRequest().getHeaders()));
-        resetMDCKeys();
         return chain.filter(exchange.mutate().response(prepareErrorHandlingResponseDecorator(exchange)).build());
     }
 
@@ -79,20 +77,18 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
             @Override
             public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
                 return DataBufferUtils.join(body)
-                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer, exchange.getLogPrefix()));
+                    .flatMap(dataBuffer -> handleError(getDelegate(), dataBuffer));
             }
         };
     }
 
-    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer, String requestId) {
-        applyRequestId(requestId);
+    private Mono<Void> handleError(ServerHttpResponse response, DataBuffer dataBuffer) {
         if (response != null && dataBuffer != null) {
             if (isErrorResponseCode(response)) {
                 LOGGER.error("An error with status occurred: " + response.getStatusCode());
             } else {
                 LOGGER.info("Request was successful");
             }
-            resetMDCKeys();
             return response.writeWith(Mono.just(dataBuffer));
         }
 
@@ -102,13 +98,5 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
     private boolean isErrorResponseCode(ServerHttpResponse response) {
         HttpStatus httpStatus = response.getStatusCode();
         return httpStatus != null && !httpStatus.is2xxSuccessful();
-    }
-
-    private static void applyRequestId(String requestId) {
-        MDC.put(REQUEST_ID, requestId);
-    }
-
-    private static void resetMDCKeys() {
-        MDC.clear();
     }
 }
