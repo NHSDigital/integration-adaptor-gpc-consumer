@@ -170,12 +170,24 @@ The adaptor can access the [SDS FHIR API](https://developer.nhs.uk/apis/spine-co
 
 ### Logging
 
-The adaptor logs to stdout within its container. You must aggregate all adaptor to store, monitor,
+The adaptor logs to stdout within its container. You must aggregate all logs to store, monitor,
 and search them. You must choose a strategy and tooling appropriate for your infrastructure.
 
 The adaptor uses the following log format by default:
 
+```
+YYYY-MM-DD HH:MM:SS.mmm Level={DEBUG/INFO/WARNING/ERROR} Logger={LoggerName} RequestId={RequestId} Ssp-TraceID={Ssp-TraceID} Thread="{ThreadName}" Message="{LogMessage}"
+```
 
+LoggerName: name of the Java class which emitted the log
+RequestId: randomly generated identified for each request
+Ssp-TraceID: value of the Ssp-TraceID header, for distributed tracing
+ThreadName: name of the thread handling the request
+LogMessage: content of the log message
+
+The properties RequestId and Ssp-TraceID may only be populated if the log 
+is emitted by application code. These are blank for logs emitted by framework or 
+third party code.
 
 ### Additional Functionality
 
