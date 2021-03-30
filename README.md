@@ -51,7 +51,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
 
-Logging levels are ane of: DEBUG, INFO, WARN, ERROR
+Logging level is one of: DEBUG, INFO, WARN, ERROR
 
 The level DEBUG **MUST NOT** be used when handling live patient data.
 
