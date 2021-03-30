@@ -2,9 +2,97 @@
 
 National Integration Adaptor - GP Connect Consumer
 
-## Requirements:
+## Introduction
 
-1. JDK 11
+The GP Connect Consumer Adaptor allows a GP Connect Consumer to connect to a GP Connect Producer over Spine.
+The adaptor proxies GP Connect API requests to the correct GP Connect producer. It performs the
+ [Spine integration required to consume GP Connect capabilities](https://gpc-structured-1-5-0.netlify.app/integration_illustrated.html#spine-integration-required-to-consume-gp-connect-capabilities).
+
+## Adaptor API
+
+The GP Connect Consumer Adaptor adheres to the GP Connect API specifications.
+
+### Supported Endpoints
+
+We only support the four endpoints required for the GP2GP use case:
+
+* Capability: [Access Record Structured](https://gpc-structured-1-5-0.netlify.app/accessrecord_structured.html) 
+  * Endpoint: [Retrieve a patient's structured record](https://gpc-structured-1-5-0.netlify.app/accessrecord_structured_development_retrieve_patient_record.html)
+* Capability: [Access Document](https://gpc-structured-1-5-0.netlify.app/access_documents.html)
+  * Endpoint: [Find a patient](https://gpc-structured-1-5-0.netlify.app/access_documents_use_case_find_a_patient.html)
+  * Endpoint: [Search for a patient's documents](https://gpc-structured-1-5-0.netlify.app/access_documents_development_search_patient_documents.html)
+  * Endpoint: [Retrieve a document](https://gpc-structured-1-5-0.netlify.app/access_documents_development_retrieve_patient_documents.html)
+
+### Service Root URL
+
+We follow the [Service Root URL](https://gpc-structured-1-5-0.netlify.app/development_general_api_guidance.html#service-root-url-versioning) scheme defined by GP Connect.
+
+Example (Retrieve a patient's structured record, ODS Code GP0001): `POST https://gpcadaptor.com/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord`
+
+### Known Limitations
+
+The adaptor does not perform a PDS lookup/trace. You must perform the PDS lookup before making a request to the adaptor.
+
+### Additional Functionality
+
+The adaptor re-writes URLs in response bodies to refer to adaptor URLs instead of GP Connect Provider URLs.
+
+For example (Search for a patient's documents):
+
+When making a "Search for a patient's documents" request
+
+```
+GET https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/fhir/Patient/2/DocumentReference?...
+```
+
+the adaptor replaces the GP Connect Provider Hosts (`https://orange.testlab.nhs.uk/`) in the original response
+
+```
+...
+        {
+            "fullUrl": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+            "resource": {
+                "resourceType": "DocumentReference",
+                ...
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/msword",
+                            "url": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "size": 3654
+                        }
+                    }
+                ],
+...
+```
+
+with the value of the `GPC_CONSUMER_URL` environment variable.
+
+```
+...
+        {
+            "fullUrl": "https://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+            "resource": {
+                "resourceType": "DocumentReference",
+                ...
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/msword",
+                            "url": "https://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "size": 3654
+                        }
+                    }
+                ],
+...
+```
+
+In this example the `GPC_CONSUMER_URL` is set to its default value: `http://localhost:8090`.
+
+## Requirements
+
+* JDK 11
+* Docker
 
 ## Configuration
 
@@ -22,11 +110,19 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
 
-### Cloud Gateway Configuration Options
+Logging levels are ane of: DEBUG, INFO, WARN, ERROR
+
+The level DEBUG **MUST NOT** be used when handling live patient data.
+
+(*) GP2GP API uses logback (http://logback.qos.ch/). The built-in [logback.xml](service/src/main/resources/logback.xml) 
+defines the default log format. This value can be overridden using the `GP2GP_LOGGING_FORMAT` environment variable.
+You can provide an external `logback.xml` file using the `-Dlogback.configurationFile` JVM parameter.
+
+### API Configuration Options
 
 | Environment Variable                        | Default                                                        | Description
 | --------------------------------------------|----------------------------------------------------------------|-------------
-| GPC_CONSUMER_URL                            | http://localhost:8090                                          | Base URL for GPC Consumer service.
+| GPC_CONSUMER_URL                            | http://localhost:8090                                          | The scheme, host, and port of the GP Connect Consumer Adaptor. This is the address GP Connect Consumers use to make requests to the adaptor.
 | GPC_CONSUMER_GPC_GET_URL                    | http://localhost:8110                                          | Base URL for GPC service. If it is not set, the SDS Filter will be omitted.
 | GPC_CONSUMER_GPC_STRUCTURED_PATH            | /GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
 | GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /GP0001/STU3/1/gpconnect/fhir/Binary/{documentId}              | Get Document record path.
