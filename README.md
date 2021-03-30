@@ -170,7 +170,12 @@ The adaptor can access the [SDS FHIR API](https://developer.nhs.uk/apis/spine-co
 
 ### Logging
 
-TODO
+The adaptor logs to stdout within its container. You must aggregate all adaptor to store, monitor,
+and search them. You must choose a strategy and tooling appropriate for your infrastructure.
+
+The adaptor uses the following log format by default:
+
+
 
 ### Additional Functionality
 
