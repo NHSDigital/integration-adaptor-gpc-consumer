@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
-import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
 
 @Component
 @Slf4j
@@ -27,7 +26,6 @@ public class SspFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        MdcUtil.applyHeadersToMdc(exchange);
         if (isSspEnabled()) {
             URI uri = (URI) exchange.getAttributes()
                 .get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);

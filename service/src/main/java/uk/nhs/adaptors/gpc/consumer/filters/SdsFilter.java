@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
-import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
+import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 
 @Component
@@ -55,11 +55,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        MdcUtil.applyHeadersToMdc(exchange);
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
 
         if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
-            LOGGER.info("SDS is enabled. Using SDS API for service discovery");
+            LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
             extractInteractionId(serverHttpRequest.getHeaders())
                 .ifPresent(id -> proceedSdsLookup(exchange, id));
         }
@@ -96,7 +95,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     integrationId,
                     organisation))
             );
-        LOGGER.info("Found GP connect provider endpoint in sds: {}", response.getAddress());
+        LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
         prepareLookupUri(response.getAddress(), serverHttpRequest)
             .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));

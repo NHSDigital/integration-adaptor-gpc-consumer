@@ -2,15 +2,22 @@ package uk.nhs.adaptors.gpc.consumer.utils;
 
 import java.util.List;
 
+import org.slf4j.Logger;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
-public class MdcUtil {
+public class LoggingUtil {
     private static final String REQUEST_ID = "RequestId";
     private static final String TRACE_ID = "Ssp-TraceID";
 
-    public static void applyHeadersToMdc(ServerWebExchange exchange) {
+    public static void info(Logger logger, ServerWebExchange exchange, String msg, Object... args) {
+        applyHeadersToMdc(exchange);
+        logger.info(msg, args);
+        MDC.clear();
+    }
+
+    private static void applyHeadersToMdc(ServerWebExchange exchange) {
         MDC.put(REQUEST_ID, exchange.getLogPrefix());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         List<String> traceId = headers.get(TRACE_ID);
