@@ -29,62 +29,6 @@ Example (Retrieve a patient's structured record, ODS Code GP0001): `POST https:/
 
 The adaptor does not perform a PDS lookup/trace. You must perform the PDS lookup before making a request to the adaptor.
 
-### Additional Functionality
-
-The adaptor re-writes URLs in response bodies to refer to adaptor URLs instead of GP Connect Provider URLs.
-
-For example (Search for a patient's documents):
-
-When making a "Search for a patient's documents" request
-
-```
-GET https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/fhir/Patient/2/DocumentReference?...
-```
-
-the adaptor replaces the GP Connect Provider Hosts (`https://orange.testlab.nhs.uk/`) in the original response
-
-```
-...
-        {
-            "fullUrl": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
-            "resource": {
-                "resourceType": "DocumentReference",
-                ...
-                "content": [
-                    {
-                        "attachment": {
-                            "contentType": "application/msword",
-                            "url": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
-                            "size": 3654
-                        }
-                    }
-                ],
-...
-```
-
-with the value of the `GPC_CONSUMER_URL` environment variable.
-
-```
-...
-        {
-            "fullUrl": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
-            "resource": {
-                "resourceType": "DocumentReference",
-                ...
-                "content": [
-                    {
-                        "attachment": {
-                            "contentType": "application/msword",
-                            "url": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
-                            "size": 3654
-                        }
-                    }
-                ],
-...
-```
-
-In this example the `GPC_CONSUMER_URL` is set to its default value: `http://localhost:8090`.
-
 ## Requirements
 
 * JDK 11
@@ -213,6 +157,76 @@ You must run all gradle commands from the `service/` directory.
 ```shell script
 ./gradlew integrationTest
 ```
+
+## Operating the Adaptor
+
+### Dependencies
+
+The stateless GP Connect Consumer Adaptor does not use a database or a message queue.
+
+The adaptor requires an [HSCN](https://digital.nhs.uk/services/health-and-social-care-network) network connection to use the [Spine Secure Proxy](https://developer.nhs.uk/apis/spine-core-1-0/ssp_overview.html).
+
+The adaptor can access the [SDS FHIR API](https://developer.nhs.uk/apis/spine-core-1-0/ssp_overview.html) over either the HSCN network or the public internet.
+
+### Logging
+
+TODO
+
+### Additional Functionality
+
+The adaptor re-writes URLs in response bodies to refer to adaptor URLs instead of GP Connect Provider URLs.
+
+For example (Search for a patient's documents):
+
+When making a "Search for a patient's documents" request
+
+```
+GET https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/fhir/Patient/2/DocumentReference?...
+```
+
+the adaptor replaces the GP Connect Provider Hosts (`https://orange.testlab.nhs.uk/`) in the original response
+
+```
+...
+        {
+            "fullUrl": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+            "resource": {
+                "resourceType": "DocumentReference",
+                ...
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/msword",
+                            "url": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "size": 3654
+                        }
+                    }
+                ],
+...
+```
+
+with the value of the `GPC_CONSUMER_URL` environment variable.
+
+```
+...
+        {
+            "fullUrl": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+            "resource": {
+                "resourceType": "DocumentReference",
+                ...
+                "content": [
+                    {
+                        "attachment": {
+                            "contentType": "application/msword",
+                            "url": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "size": 3654
+                        }
+                    }
+                ],
+...
+```
+
+In this example the `GPC_CONSUMER_URL` is set to its default value: `http://localhost:8090`.
 
 ## Troubleshooting
 
