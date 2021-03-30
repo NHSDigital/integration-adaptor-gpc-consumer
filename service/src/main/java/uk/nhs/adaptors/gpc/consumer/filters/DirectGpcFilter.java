@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
+import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
 
 @Component
 @Slf4j
@@ -29,6 +30,7 @@ public class DirectGpcFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        MdcUtil.applyHeadersToMdc(exchange);
         var gpcProviderUrlOverride = System.getenv(GPC_URL_ENVIRONMENT_VARIABLE);
         if (StringUtils.isNotBlank(gpcProviderUrlOverride)) {
             LOGGER.info("SDS is not enabled. Using the value of {} for the GPC Provider endpoint: {}",
