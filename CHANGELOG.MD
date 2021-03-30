@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2021-03-30
+
+### Known Issues and Limitations
+
+- Same as for 0.0.3
+
+### Added
+
+NIAD-1126: Remove default value for ssp domain from yml
+NIAD-1182: Global Logging
+
 ## [0.0.3] - 2021-03-29
 
 ### Known Issues and Limitations
