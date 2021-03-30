@@ -23,7 +23,7 @@ you are testing to ensure compatibility with configurations and scripts.
 
 ```bash
 git pull
-git checkout 0.0.3
+git checkout 0.0.4
 ```
 
 ## Find the docker directory
@@ -79,7 +79,6 @@ Modify the values for the environment "Public GP Connect Reference Implementatio
 * providerURL_1_5_x_documents: `http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir`
 
 ## Stopping the adaptor
-
 ```bash
 cd ../docker
 docker-compose down
