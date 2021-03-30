@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
+import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
 import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 
 @Component
@@ -54,6 +55,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        MdcUtil.applyHeadersToMdc(exchange);
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
 
         if (StringUtils.isBlank(System.getenv(GPC_URL_ENVIRONMENT_VARIABLE))) {
