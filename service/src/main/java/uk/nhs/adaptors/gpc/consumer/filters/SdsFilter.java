@@ -1,14 +1,16 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.TriFunction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -30,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
-import uk.nhs.adaptors.gpc.consumer.utils.MdcUtil;
+import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 
 @Component
@@ -48,21 +50,19 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
-    private static final String SSP_TRACE_ID = "Ssp-TraceID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
     private static final int SDS_URI_OFFSET = 8;
 
     private final SdsClient sdsClient;
 
-    private Map<String, BiFunction<String, String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
+    private Map<String, TriFunction<String, String, ServerWebExchange, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        MdcUtil.applyHeadersToMdc(exchange);
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
 
         if (Boolean.valueOf(enableSds)) {
-            LOGGER.info("SDS is enabled. Using SDS API for service discovery");
+            LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
             extractInteractionId(serverHttpRequest.getHeaders())
                 .ifPresent(id -> proceedSdsLookup(exchange, id));
         }
@@ -93,25 +93,25 @@ public class SdsFilter implements GlobalFilter, Ordered {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
-        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId)
+        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
             .orElseThrow(() -> new SdsException(
                 String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
                     integrationId,
                     organisation))
             );
-        LOGGER.info("Found GP connect provider endpoint in sds: {}", response.getAddress());
+        LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
         prepareLookupUri(response.getAddress(), serverHttpRequest)
             .ifPresent(uri -> exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            String organisation, String sspTraceId) {
+            String organisation, String sspTraceId, ServerWebExchange exchange) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
-            LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
+            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
-                .apply(organisation, sspTraceId);
+                .apply(organisation, sspTraceId, exchange);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
