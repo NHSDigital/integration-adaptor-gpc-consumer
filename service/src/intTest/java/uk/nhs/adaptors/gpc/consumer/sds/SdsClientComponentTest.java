@@ -151,9 +151,9 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoResultResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional();
-            assertThat(retrievedSdsData)
-                .isEmpty();
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).block())
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("SDS returned no result");
             wireMockServer.resetAll();
         });
     }
@@ -163,9 +163,9 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoAddressResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional();
-            assertThat(retrievedSdsData)
-                .isEmpty();
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).block())
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("SDS returned a result but with an empty address");
             wireMockServer.resetAll();
         });
     }
