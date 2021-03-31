@@ -2,6 +2,7 @@ package uk.nhs.adaptors.gpc.consumer.sds;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -9,10 +10,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -38,6 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.common.ResourceReader;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
@@ -90,7 +90,7 @@ public class SdsClientComponentTest {
     @Mock
     private static HttpHeaders httpHeaders;
 
-    private static List<Pair<String, TriFunction<String, String, ServerWebExchange, Optional<SdsClient.SdsResponseData>>>> allInteractions;
+    private static List<Pair<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>>> allInteractions;
 
     @PostConstruct
     public void postConstruct() {
@@ -138,7 +138,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional();
             assertThat(retrievedSdsData)
                 .isNotEmpty()
                 .hasValue(SdsClient.SdsResponseData.builder().address(ADDRESS).build());
@@ -151,7 +151,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoResultResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional();
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();
@@ -163,7 +163,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoAddressResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange);
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional();
             assertThat(retrievedSdsData)
                 .isEmpty();
             wireMockServer.resetAll();

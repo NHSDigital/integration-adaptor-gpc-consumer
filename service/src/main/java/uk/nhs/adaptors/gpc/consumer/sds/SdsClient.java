@@ -1,7 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer.sds;
 
-import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Endpoint;

@@ -60,24 +60,21 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
 
-        Mono<Void> mono;
-        if (Boolean.valueOf(enableSds)) {
-            LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
-            mono = Mono.justOrEmpty(extractInteractionId(serverHttpRequest.getHeaders()))
-                .flatMap(id -> proceedSdsLookup(exchange, id))
-                .then();
-        } else {
-            mono = Mono.empty();
-        }
-
-        mono = mono.doOnNext(v -> {
-            if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
-                QueryParamsEncoder.encodeQueryParams(exchange);
-            }
-        });
-
-        return mono.then(chain.filter(exchange));
-
+        return Mono.just(enableSds)
+            .map(Boolean::valueOf)
+            .map(isSdsEnabled -> {
+                if(isSdsEnabled) {
+                    LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
+                    var id = extractInteractionId(serverHttpRequest.getHeaders());
+                    return proceedSdsLookup(exchange, id.get());
+                } else {
+                    return SdsClient.SdsResponseData.builder().build();
+                }
+            }).doOnNext(v -> {
+                if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+                    QueryParamsEncoder.encodeQueryParams(exchange);
+                }
+        }).then(chain.filter(exchange));
     }
 
     @Override
