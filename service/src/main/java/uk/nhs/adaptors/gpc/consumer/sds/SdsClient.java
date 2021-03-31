@@ -52,9 +52,9 @@ public class SdsClient {
         return performRequest(request)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {
+                LOGGER.info("Attempting to parse the bundle response from SDS");
                 if (!bundle.hasEntry()) {
-                    LoggingUtil.info(LOGGER, exchange, "SDS returned no result");
-                    return null;
+                    throw new RuntimeException("SDS returned no result");
                 }
 
                 if (bundle.getEntry().size() > 1) {
@@ -64,13 +64,13 @@ public class SdsClient {
                 var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
                 var address = endpoint.getAddress();
                 if (StringUtils.isBlank(address)) {
-                    LOGGER.warn("SDS returned a result but with an empty address");
-                    return null;
+                    throw new RuntimeException("SDS returned a result but with an empty address");
                 }
+                LOGGER.info("Found GPC provider endpoint in SDS: {}", address);
                 return SdsResponseData.builder()
                     .address(address)
                     .build();
-            }).filter(value -> value != null);
+            });
     }
 
     private Mono<String> performRequest(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request) {
