@@ -54,23 +54,30 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     private final SdsClient sdsClient;
 
-    private Map<String, TriFunction<String, String, ServerWebExchange, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
+    private Map<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
 
+        Mono<Void> mono;
         if (Boolean.valueOf(enableSds)) {
             LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
-            extractInteractionId(serverHttpRequest.getHeaders())
-                .ifPresent(id -> proceedSdsLookup(exchange, id));
+            mono = Mono.justOrEmpty(extractInteractionId(serverHttpRequest.getHeaders()))
+                .flatMap(id -> proceedSdsLookup(exchange, id))
+                .then();
+        } else {
+            mono = Mono.empty();
         }
 
-        if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
-            QueryParamsEncoder.encodeQueryParams(exchange);
-        }
+        mono = mono.doOnNext(v -> {
+            if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+                QueryParamsEncoder.encodeQueryParams(exchange);
+            }
+        });
 
-        return chain.filter(exchange);
+        return mono.then(chain.filter(exchange));
+
     }
 
     @Override
@@ -88,23 +95,25 @@ public class SdsFilter implements GlobalFilter, Ordered {
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 
-    private void proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
+    private Mono<SdsClient.SdsResponseData> proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
-        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
-            .orElseThrow(() -> new SdsException(
-                String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
-                    integrationId,
-                    organisation))
-            );
-        LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
-        prepareLookupUri(response.getAddress(), serverHttpRequest)
-            .ifPresent(uri -> exchange.getAttributes()
-                .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+        return performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
+            .switchIfEmpty(Mono.error(new SdsException(
+                    String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
+                        integrationId,
+                        organisation)))
+            ).doOnNext(response -> {
+                LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
+                prepareLookupUri(response.getAddress(), serverHttpRequest)
+                    .ifPresent(uri -> exchange.getAttributes()
+                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+            });
+
     }
 
-    private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
+    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
             String organisation, String sspTraceId, ServerWebExchange exchange) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
             LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
