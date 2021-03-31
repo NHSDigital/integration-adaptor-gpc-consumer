@@ -89,7 +89,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOrganisation(serverHttpRequest.getPath());
         var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
-        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId)
+        SdsClient.SdsResponseData response = performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
             .orElseThrow(() -> new SdsException(
                 String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
                     integrationId,
@@ -102,9 +102,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            String organisation, String sspTraceId) {
+            String organisation, String sspTraceId, ServerWebExchange exchange) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
-            LOGGER.info("Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
+            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
                 .apply(organisation, sspTraceId);
