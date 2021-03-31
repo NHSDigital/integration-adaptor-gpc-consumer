@@ -34,4 +34,4 @@ gpc-consumer:
   sds:
     url: ${GPC_CONSUMER_SDS_URL:http://localhost:8210/}
     apiKey: ${GPC_CONSUMER_SDS_APIKEY:}
-    enableSDS: ${GPC_ENABLE_SDS:true}
+    enableSDS: ${GPC_ENABLE_SDS:false}
