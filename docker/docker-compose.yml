@@ -7,7 +7,7 @@ services:
           context: ../
           dockerfile: docker/service/Dockerfile
       ports: 
-        - "8080:8090"
+        - "8090:8090"
       environment: 
         - GPC_CONSUMER_SERVER_PORT
         - GPC_CONSUMER_ROOT_LOGGING_LEVEL
