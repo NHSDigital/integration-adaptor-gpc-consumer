@@ -34,19 +34,8 @@ cd integration-adaptor-gpc-consumer/docker
 
 ## Configure the application
 
-The repository includes several configuration examples:
-* `vars.local.sh` template to run the adaptor against mock service containers
-* `vars.opentest.sh` template to run the adaptor against the OpenTest environment
-
-Configure the application by copying a `vars.*.sh` file to `vars.sh`
-
-```bash
-cp vars.local.sh vars.sh
-```
-
-Make any required changes to the `vars.sh` file. If using `vars.local.sh` you do not need to modify anything. Refer
-to the [README](https://github.com/nhsconnect/integration-adaptor-gpc-consumer/blob/0.0.4/README.md) for possible configuration
-options.
+[Copy a configuration example](https://github.com/nhsconnect/integration-adaptor-gpc-consumer/blob/0.0.3/README.md#copy-a-configuration-example)
+ to `docker/vars.sh` and make any required changes to the `vars.sh` file.
 
 ## Find the release directory
 
@@ -71,7 +60,7 @@ from the Dockerfiles in the repository.
 
 ## Run the tests
 
-We provide shell scripts in the release/tests directory to help you start testing.
+We provide a shell script to help you determine if the adaptor is running.
 
 * `healthcheck.sh` verifies that the adaptor's healthcheck endpoint is available
 
@@ -79,6 +68,15 @@ We provide shell scripts in the release/tests directory to help you start testin
 cd tests/
 ./healthcheck.sh
 ```
+
+## Test with Postman
+
+You can use the [GP Connect Postman Samples](https://orange.testlab.nhs.uk/index.html#postman-samples) to test the adaptor.
+
+Modify the values for the environment "Public GP Connect Reference Implementation" as follows:
+
+* providerURL_1_5_x_structured: `http://localhost:8090/B82617/STU3/1/gpconnect/structured/fhir`
+* providerURL_1_5_x_documents: `http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir`
 
 ## Stopping the adaptor
 ```bash
