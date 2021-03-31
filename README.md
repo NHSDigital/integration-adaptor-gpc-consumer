@@ -227,7 +227,7 @@ with the value of the `GPC_CONSUMER_URL` environment variable.
 ```
 ...
         {
-            "fullUrl": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+            "fullUrl": "http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
             "resource": {
                 "resourceType": "DocumentReference",
                 ...
@@ -235,7 +235,7 @@ with the value of the `GPC_CONSUMER_URL` environment variable.
                     {
                         "attachment": {
                             "contentType": "application/msword",
-                            "url": "http://http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "url": "http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
                             "size": 3654
                         }
                     }
