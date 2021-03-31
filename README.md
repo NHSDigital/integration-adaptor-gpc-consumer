@@ -81,12 +81,13 @@ to use the adaptor in the integration and production environments.
 | ------------------------|---------|-------------
 | GPC_CONSUMER_SDS_URL    |         | URL of the SDS FHIR API
 | GPC_CONSUMER_SDS_APIKEY |         | Secret key used to authenticate with the API
+| GPC_ENABLE_SDS          | true    | Enables or disables service discovery using the SDS FHIR API. The value may be "true" or "false". See also `GPC_CONSUMER_GPC_GET_URL`.
 
 ### Testing Configuration Options
 
 | Environment Variable     | Default | Description
 | -------------------------|---------|-------------
-| GPC_CONSUMER_GPC_GET_URL |         | Overrides the base URL for GPC service. If set, the adaptor proxies GP Connect requests to this host using the FHIR base of the original request. The adaptor does not use the SDS FHIR API when this variable is set. Example: `http://localhost:8110`
+| GPC_CONSUMER_GPC_GET_URL |         | Overrides the base URL for GPC service. If `GPC_ENABLE_SDS=false` the adaptor proxies GP Connect requests to this host using the FHIR base of the original request. Example: `http://localhost:8110`
 
 ### API Configuration Options
 
