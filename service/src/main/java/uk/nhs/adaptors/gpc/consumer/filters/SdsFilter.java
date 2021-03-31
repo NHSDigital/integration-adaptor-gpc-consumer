@@ -1,5 +1,7 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
-    private static final String SSP_TRACE_ID = "Ssp-TraceID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
     private static final int SDS_URI_OFFSET = 8;
 

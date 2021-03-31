@@ -4,6 +4,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
+
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +37,7 @@ import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
-    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", "Ssp-TraceID");
+    private static final List<String> LOGGABLE_HEADER_KEYS = List.of("Ssp-From", "Ssp-To", SSP_TRACE_ID);
     private static final String HEADERS_PREFIX = "Headers: ";
     private static final String EQUAL_SIGN = "=";
 
