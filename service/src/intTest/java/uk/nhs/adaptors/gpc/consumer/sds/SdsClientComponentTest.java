@@ -175,7 +175,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange))
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional())
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });
@@ -186,7 +186,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, null, exchange))
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, null, exchange).blockOptional())
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });
@@ -197,7 +197,7 @@ public class SdsClientComponentTest {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
             stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, "not-UUID", exchange))
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, "not-UUID", exchange).blockOptional())
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });
