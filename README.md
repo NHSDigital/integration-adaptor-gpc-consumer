@@ -83,7 +83,6 @@ to use the adaptor in the integration and production environments.
 | GPC_CONSUMER_SDS_APIKEY |         | Secret key used to authenticate with the API
 | GPC_ENABLE_SDS          | true    | Boolean to turn sds on/off. 
 
-
 ### Testing Configuration Options
 
 | Environment Variable     | Default | Description
