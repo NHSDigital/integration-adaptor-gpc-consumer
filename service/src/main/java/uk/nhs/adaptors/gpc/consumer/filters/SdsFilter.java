@@ -63,7 +63,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return Mono.just(enableSds)
             .map(Boolean::valueOf)
             .map(isSdsEnabled -> {
-                if(isSdsEnabled) {
+                if (isSdsEnabled) {
                     LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
                     var id = extractInteractionId(serverHttpRequest.getHeaders());
                     return proceedSdsLookup(exchange, id.get());
@@ -74,7 +74,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                 if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
-        }).then(chain.filter(exchange));
+            }).then(chain.filter(exchange));
     }
 
     @Override

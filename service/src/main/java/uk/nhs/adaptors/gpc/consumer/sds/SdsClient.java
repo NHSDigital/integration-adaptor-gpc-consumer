@@ -48,6 +48,7 @@ public class SdsClient {
 
     private Mono<SdsResponseData> retrieveData(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request,
         ServerWebExchange exchange) {
+        LOGGER.info("Using SDS to determine GPC provider endpoint");
         return performRequest(request)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {

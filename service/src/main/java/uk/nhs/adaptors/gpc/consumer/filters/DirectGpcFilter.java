@@ -2,8 +2,8 @@ package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.net.URI;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -14,7 +14,6 @@ import org.springframework.web.server.ServerWebExchange;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
-
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 
@@ -28,10 +27,13 @@ public class DirectGpcFilter implements GlobalFilter, Ordered {
 
     private final GpcConfiguration gpcConfiguration;
 
+    @Value("${gpc-consumer.sds.enableSDS}")
+    private String enableSds;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         var gpcProviderUrlOverride = System.getenv(GPC_URL_ENVIRONMENT_VARIABLE);
-        if (StringUtils.isNotBlank(gpcProviderUrlOverride)) {
+        if (!Boolean.parseBoolean(enableSds)) {
             LoggingUtil.info(LOGGER, exchange, "SDS is not enabled. Using the value of {} for the GPC Provider endpoint: {}",
                 GPC_URL_ENVIRONMENT_VARIABLE, gpcProviderUrlOverride);
             URI requestUri = exchange.getRequest().getURI();
