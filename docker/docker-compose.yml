@@ -24,3 +24,5 @@ services:
         - GPC_CONSUMER_SDS_APIKEY
         - GPC_CONSUMER_SSP_FQDN 
         - GPC_ENABLE_SDS
+
+        
