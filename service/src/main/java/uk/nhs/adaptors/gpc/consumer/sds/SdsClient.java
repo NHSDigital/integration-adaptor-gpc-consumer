@@ -8,6 +8,7 @@ import org.hl7.fhir.dstu3.model.Endpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
 
 import ca.uhn.fhir.parser.IParser;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
+import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -24,32 +26,34 @@ public class SdsClient {
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
-    public Optional<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId) {
+    public Optional<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
         var request = sdsRequestBuilder.buildGetStructuredRecordRequest(fromOdsCode, correlationId);
-        return retrieveData(request);
+        return retrieveData(request, exchange);
     }
 
-    public Optional<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId) {
+    public Optional<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId,
+        ServerWebExchange exchange) {
         var request = sdsRequestBuilder.buildPatientSearchAccessDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request);
+        return retrieveData(request, exchange);
     }
 
-    public Optional<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId) {
+    public Optional<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
         var request = sdsRequestBuilder.buildSearchForDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request);
+        return retrieveData(request, exchange);
     }
 
-    public Optional<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId) {
+    public Optional<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
         var request = sdsRequestBuilder.buildRetrieveDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request);
+        return retrieveData(request, exchange);
     }
 
-    private Optional<SdsResponseData> retrieveData(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request) {
+    private Optional<SdsResponseData> retrieveData(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request,
+        ServerWebExchange exchange) {
         var responseBody = performRequest(request);
         var bundle = fhirParser.parseResource(Bundle.class, responseBody);
 
         if (!bundle.hasEntry()) {
-            LOGGER.info("SDS returned no result");
+            LoggingUtil.info(LOGGER, exchange, "SDS returned no result");
             return Optional.empty();
         }
 

@@ -6,11 +6,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.TriFunction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -52,7 +52,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     private final SdsClient sdsClient;
 
-    private Map<String, BiFunction<String, String, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
+    private Map<String, TriFunction<String, String, ServerWebExchange, Optional<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -108,7 +108,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
             LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
-                .apply(organisation, sspTraceId);
+                .apply(organisation, sspTraceId, exchange);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
