@@ -167,7 +167,7 @@ The stateless GP Connect Consumer Adaptor does not use a database or a message q
 
 The adaptor requires an [HSCN](https://digital.nhs.uk/services/health-and-social-care-network) network connection to use the [Spine Secure Proxy](https://developer.nhs.uk/apis/spine-core-1-0/ssp_overview.html).
 
-The adaptor can access the [SDS FHIR API](https://developer.nhs.uk/apis/spine-core-1-0/ssp_overview.html) over either the HSCN network or the public internet.
+The adaptor can access the [SDS FHIR API](https://digital.nhs.uk/developer/api-catalogue/spine-directory-service-fhir) over either the HSCN network or the public internet.
 
 ### Logging
 
