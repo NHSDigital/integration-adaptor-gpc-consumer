@@ -25,21 +25,25 @@ public class SslContextBuilderWrapper {
     private String subCert;
 
     public SslContextBuilderWrapper clientKey(String clientKey) {
+        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, key:'%s'", clientKey));
         this.clientKey = toPem(clientKey);
         return this;
     }
 
     public SslContextBuilderWrapper clientCert(String clientCert) {
+        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, cert:'%s'", clientCert));
         this.clientCert = toPem(clientCert);
         return this;
     }
 
     public SslContextBuilderWrapper rootCert(String rootCert) {
+        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, root:'%s'", rootCert));
         this.rootCert = toPem(rootCert);
         return this;
     }
 
     public SslContextBuilderWrapper subCert(String subCert) {
+        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, sub:'%s'", subCert));
         this.subCert = toPem(subCert);
         return this;
     }
