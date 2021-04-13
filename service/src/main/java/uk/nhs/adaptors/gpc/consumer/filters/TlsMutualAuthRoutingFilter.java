@@ -22,10 +22,6 @@ public class TlsMutualAuthRoutingFilter extends NettyRoutingFilter {
     private String clientCert;
     @Value("${gpc-consumer.gpc.subAndRootCA}")
     private String subAndRootCA;
-//    @Value("${gpc-consumer.gpc.rootCA}")
-//    private String rootCA;
-//    @Value("${gpc-consumer.gpc.subCA}")
-//    private String subCA;
 
     public TlsMutualAuthRoutingFilter(
         HttpClient httpClient,

@@ -14,8 +14,6 @@ public class GpcConfiguration {
     private String clientCert;
     private String clientKey;
     private String subAndRootCA;
-//    private String rootCA;
-//    private String subCA;
     private String gpcConsumerUrl;
     private String gpcUrl;
     private String structuredFhirBasePathRegex;

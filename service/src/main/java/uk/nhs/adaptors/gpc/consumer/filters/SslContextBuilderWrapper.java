@@ -23,9 +23,6 @@ public class SslContextBuilderWrapper {
     private String clientCert;
     private String subAndRootCert;
 
-//    private String rootCert;
-//    private String subCert;
-
     public SslContextBuilderWrapper clientKey(String clientKey) {
         LOGGER.info(String.format("DEPLOYMENT DEBUGGING, key:'%s'", clientKey));
         this.clientKey = toPem(clientKey);
@@ -44,18 +41,6 @@ public class SslContextBuilderWrapper {
         return this;
     }
 
-//    public SslContextBuilderWrapper rootCert(String rootCert) {
-//        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, root:'%s'", rootCert));
-//        this.rootCert = toPem(rootCert);
-//        return this;
-//    }
-//
-//    public SslContextBuilderWrapper subCert(String subCert) {
-//        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, sub:'%s'", subCert));
-//        this.subCert = toPem(subCert);
-//        return this;
-//    }
-
     @SneakyThrows
     public SslContext buildSSLContext() {
         if (shouldBuildSslContext()) {
@@ -67,7 +52,7 @@ public class SslContextBuilderWrapper {
     }
 
     private boolean shouldBuildSslContext() {
-        final int allSslProperties = 4;
+        final int allSslProperties = 3;
 
         var missingSslProperties = new ArrayList<String>();
         if (StringUtils.isBlank(clientKey)) {
@@ -79,12 +64,6 @@ public class SslContextBuilderWrapper {
         if (StringUtils.isBlank(subAndRootCert)) {
             missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_AND_ROOT_CA_CERT");
         }
-//        if (StringUtils.isBlank(rootCert)) {
-//            missingSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
-//        }
-//        if (StringUtils.isBlank(subCert)) {
-//            missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
-//        }
 
         if (missingSslProperties.size() == allSslProperties) {
             LOGGER.debug("No TLS MA properties were provided. Not configuring an SSL context.");
@@ -100,8 +79,6 @@ public class SslContextBuilderWrapper {
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-//        var caCertChain = subCert + rootCert;
-
         var randomPassword = UUID.randomUUID().toString();
 
         KeyStore ks = EnvKeyStore.createFromPEMStrings(

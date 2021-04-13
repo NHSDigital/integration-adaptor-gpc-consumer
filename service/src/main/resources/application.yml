@@ -23,8 +23,6 @@ gpc-consumer:
     clientCert: ${GPC_CONSUMER_SPINE_CLIENT_CERT:}
     clientKey: ${GPC_CONSUMER_SPINE_CLIENT_KEY:}
     subAndRootCA: ${GPC_CONSUMER_SPINE_SUB_AND_ROOT_CA_CERT:}
-    rootCA: ${GPC_CONSUMER_SPINE_ROOT_CA_CERT:}
-    subCA: ${GPC_CONSUMER_SPINE_SUB_CA_CERT:}
     gpcConsumerUrl: ${GPC_CONSUMER_URL:http://localhost:8090}
     gpcUrl: ${GPC_CONSUMER_GPC_GET_URL:}
     searchForAPatientsDocumentsPath: ${GPC_CONSUMER_SEARCH_DOCUMENTS_PATH:/*/STU3/1/gpconnect/documents/fhir/Patient/**}
