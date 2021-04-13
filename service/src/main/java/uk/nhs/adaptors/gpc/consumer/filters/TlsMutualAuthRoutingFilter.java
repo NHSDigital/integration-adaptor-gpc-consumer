@@ -20,10 +20,12 @@ public class TlsMutualAuthRoutingFilter extends NettyRoutingFilter {
     private String clientKey;
     @Value("${gpc-consumer.gpc.clientCert}")
     private String clientCert;
-    @Value("${gpc-consumer.gpc.rootCA}")
-    private String rootCA;
-    @Value("${gpc-consumer.gpc.subCA}")
-    private String subCA;
+    @Value("${gpc-consumer.gpc.subAndRootCA}")
+    private String subAndRootCA;
+//    @Value("${gpc-consumer.gpc.rootCA}")
+//    private String rootCA;
+//    @Value("${gpc-consumer.gpc.subCA}")
+//    private String subCA;
 
     public TlsMutualAuthRoutingFilter(
         HttpClient httpClient,
@@ -37,8 +39,7 @@ public class TlsMutualAuthRoutingFilter extends NettyRoutingFilter {
         SslContext sslContext = new SslContextBuilderWrapper()
             .clientKey(clientKey)
             .clientCert(clientCert)
-            .rootCert(rootCA)
-            .subCert(subCA)
+            .subAndRootCert(subAndRootCA)
             .buildSSLContext();
 
         return HttpClient.create().secure(t -> t.sslContext(sslContext));

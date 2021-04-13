@@ -22,6 +22,7 @@ gpc-consumer:
   gpc:
     clientCert: ${GPC_CONSUMER_SPINE_CLIENT_CERT:}
     clientKey: ${GPC_CONSUMER_SPINE_CLIENT_KEY:}
+    subAndRootCA: ${GPC_CONSUMER_SPINE_SUB_AND_ROOT_CA_CERT:}
     rootCA: ${GPC_CONSUMER_SPINE_ROOT_CA_CERT:}
     subCA: ${GPC_CONSUMER_SPINE_SUB_CA_CERT:}
     gpcConsumerUrl: ${GPC_CONSUMER_URL:http://localhost:8090}

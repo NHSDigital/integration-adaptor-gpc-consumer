@@ -21,8 +21,10 @@ import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 public class SslContextBuilderWrapper {
     private String clientKey;
     private String clientCert;
-    private String rootCert;
-    private String subCert;
+    private String subAndRootCert;
+
+//    private String rootCert;
+//    private String subCert;
 
     public SslContextBuilderWrapper clientKey(String clientKey) {
         LOGGER.info(String.format("DEPLOYMENT DEBUGGING, key:'%s'", clientKey));
@@ -36,17 +38,23 @@ public class SslContextBuilderWrapper {
         return this;
     }
 
-    public SslContextBuilderWrapper rootCert(String rootCert) {
-        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, root:'%s'", rootCert));
-        this.rootCert = toPem(rootCert);
+    public SslContextBuilderWrapper subAndRootCert(String subAndRootCert) {
+        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, subAndRootCert:'%s'", subAndRootCert));
+        this.subAndRootCert = toPem(subAndRootCert);
         return this;
     }
 
-    public SslContextBuilderWrapper subCert(String subCert) {
-        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, sub:'%s'", subCert));
-        this.subCert = toPem(subCert);
-        return this;
-    }
+//    public SslContextBuilderWrapper rootCert(String rootCert) {
+//        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, root:'%s'", rootCert));
+//        this.rootCert = toPem(rootCert);
+//        return this;
+//    }
+//
+//    public SslContextBuilderWrapper subCert(String subCert) {
+//        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, sub:'%s'", subCert));
+//        this.subCert = toPem(subCert);
+//        return this;
+//    }
 
     @SneakyThrows
     public SslContext buildSSLContext() {
@@ -68,12 +76,15 @@ public class SslContextBuilderWrapper {
         if (StringUtils.isBlank(clientCert)) {
             missingSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_CERT");
         }
-        if (StringUtils.isBlank(rootCert)) {
-            missingSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
+        if (StringUtils.isBlank(subAndRootCert)) {
+            missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_AND_ROOT_CA_CERT");
         }
-        if (StringUtils.isBlank(subCert)) {
-            missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
-        }
+//        if (StringUtils.isBlank(rootCert)) {
+//            missingSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
+//        }
+//        if (StringUtils.isBlank(subCert)) {
+//            missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
+//        }
 
         if (missingSslProperties.size() == allSslProperties) {
             LOGGER.debug("No TLS MA properties were provided. Not configuring an SSL context.");
@@ -89,7 +100,7 @@ public class SslContextBuilderWrapper {
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-        var caCertChain = subCert + rootCert;
+//        var caCertChain = subCert + rootCert;
 
         var randomPassword = UUID.randomUUID().toString();
 
@@ -97,7 +108,7 @@ public class SslContextBuilderWrapper {
             clientKey, clientCert,
             randomPassword).keyStore();
 
-        KeyStore ts = EnvKeyStore.createFromPEMStrings(caCertChain, randomPassword).keyStore();
+        KeyStore ts = EnvKeyStore.createFromPEMStrings(subAndRootCert, randomPassword).keyStore();
 
         KeyManagerFactory keyManagerFactory =
             KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
