@@ -24,8 +24,7 @@ public class RequestBuilderService {
         return new SslContextBuilderWrapper()
             .clientKey(gpcConfiguration.getClientKey())
             .clientCert(gpcConfiguration.getClientCert())
-            .rootCert(gpcConfiguration.getRootCA())
-            .subCert(gpcConfiguration.getSubCA())
+            .subAndRootCert(gpcConfiguration.getSubAndRootCA())
             .buildSSLContext();
     }
 
