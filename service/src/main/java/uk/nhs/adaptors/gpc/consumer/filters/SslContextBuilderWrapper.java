@@ -89,7 +89,7 @@ public class SslContextBuilderWrapper {
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-        var caCertChain = subCert + rootCert;
+        var caCertChain = subCert + "\n" + rootCert;
 
         LOGGER.info(String.format("DEPLOYMENT DEBUGGING, caCertChain:'%s'", caCertChain));
 
