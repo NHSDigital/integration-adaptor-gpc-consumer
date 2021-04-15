@@ -91,7 +91,7 @@ public class SslContextBuilderWrapper {
     private SslContext buildSSLContextWithClientCertificates() {
         var caCertChain = subCert + rootCert;
 
-        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, caCertChain:'%s'", subCert));
+        LOGGER.info(String.format("DEPLOYMENT DEBUGGING, caCertChain:'%s'", caCertChain));
 
         var randomPassword = UUID.randomUUID().toString();
 
