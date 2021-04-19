@@ -91,7 +91,7 @@ public class SslContextBuilderWrapper {
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-        var caCertChain = subCert  + rootCert;
+        var caCertChain = subCert + rootCert;
 
         var randomPassword = UUID.randomUUID().toString();
 
