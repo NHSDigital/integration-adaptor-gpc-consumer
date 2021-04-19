@@ -29,6 +29,12 @@ public class RequestBuilderService {
             .buildSSLContext();
     }
 
+    @SneakyThrows
+    public SslContext buildSSLContextForSds() {
+        return new SslContextBuilderWrapper()
+            .buildSSLContextForSds();
+    }
+
     public ExchangeStrategies buildExchangeStrategies() {
         return ExchangeStrategies
             .builder()

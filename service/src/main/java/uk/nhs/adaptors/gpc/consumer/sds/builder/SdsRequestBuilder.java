@@ -60,7 +60,7 @@ public class SdsRequestBuilder {
 
     private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildRequest(String odsCode, String interaction,
         String correlationId) {
-        var sslContext = requestBuilderService.buildSSLContext();
+        var sslContext = requestBuilderService.buildSSLContextForSds();
         var httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
         return buildWebClient(httpClient)
             .get()

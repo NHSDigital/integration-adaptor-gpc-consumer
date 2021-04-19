@@ -58,6 +58,12 @@ public class SslContextBuilderWrapper {
         return io.netty.handler.ssl.SslContextBuilder.forClient().build();
     }
 
+    @SneakyThrows
+    public SslContext buildSSLContextForSds() {
+        LOGGER.info("Using standard SSL context.");
+        return io.netty.handler.ssl.SslContextBuilder.forClient().build();
+    }
+
     private boolean shouldBuildSslContext() {
         final int allSslProperties = 4;
 
@@ -89,7 +95,7 @@ public class SslContextBuilderWrapper {
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-        var caCertChain = subCert + "\n" + rootCert;
+        var caCertChain = subCert  + rootCert;
 
         LOGGER.info(String.format("DEPLOYMENT DEBUGGING, caCertChain:'%s'", caCertChain));
 
