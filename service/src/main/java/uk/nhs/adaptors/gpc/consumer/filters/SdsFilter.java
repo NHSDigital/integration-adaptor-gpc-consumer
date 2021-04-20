@@ -39,10 +39,6 @@ import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
     public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
-
-    @Value("${gpc-consumer.sds.enableSDS}")
-    private String enableSds;
-
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
@@ -51,9 +47,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
     private static final int SDS_URI_OFFSET = 8;
-
     private final SdsClient sdsClient;
-
+    @Value("${gpc-consumer.sds.enableSDS}")
+    private String enableSds;
     private Map<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
@@ -77,58 +73,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
             }).then(chain.filter(exchange));
     }
 
-    @Override
-    public int getOrder() {
-        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
-    }
-
-    @PostConstruct
-    @SuppressWarnings("unused")
-    public void initializeSdsRequestFunctions() {
-        sdsRequestFunctions = Map.of(
-            STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
-            PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
-            DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
-            BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
-    }
-
-    private Mono<SdsClient.SdsResponseData> proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
-        ServerHttpRequest serverHttpRequest = exchange.getRequest();
-        String organisation = extractOrganisation(serverHttpRequest.getPath());
-        var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
-        return performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
-            .switchIfEmpty(Mono.error(new SdsException(
-                    String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
-                        integrationId,
-                        organisation)))
-            ).doOnNext(response -> {
-                LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
-                prepareLookupUri(response.getAddress(), serverHttpRequest)
-                    .ifPresent(uri -> exchange.getAttributes()
-                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-            });
-    }
-
-    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            String organisation, String sspTraceId, ServerWebExchange exchange) {
-        if (sdsRequestFunctions.containsKey(interactionId)) {
-            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
-                organisation, interactionId);
-            return sdsRequestFunctions.get(interactionId)
-                .apply(organisation, sspTraceId, exchange);
-        }
-        throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
-    }
-
-    private String extractOrganisation(RequestPath requestPath) {
-        return requestPath.elements()
-            .stream()
-            .skip(1)
-            .findFirst()
-            .map(PathContainer.Element::value)
-            .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
-    }
-
     private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
         if (httpHeaders.containsKey(SSP_INTERACTION_ID)) {
             List<String> interactionIds = httpHeaders.get(SSP_INTERACTION_ID);
@@ -138,6 +82,32 @@ public class SdsFilter implements GlobalFilter, Ordered {
             }
         }
         return Optional.empty();
+    }
+
+    private Mono<SdsClient.SdsResponseData> proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
+        ServerHttpRequest serverHttpRequest = exchange.getRequest();
+        String organisation = extractOrganisation(serverHttpRequest.getPath());
+        var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
+        return performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
+            .switchIfEmpty(Mono.error(new SdsException(
+                String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
+                    integrationId,
+                    organisation)))
+            ).doOnNext(response -> {
+                LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
+                prepareLookupUri(response.getAddress(), serverHttpRequest)
+                    .ifPresent(uri -> exchange.getAttributes()
+                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+            });
+    }
+
+    private String extractOrganisation(RequestPath requestPath) {
+        return requestPath.elements()
+            .stream()
+            .skip(1)
+            .findFirst()
+            .map(PathContainer.Element::value)
+            .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
     }
 
     private String extractSspTraceId(HttpHeaders httpHeaders) {
@@ -151,6 +121,17 @@ public class SdsFilter implements GlobalFilter, Ordered {
         throw new SdsException("Missing Ssp-TraceID Header for X-Correlation-Id for SDS Request");
     }
 
+    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
+        String organisation, String sspTraceId, ServerWebExchange exchange) {
+        if (sdsRequestFunctions.containsKey(interactionId)) {
+            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
+                organisation, interactionId);
+            return sdsRequestFunctions.get(interactionId)
+                .apply(organisation, sspTraceId, exchange);
+        }
+        throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
+    }
+
     private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {
         var path = getFhirRequestFromRequest(serverHttpRequest.getPath().toString());
         return path.map(p -> UriComponentsBuilder.fromUriString(address + p)
@@ -159,38 +140,54 @@ public class SdsFilter implements GlobalFilter, Ordered {
             .toUri());
     }
 
+    @SuppressWarnings("MagicNumber")
     private Optional<String> getFhirRequestFromRequest(String path) {
-        for(int i=path.length()-1; i >= 8; i--) {
-            if(path.charAt(i-8) == '/'
-                && path.charAt(i-7) == 'P'
-                && path.charAt(i-6) == 'a'
-                && path.charAt(i-5) == 't'
-                && path.charAt(i-4) == 'i'
-                && path.charAt(i-3) == 'e'
-                && path.charAt(i-2) == 'n'
-                && path.charAt(i-1) == 't'
+        for (int i = path.length() - 1; i >= 8; i--) {
+            if (path.charAt(i - 8) == '/'
+                && path.charAt(i - 7) == 'P'
+                && path.charAt(i - 6) == 'a'
+                && path.charAt(i - 5) == 't'
+                && path.charAt(i - 4) == 'i'
+                && path.charAt(i - 3) == 'e'
+                && path.charAt(i - 2) == 'n'
+                && path.charAt(i - 1) == 't'
                 && path.charAt(i) == '/'
             ) {
-                var patientFhirRequest = path.substring(i-8);
+                var patientFhirRequest = path.substring(i - 8);
                 LOGGER.info(String.format("Patient FHIR request found in request path: '%s', retrieved: : '%s'", path, patientFhirRequest));
                 return Optional.of(patientFhirRequest);
             }
 
-            if(path.charAt(i-7) == '/'
-                && path.charAt(i-6) == 'B'
-                && path.charAt(i-5) == 'i'
-                && path.charAt(i-4) == 'n'
-                && path.charAt(i-3) == 'a'
-                && path.charAt(i-2) == 'r'
-                && path.charAt(i-1) == 'y'
+            if (path.charAt(i - 7) == '/'
+                && path.charAt(i - 6) == 'B'
+                && path.charAt(i - 5) == 'i'
+                && path.charAt(i - 4) == 'n'
+                && path.charAt(i - 3) == 'a'
+                && path.charAt(i - 2) == 'r'
+                && path.charAt(i - 1) == 'y'
                 && path.charAt(i) == '/'
             ) {
-                var binaryFhirRequest = path.substring(i-7);
+                var binaryFhirRequest = path.substring(i - 7);
                 LOGGER.info(String.format("Binary FHIR request found in request path: '%s', retrieved: : '%s'", path, binaryFhirRequest));
                 return Optional.of(binaryFhirRequest);
             }
         }
         LOGGER.info(String.format("No FHIR Request found for 'Patient' or 'Binary' in request path: '%s'", path));
         return Optional.empty();
+    }
+
+    @Override
+    public int getOrder() {
+        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+    }
+
+    @PostConstruct
+    @SuppressWarnings("unused")
+    public void initializeSdsRequestFunctions() {
+        sdsRequestFunctions = Map.of(
+            STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
+            PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
+            DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
+            BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 }
