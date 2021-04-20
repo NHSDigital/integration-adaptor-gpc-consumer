@@ -107,7 +107,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     .ifPresent(uri -> exchange.getAttributes()
                         .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
             });
-
     }
 
     private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
@@ -153,13 +152,45 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {
-        String uri = address + serverHttpRequest.getPath().subPath(SDS_URI_OFFSET)
-            .toString()
-            .substring(1);
-        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
+        var path = getFhirRequestFromRequest(serverHttpRequest.getPath().toString());
+        return path.map(p -> UriComponentsBuilder.fromUriString(address + p)
             .queryParams(serverHttpRequest.getQueryParams())
             .build()
-            .toUri();
-        return Optional.of(constructedUri);
+            .toUri());
+    }
+
+    private Optional<String> getFhirRequestFromRequest(String path) {
+        for(int i=path.length()-1; i >= 8; i--) {
+            if(path.charAt(i-8) == '/'
+                && path.charAt(i-7) == 'P'
+                && path.charAt(i-6) == 'a'
+                && path.charAt(i-5) == 't'
+                && path.charAt(i-4) == 'i'
+                && path.charAt(i-3) == 'e'
+                && path.charAt(i-2) == 'n'
+                && path.charAt(i-1) == 't'
+                && path.charAt(i) == '/'
+            ) {
+                var patientFhirRequest = path.substring(i-8);
+                LOGGER.info(String.format("Patient FHIR request found in request path: '%s', retrieved: : '%s'", path, patientFhirRequest));
+                return Optional.of(patientFhirRequest);
+            }
+
+            if(path.charAt(i-7) == '/'
+                && path.charAt(i-6) == 'B'
+                && path.charAt(i-5) == 'i'
+                && path.charAt(i-4) == 'n'
+                && path.charAt(i-3) == 'a'
+                && path.charAt(i-2) == 'r'
+                && path.charAt(i-1) == 'y'
+                && path.charAt(i) == '/'
+            ) {
+                var binaryFhirRequest = path.substring(i-7);
+                LOGGER.info(String.format("Binary FHIR request found in request path: '%s', retrieved: : '%s'", path, binaryFhirRequest));
+                return Optional.of(binaryFhirRequest);
+            }
+        }
+        LOGGER.info(String.format("No FHIR Request found for 'Patient' or 'Binary' in request path: '%s'", path));
+        return Optional.empty();
     }
 }
