@@ -20,16 +20,6 @@ public class RequestBuilderService {
     private final GpcConfiguration gpcConfiguration;
 
     @SneakyThrows
-    public SslContext buildSSLContext() {
-        return new SslContextBuilderWrapper()
-            .clientKey(gpcConfiguration.getClientKey())
-            .clientCert(gpcConfiguration.getClientCert())
-            .rootCert(gpcConfiguration.getRootCA())
-            .subCert(gpcConfiguration.getSubCA())
-            .buildSSLContext();
-    }
-
-    @SneakyThrows
     public SslContext buildStandardSslContext() {
         return new SslContextBuilderWrapper()
             .buildStandardSslContext();
