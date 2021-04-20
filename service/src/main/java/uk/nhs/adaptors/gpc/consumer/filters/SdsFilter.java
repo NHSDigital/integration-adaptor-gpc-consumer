@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -29,6 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.filters.exception.SdsFilterException;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
@@ -146,12 +148,25 @@ public class SdsFilter implements GlobalFilter, Ordered {
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
 
-    private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {
-        var path = getFhirRequestFromRequest(serverHttpRequest.getPath().toString());
-        return path.map(p -> UriComponentsBuilder.fromUriString(address + p)
-            .queryParams(serverHttpRequest.getQueryParams())
+    private Optional<URI> prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
+        var originalRequestPath = originalRequest.getPath();
+        var originalRequestPathValues = originalRequestPath.elements().stream()
+            .map(PathContainer.Element::value)
+            .collect(Collectors.toList());
+        int indexOfPatientInFhirPath = originalRequestPathValues.lastIndexOf("Patient");
+        int indexOfBinaryInFhirPath = originalRequestPathValues.lastIndexOf("Binary");
+        int indexOfStartOfFhirPath = Math.max(indexOfPatientInFhirPath, indexOfBinaryInFhirPath);
+        if(indexOfStartOfFhirPath < 0) {
+            throw new SdsFilterException("");
+        }
+        String fhirRequestPathPart = originalRequest.getPath().subPath(indexOfStartOfFhirPath-1)
+            .toString();
+        String uriWithoutQueryParameters = serviceRootUrl + fhirRequestPathPart;
+        URI constructedUri = UriComponentsBuilder.fromUriString(uriWithoutQueryParameters)
+            .queryParams(originalRequest.getQueryParams())
             .build()
-            .toUri());
+            .toUri();
+        return Optional.of(constructedUri);
     }
 
     @SuppressWarnings("MagicNumber")
