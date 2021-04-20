@@ -46,11 +46,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
-    private static final int SDS_URI_OFFSET = 8;
     private final SdsClient sdsClient;
+    private Map<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
     @Value("${gpc-consumer.sds.enableSDS}")
     private String enableSds;
-    private Map<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -71,6 +70,21 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
             }).then(chain.filter(exchange));
+    }
+
+    @Override
+    public int getOrder() {
+        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+    }
+
+    @PostConstruct
+    @SuppressWarnings("unused")
+    public void initializeSdsRequestFunctions() {
+        sdsRequestFunctions = Map.of(
+            STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
+            PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
+            DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
+            BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 
     private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
@@ -174,20 +188,5 @@ public class SdsFilter implements GlobalFilter, Ordered {
         }
         LOGGER.info(String.format("No FHIR Request found for 'Patient' or 'Binary' in request path: '%s'", path));
         return Optional.empty();
-    }
-
-    @Override
-    public int getOrder() {
-        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
-    }
-
-    @PostConstruct
-    @SuppressWarnings("unused")
-    public void initializeSdsRequestFunctions() {
-        sdsRequestFunctions = Map.of(
-            STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
-            PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
-            DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
-            BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 }
