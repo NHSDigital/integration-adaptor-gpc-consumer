@@ -30,9 +30,9 @@ public class RequestBuilderService {
     }
 
     @SneakyThrows
-    public SslContext buildSSLContextForSds() {
+    public SslContext buildStandardSslContext() {
         return new SslContextBuilderWrapper()
-            .buildSSLContextForSds();
+            .buildStandardSslContext();
     }
 
     public ExchangeStrategies buildExchangeStrategies() {

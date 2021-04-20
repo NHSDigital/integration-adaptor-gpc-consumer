@@ -51,11 +51,10 @@ public class SslContextBuilderWrapper {
             return buildSSLContextWithClientCertificates();
         }
         LOGGER.info("Using standard SSL context. TLS mutual authentication is not enabled.");
-        return io.netty.handler.ssl.SslContextBuilder.forClient().build();
+        return buildStandardSslContext();
     }
-
     @SneakyThrows
-    public SslContext buildSSLContextForSds() {
+    public SslContext buildStandardSslContext() {
         LOGGER.info("Using standard SSL context.");
         return io.netty.handler.ssl.SslContextBuilder.forClient().build();
     }
