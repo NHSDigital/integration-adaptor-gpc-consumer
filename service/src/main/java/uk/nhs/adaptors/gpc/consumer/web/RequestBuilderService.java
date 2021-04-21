@@ -20,13 +20,9 @@ public class RequestBuilderService {
     private final GpcConfiguration gpcConfiguration;
 
     @SneakyThrows
-    public SslContext buildSSLContext() {
+    public SslContext buildStandardSslContext() {
         return new SslContextBuilderWrapper()
-            .clientKey(gpcConfiguration.getClientKey())
-            .clientCert(gpcConfiguration.getClientCert())
-            .rootCert(gpcConfiguration.getRootCA())
-            .subCert(gpcConfiguration.getSubCA())
-            .buildSSLContext();
+            .buildStandardSslContext();
     }
 
     public ExchangeStrategies buildExchangeStrategies() {

@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -29,6 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.filters.exception.SdsFilterException;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
@@ -39,10 +41,6 @@ import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsFilter implements GlobalFilter, Ordered {
     public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
-
-    @Value("${gpc-consumer.sds.enableSDS}")
-    private String enableSds;
-
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
@@ -50,11 +48,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
     private static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
-    private static final int SDS_URI_OFFSET = 8;
-
     private final SdsClient sdsClient;
-
     private Map<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
+    @Value("${gpc-consumer.sds.enableSDS}")
+    private String enableSds;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -92,44 +89,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
             BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
     }
 
-    private Mono<SdsClient.SdsResponseData> proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
-        ServerHttpRequest serverHttpRequest = exchange.getRequest();
-        String organisation = extractOrganisation(serverHttpRequest.getPath());
-        var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
-        return performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
-            .switchIfEmpty(Mono.error(new SdsException(
-                    String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
-                        integrationId,
-                        organisation)))
-            ).doOnNext(response -> {
-                LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
-                prepareLookupUri(response.getAddress(), serverHttpRequest)
-                    .ifPresent(uri -> exchange.getAttributes()
-                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-            });
-
-    }
-
-    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-            String organisation, String sspTraceId, ServerWebExchange exchange) {
-        if (sdsRequestFunctions.containsKey(interactionId)) {
-            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
-                organisation, interactionId);
-            return sdsRequestFunctions.get(interactionId)
-                .apply(organisation, sspTraceId, exchange);
-        }
-        throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
-    }
-
-    private String extractOrganisation(RequestPath requestPath) {
-        return requestPath.elements()
-            .stream()
-            .skip(1)
-            .findFirst()
-            .map(PathContainer.Element::value)
-            .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
-    }
-
     private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
         if (httpHeaders.containsKey(SSP_INTERACTION_ID)) {
             List<String> interactionIds = httpHeaders.get(SSP_INTERACTION_ID);
@@ -139,6 +98,32 @@ public class SdsFilter implements GlobalFilter, Ordered {
             }
         }
         return Optional.empty();
+    }
+
+    private Mono<SdsClient.SdsResponseData> proceedSdsLookup(ServerWebExchange exchange, String integrationId) {
+        ServerHttpRequest serverHttpRequest = exchange.getRequest();
+        String organisation = extractOrganisation(serverHttpRequest.getPath());
+        var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
+        return performRequestAccordingToInteractionId(integrationId, organisation, sspTraceId, exchange)
+            .switchIfEmpty(Mono.error(new SdsException(
+                String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
+                    integrationId,
+                    organisation)))
+            ).doOnNext(response -> {
+                LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
+                prepareLookupUri(response.getAddress(), serverHttpRequest)
+                    .ifPresent(uri -> exchange.getAttributes()
+                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+            });
+    }
+
+    private String extractOrganisation(RequestPath requestPath) {
+        return requestPath.elements()
+            .stream()
+            .skip(1)
+            .findFirst()
+            .map(PathContainer.Element::value)
+            .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
     }
 
     private String extractSspTraceId(HttpHeaders httpHeaders) {
@@ -152,12 +137,33 @@ public class SdsFilter implements GlobalFilter, Ordered {
         throw new SdsException("Missing Ssp-TraceID Header for X-Correlation-Id for SDS Request");
     }
 
-    private Optional<URI> prepareLookupUri(String address, ServerHttpRequest serverHttpRequest) {
-        String uri = address + serverHttpRequest.getPath().subPath(SDS_URI_OFFSET)
-            .toString()
-            .substring(1);
-        URI constructedUri = UriComponentsBuilder.fromUriString(uri)
-            .queryParams(serverHttpRequest.getQueryParams())
+    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
+        String organisation, String sspTraceId, ServerWebExchange exchange) {
+        if (sdsRequestFunctions.containsKey(interactionId)) {
+            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
+                organisation, interactionId);
+            return sdsRequestFunctions.get(interactionId)
+                .apply(organisation, sspTraceId, exchange);
+        }
+        throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
+    }
+
+    private Optional<URI> prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
+        var originalRequestPath = originalRequest.getPath();
+        var originalRequestPathValues = originalRequestPath.elements().stream()
+            .map(PathContainer.Element::value)
+            .collect(Collectors.toList());
+        int indexOfPatientInFhirPath = originalRequestPathValues.lastIndexOf("Patient");
+        int indexOfBinaryInFhirPath = originalRequestPathValues.lastIndexOf("Binary");
+        int indexOfStartOfFhirPath = Math.max(indexOfPatientInFhirPath, indexOfBinaryInFhirPath);
+        if (indexOfStartOfFhirPath < 0) {
+            throw new SdsFilterException("Unable to detect a supported FHIR path in the original request");
+        }
+        String fhirRequestPathPart = originalRequest.getPath().subPath(indexOfStartOfFhirPath - 1)
+            .toString();
+        String uriWithoutQueryParameters = serviceRootUrl + fhirRequestPathPart;
+        URI constructedUri = UriComponentsBuilder.fromUriString(uriWithoutQueryParameters)
+            .queryParams(originalRequest.getQueryParams())
             .build()
             .toUri();
         return Optional.of(constructedUri);
