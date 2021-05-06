@@ -2,9 +2,9 @@ plugins {
 	id 'org.springframework.boot' version '2.4.5'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
-	id "checkstyle"
-	id "com.github.spotbugs" version "4.7.0"
-	id "io.freefair.lombok" version "5.3.0"
+	id 'checkstyle'
+	id 'com.github.spotbugs' version '4.7.0'
+	id 'io.freefair.lombok' version '5.3.0'
 	id 'jacoco'
 }
 
@@ -12,7 +12,7 @@ apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'checkstyle'
-apply plugin: "com.github.spotbugs"
+apply plugin: 'com.github.spotbugs'
 
 group = 'uk.nhs.adaptors'
 sourceCompatibility = '11'
@@ -22,7 +22,7 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2020.0.1")
+	set('springCloudVersion', '2020.0.1')
 }
 
 lombok {
@@ -31,8 +31,8 @@ lombok {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation("org.springframework.cloud:spring-cloud-starter-gateway") {
-		exclude group: "io.netty", module: "netty-codec-http2"
+	implementation('org.springframework.cloud:spring-cloud-starter-gateway') {
+		exclude group: 'io.netty', module: 'netty-codec-http2'
 	}
 	implementation 'io.netty:netty-codec-http2:4.1.61.Final'
 
@@ -43,34 +43,24 @@ dependencies {
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 
 	// Test
-	testImplementation("org.springframework.boot:spring-boot-starter-test") {
-		exclude group: "com.jayway.jsonpath", module: "json-path"
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'com.jayway.jsonpath', module: 'json-path'
 	}
-	testImplementation("com.jayway.jsonpath:json-path:2.5.0") {
-		exclude group: "net.minidev", module: "json-smart"
+	testImplementation('com.jayway.jsonpath:json-path:2.5.0') {
+		exclude group: 'net.minidev', module: 'json-smart'
 	}
 	testImplementation 'net.minidev:json-smart:2.4.1'
 	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
-	testImplementation "com.github.tomakehurst:wiremock:2.27.2"
+	testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
 	testImplementation 'uk.org.webcompere:system-stubs-jupiter:1.2.0'
-	testImplementation "org.assertj:assertj-core:3.18.1"
+	testImplementation 'org.assertj:assertj-core:3.18.1'
 
-	constraints {
-		implementation('commons-io:commons-io:2.7') {
-			because 'ca.uhn.hapi.fhir depends on it'
-		}
-		implementation('org.bouncycastle:bcprov-jdk15on:1.68') {
-			because 'env-keystore:1.1.6 depends on previous version with CVE-2020-28052'
-		}
-		implementation('io.projectreactor.netty:reactor-netty-http:1.0.5') {
-			because 'org.springframework.boot:spring-boot-starter-reactor-netty:2.4.3 depends on it'
-		}
-	}
+	
 }
 
 dependencyManagement {
 	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		mavenBom 'org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}'
 	}
 }
 
@@ -116,7 +106,7 @@ task integrationTest(type: Test) {
 
 tasks.withType(Test) {
 	testLogging {
-		events "passed", "skipped", "failed"
+		events 'passed', 'skipped', 'failed'
 	}
 }
 
