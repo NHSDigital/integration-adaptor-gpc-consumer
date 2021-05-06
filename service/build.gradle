@@ -48,7 +48,7 @@ dependencies {
 	testImplementation("com.github.tomakehurst:wiremock:2.27.2") {
 		exclude group: "org.eclipse.jetty", module: "jetty-server"
 	}
-	testImplementation 'org.eclipse.jetty:jetty-server:9.4.39'
+	testImplementation 'org.eclipse.jetty:jetty-server:9.4.39.v20210325'
 	testImplementation 'uk.org.webcompere:system-stubs-jupiter:1.2.0'
 	testImplementation "org.assertj:assertj-core:3.18.1"
 
