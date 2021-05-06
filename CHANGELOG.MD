@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Issues and Limitations
 
-- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268
+- n/a
 
 ### Added
 
