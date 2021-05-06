@@ -34,7 +34,7 @@ cd integration-adaptor-gpc-consumer/docker
 
 ## Configure the application
 
-[Copy a configuration example](https://github.com/nhsconnect/integration-adaptor-gpc-consumer/blob/0.0.3/README.md#copy-a-configuration-example)
+[Copy a configuration example](https://github.com/nhsconnect/integration-adaptor-gpc-consumer/blob/0.0.5/README.md#copy-a-configuration-example)
  to `docker/vars.sh` and make any required changes to the `vars.sh` file.
 
 ## Find the release directory
