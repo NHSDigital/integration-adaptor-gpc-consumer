@@ -1,63 +1,66 @@
 plugins {
-	id 'org.springframework.boot' version '2.4.3'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'java'
+	id "org.springframework.boot" version "2.4.5"
+	id "io.spring.dependency-management" version "1.0.11.RELEASE"
+	id "java"
 	id "checkstyle"
 	id "com.github.spotbugs" version "4.7.0"
 	id "io.freefair.lombok" version "5.3.0"
-	id 'jacoco'
+	id "jacoco"
 }
 
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'checkstyle'
+apply plugin: "java"
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+apply plugin: "checkstyle"
 apply plugin: "com.github.spotbugs"
 
-group = 'uk.nhs.adaptors'
-sourceCompatibility = '11'
+group = "uk.nhs.adaptors"
+sourceCompatibility = "11"
 
 repositories {
 	mavenCentral()
 }
 
 ext {
-	set('springCloudVersion', "2020.0.1")
+	set("springCloudVersion", "2020.0.1")
 }
 
 lombok {
-	config['lombok.log.fieldName'] = 'LOGGER'
+	config["lombok.log.fieldName"] = "LOGGER"
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	implementation("org.springframework.cloud:spring-cloud-starter-gateway") {
+		exclude group: "io.netty", module: "netty-codec-http2"
+	}
+	implementation "io.netty:netty-codec-http2:4.1.61.Final"
 
-	implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:5.3.0'
+	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:5.3.0"
 
-	implementation 'com.heroku.sdk:env-keystore:1.1.6'
+	implementation "com.heroku.sdk:env-keystore:1.1.6"
 
-	implementation 'org.apache.commons:commons-lang3:3.12.0'
+	implementation "org.apache.commons:commons-lang3:3.12.0"
 
 	// Test
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.0'
-	testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
-	testImplementation 'uk.org.webcompere:system-stubs-jupiter:1.2.0'
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: "com.jayway.jsonpath", module: "json-path"
+	}
+	testImplementation("com.jayway.jsonpath:json-path:2.5.0") {
+		exclude group: "net.minidev", module: "json-smart"
+	}
+	testImplementation "net.minidev:json-smart:2.4.1"
+	testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.0"
+	testImplementation "com.github.tomakehurst:wiremock:2.27.2"
+	testImplementation "uk.org.webcompere:system-stubs-jupiter:1.2.0"
 	testImplementation "org.assertj:assertj-core:3.18.1"
 
 	constraints {
+		implementation('commons-io:commons-io:2.7') {
+			because 'https://snyk.io/vuln/SNYK-JAVA-COMMONSIO-1277109'
+		}
 		implementation('org.bouncycastle:bcprov-jdk15on:1.68') {
-			because 'env-keystore:1.1.6 depends on previous version with CVE-2020-28052'
-		}
-		implementation('io.netty:netty-codec-http:4.1.60.Final') {
-			because 'to fix https://snyk.io/vuln/SNYK-JAVA-IONETTY-1083991'
-		}
-		implementation('org.eclipse.jetty:jetty-server:11.0.1') {
-			because 'wiremock depends on it'
-		}
-		implementation('io.projectreactor.netty:reactor-netty-http:1.0.5') {
-			because 'org.springframework.boot:spring-boot-starter-reactor-netty:2.4.3 depends on it'
+			because 'https://snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448'
 		}
 	}
 }
@@ -81,11 +84,11 @@ sourceSets {
 		java {
 			compileClasspath += main.output + test.output
 			runtimeClasspath += main.output + test.output
-			srcDir file('src/intTest/java')
+			srcDir file("src/intTest/java")
 		}
 
 		resources {
-			srcDir file('src/intTest/resources')
+			srcDir file("src/intTest/resources")
 		}
 	}
 }
@@ -99,8 +102,8 @@ configurations {
 
 task integrationTest(type: Test) {
 	useJUnitPlatform() {
-		description = 'Runs integration tests.'
-		group = 'verification'
+		description = "Runs integration tests."
+		group = "verification"
 
 		testClassesDirs = sourceSets.integrationTest.output.classesDirs
 		classpath = sourceSets.integrationTest.runtimeClasspath

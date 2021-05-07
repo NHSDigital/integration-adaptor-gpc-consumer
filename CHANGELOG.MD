@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2021-05-06
+
+### Known Issues and Limitations
+
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268
+
+### Added
+
+NIAD-1348: Remove TLS for SDS request
+NIAD-1124: Update SDS FHIR api link in readme to valid one
+NIAD-1080: SDS filter uses reactive operations to preventing blocking
+
 ## [0.0.4] - 2021-03-30
 
 ### Known Issues and Limitations
