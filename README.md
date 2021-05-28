@@ -81,13 +81,13 @@ to use the adaptor in the integration and production environments.
 | ------------------------|---------|-------------
 | GPC_CONSUMER_SDS_URL    |         | URL of the SDS FHIR API
 | GPC_CONSUMER_SDS_APIKEY |         | Secret key used to authenticate with the API
-| GPC_ENABLE_SDS          | true    | Enables or disables service discovery using the SDS FHIR API. The value may be "true" or "false". See also `GPC_CONSUMER_GPC_GET_URL`.
+| GPC_ENABLE_SDS          | true    | Enables or disables service discovery using the SDS FHIR API. The value may be "true" or "false". See also `GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL`.
 
 ### Testing Configuration Options
 
-| Environment Variable     | Default | Description
-| -------------------------|---------|-------------
-| GPC_CONSUMER_GPC_GET_URL |         | Overrides the base URL for GPC service. If `GPC_ENABLE_SDS=false` the adaptor proxies GP Connect requests to this host using the FHIR base of the original request. Example: `http://localhost:8110`
+| Environment Variable                   | Default | Description
+| ---------------------------------------|---------|-------------
+| GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL |         | Overrides the base URL for GPC service. If `GPC_ENABLE_SDS=false` the adaptor proxies GP Connect requests to this host using the FHIR base of the original request. Example: `http://localhost:8110`
 
 ### API Configuration Options
 
@@ -114,7 +114,7 @@ We provide several example configurations:
 
 * `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](https://orange.testlab.nhs.uk/) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
 * `vars.opentest.sh` runs the adaptor on the OpenTest environment using the Spine Security Proxy and the GP Connect 
-provider. The SDS FHIR API is not available in OpenTest; this configuration uses `GPC_CONSUMER_GPC_GET_URL` to hardcode
+provider. The SDS FHIR API is not available in OpenTest; this configuration uses `GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL` to hardcode
 the provider endpoint.
 * `vars.integration.sh` runs the adaptor on the Integration environment.
 

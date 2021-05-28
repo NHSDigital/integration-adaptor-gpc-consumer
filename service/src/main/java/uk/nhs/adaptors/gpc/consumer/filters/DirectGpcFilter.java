@@ -21,7 +21,7 @@ import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class DirectGpcFilter implements GlobalFilter, Ordered {
-    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_GPC_GET_URL";
+    private static final String GPC_URL_ENVIRONMENT_VARIABLE = "GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL";
 
     static final int DIRECT_FILTER_ORDER = SdsFilter.SDS_FILTER_ORDER - 1;
 

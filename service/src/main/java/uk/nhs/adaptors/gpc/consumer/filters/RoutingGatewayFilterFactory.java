@@ -1,5 +1,6 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
@@ -11,10 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
-import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 
 @Configuration
 @Slf4j
@@ -32,6 +30,9 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String findPatientPath;
     @Value("${gpc-consumer.gpc.documentPath}")
     private String documentPath;
+
+    @Autowired
+    private UrlsInResponseBodyRewriteFunction urlsInResponseBodyRewriteFunction;
 
     @Override
     public GatewayFilter apply(Config config) {
@@ -52,20 +53,9 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
                 .and()
                 .uri(gpcUrl))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
-                .filters(f -> f.modifyResponseBody(String.class, String.class,
-                    (exchange, s) -> handleResponse(s)))
+                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
                 .uri(gpcUrl))
             .build();
-    }
-
-    @SneakyThrows
-    private Mono<String> handleResponse(String responseBody) {
-        if (responseBody.isBlank()) {
-            LOGGER.error("An error with status occurred");
-            return Mono.empty();
-        } else {
-            return Mono.just(FindAPatientDocsUtil.replaceUrl(gpcConsumerUrl, gpcUrl, responseBody));
-        }
     }
 
     @Setter
