@@ -195,7 +195,7 @@ third party code.
 The adaptor proxies its requests to internal NHSD URLs via the Spine Secure Proxy.
 
 ```
-Example: Get structured record for a patient at practive with ODS code A12345
+Example: Get structured record for a patient at practice with ODS code A12345
 
 The request URL made to the adaptor includes the ODS code of the patient's practice. The two 
 variables (with * as wildcard) must have values matching the full request URL.
