@@ -22,7 +22,7 @@ services:
         - GPC_CONSUMER_SPINE_SUB_CA_CERT
         - GPC_CONSUMER_SDS_URL
         - GPC_CONSUMER_SDS_APIKEY
-        - GPC_CONSUMER_SSP_FQDN 
+        - GPC_CONSUMER_SSP_URL
         - GPC_ENABLE_SDS
 
         

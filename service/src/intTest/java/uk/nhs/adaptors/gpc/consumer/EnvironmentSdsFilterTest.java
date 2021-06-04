@@ -20,7 +20,7 @@ public class EnvironmentSdsFilterTest extends CloudGatewayRouteBaseTest {
         = new EnvironmentVariables().set(GPC_URL_ENVIRONMENT_VARIABLE_NAME, WIRE_MOCK_SERVER.baseUrl());
 
     @Test
-    public void When_MakingRequestViaSdsFilter_Given_GpcUrlEnvVariable_Expect_OkResponse() {
+    public void When_MakingRequestViaSdsFilter_Given_OverrideGpcProviderUrlEnvVariable_Expect_OkResponse() {
         WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(GET_DOCUMENT_URI))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.SC_OK)

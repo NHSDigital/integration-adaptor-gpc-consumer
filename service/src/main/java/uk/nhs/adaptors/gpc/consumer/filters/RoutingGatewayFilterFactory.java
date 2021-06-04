@@ -18,10 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<RoutingGatewayFilterFactory.Config> {
     private static final int PRIORITY = -3;
-    @Value("${gpc-consumer.gpc.gpcConsumerUrl}")
-    private String gpcConsumerUrl;
-    @Value("${gpc-consumer.gpc.gpcUrl}")
-    private String gpcUrl;
+    private static final String PLACEHOLDER_URI = "http://0.0.0.0";
     @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
     private String searchForAPatientsDocumentsPath;
     @Value("${gpc-consumer.gpc.structuredPath}")
@@ -30,6 +27,11 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String findPatientPath;
     @Value("${gpc-consumer.gpc.documentPath}")
     private String documentPath;
+
+    @Value("${gpc-consumer.sds.enableSDS}")
+    private String enableSds;
+    @Value("${gpc-consumer.gpc.overrideGpcProviderUrl}")
+    private String overrideGpcProviderUrl;
 
     @Autowired
     private UrlsInResponseBodyRewriteFunction urlsInResponseBodyRewriteFunction;
@@ -45,17 +47,28 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
         return builder.routes()
             .route("get-document", r -> r.path(documentPath)
                 .and()
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .route("get-structured-record", r -> r.path(structuredPath)
                 .and()
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .route("find-a-patient", r -> r.path(findPatientPath)
                 .and()
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .build();
+    }
+
+    private String getDefaultTargetUri() {
+        if (Boolean.parseBoolean(enableSds)) {
+            LOGGER.info("SDS is enabled. Configuring proxy paths to target an unrouteable placeholder address. "
+                + "SdsFilter will replace this target URI at runtime.");
+            return PLACEHOLDER_URI;
+        } else {
+            LOGGER.warn("SDS is disabled. Configuring proxy paths to target the override GPC provider URL. The SdsFilter will not run.");
+            return overrideGpcProviderUrl;
+        }
     }
 
     @Setter

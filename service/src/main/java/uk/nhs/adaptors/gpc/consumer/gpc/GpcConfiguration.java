@@ -16,7 +16,7 @@ public class GpcConfiguration {
     private String rootCA;
     private String subCA;
     private String gpcConsumerUrl;
-    private String gpcUrl;
+    private String overrideGpcProviderUrl;
     private String structuredFhirBasePathRegex;
-    private String sspDomain;
+    private String sspUrl;
 }

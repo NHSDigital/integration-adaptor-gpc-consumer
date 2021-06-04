@@ -12,6 +12,10 @@ public class LoggingUtil {
     private static final String REQUEST_ID_PATTERN = REQUEST_ID + "=%s ";
     private static final String TRACE_ID_PATTERN = SSP_TRACE_ID + "=%s";
 
+    public static void warn(Logger logger, ServerWebExchange exchange, String msg, Object... args) {
+        logger.warn(extractHeaders(exchange) + msg, args);
+    }
+
     public static void info(Logger logger, ServerWebExchange exchange, String msg, Object... args) {
         logger.info(extractHeaders(exchange) + msg, args);
     }

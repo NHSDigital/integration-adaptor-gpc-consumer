@@ -46,7 +46,7 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | Environment Variable                        | Default                   | Description
 | --------------------------------------------|---------------------------|-------------
 | GPC_CONSUMER_SERVER_PORT                    | 8090                      | The port on which the GPC Consumer Adaptor will run.
-| GPC_CONSUMER_URL                            | http://localhost:8090                                          | The scheme, host, and port of the GP Connect Consumer Adaptor. This is the address GP Connect Consumers use to make requests to the adaptor.
+| GPC_CONSUMER_URL                            | http://localhost:8090     | The scheme, host, and port of the GP Connect Consumer Adaptor. This is the address GP Connect Consumers use to make requests to the adaptor.
 | GPC_CONSUMER_ROOT_LOGGING_LEVEL             | WARN                      | The logging level applied to the entire application (including third-party dependencies).
 | GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
@@ -69,7 +69,7 @@ The adaptor uses the GP Connect API to fetch patient records and documents.
 | GPC_CONSUMER_SPINE_CLIENT_KEY               |         | The content of the PEM-formatted client private key
 | GPC_CONSUMER_SPINE_ROOT_CA_CERT             |         | The content of the PEM-formatted certificate of the issuing Root CA.
 | GPC_CONSUMER_SPINE_SUB_CA_CERT              |         | The content of the PEM-formatted certificate of the issuing Sub CA.
-| GPC_CONSUMER_SSP_FQDN                       |         | The URL of Spine Secure Proxy including a trailing slash e.g. https://proxy.opentest.hscic.gov.uk/
+| GPC_CONSUMER_SSP_URL                        |         | The URL of Spine Secure Proxy including a trailing slash e.g. https://proxy.opentest.hscic.gov.uk/
 
 ### SDS API Configuration Options
 
@@ -189,6 +189,26 @@ LogMessage: content of the log message
 The properties RequestId and Ssp-TraceID may only be populated if the log 
 is emitted by application code. These are blank for logs emitted by framework or 
 third party code.
+
+## Mapping External (adaptor) URLs to internal (NHSD) URLs
+
+The adaptor proxies its requests to internal NHSD URLs via the Spine Secure Proxy.
+
+```
+Example: Get structured record for a patient at practive with ODS code A12345
+
+The request URL made to the adaptor includes the ODS code of the patient's practice. The two 
+variables (with * as wildcard) must have values matching the full request URL.
+
+https://gpcconsumer.prod.mydomain.com/A12345/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord
+|            $GPC_CONSUMER_URL      |          $GPC_CONSUMER_GPC_STRUCTURED_PATH                               |
+
+The adaptor then performs and SDS lookup and constructs a new path using the Spine
+Secure Proxy and the practice's GP Connect Provider's internal URL.
+
+https://proxy.opentest.hscic.gov.uk/https://gpconnect.gpsytemsupplier.internal.nhs.uk/A12345/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord
+|       $GPC_CONSUMER_SSP_URL     |     [ From SDS Lookup ]                         |     [ Path from original request ]                                      |
+```
 
 ### Additional Functionality
 
