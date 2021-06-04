@@ -203,7 +203,7 @@ variables (with * as wildcard) must have values matching the full request URL.
 https://gpcconsumer.prod.mydomain.com/A12345/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord
 |            $GPC_CONSUMER_URL      |          $GPC_CONSUMER_GPC_STRUCTURED_PATH                               |
 
-The adaptor then performs and SDS lookup and constructs a new path using the Spine
+The adaptor then performs an SDS lookup and constructs a new path using the Spine
 Secure Proxy and the practice's GP Connect Provider's internal URL.
 
 https://proxy.opentest.hscic.gov.uk/https://gpconnect.gpsytemsupplier.internal.nhs.uk/A12345/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord
