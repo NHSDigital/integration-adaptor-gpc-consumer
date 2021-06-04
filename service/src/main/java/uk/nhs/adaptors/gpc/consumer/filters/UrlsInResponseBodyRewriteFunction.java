@@ -18,7 +18,7 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
     private String overrideGpcProviderUrl;
 
     public static String replaceUrl(String gpcConsumerUrl, String overrideGpcProviderUrl, String responseBody) {
-        LOGGER.info(String.format("Replace host: %s, to: %s", overrideGpcProviderUrl, gpcConsumerUrl));
+        LOGGER.info("Replace host: {}, to: {}", overrideGpcProviderUrl, gpcConsumerUrl);
         return responseBody.replace(overrideGpcProviderUrl, gpcConsumerUrl);
     }
 
