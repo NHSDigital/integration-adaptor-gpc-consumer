@@ -5,7 +5,7 @@
 		"urlPath": "/Endpoint",
 		"queryParameters": {
 			"organization": {
-				"matches": "https:\/\/fhir[.]nhs[.]uk\/Id\/ods-organization-code[|].*"
+				"matches": "https:\/\/fhir[.]nhs[.]uk\/Id\/ods-organization-code[|].B82617"
 			},
 			"identifier": {
 				"equalTo": "https://fhir.nhs.uk/Id/nhsServiceInteractionId|urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1"

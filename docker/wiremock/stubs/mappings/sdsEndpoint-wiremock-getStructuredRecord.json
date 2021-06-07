@@ -2,13 +2,13 @@
 	"priority": 1,
 	"request": {
 		"method": "GET",
-		"urlPath": "/Endpoint",
+		"urlPath": "/spine-directory/Endpoint",
 		"queryParameters": {
 			"organization": {
-				"matches": "https:\/\/fhir[.]nhs[.]uk\/Id\/ods-organization-code[|].B82617"
+				"matches": "https:\/\/fhir[.]nhs[.]uk\/Id\/ods-organization-code[|].GP0001"
 			},
 			"identifier": {
-				"equalTo": "https://fhir.nhs.uk/Id/nhsServiceInteractionId|urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1"
+				"equalTo": "https://fhir.nhs.uk/Id/nhsServiceInteractionId|urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1"
 			}
 		},
 		"headers": {
@@ -22,7 +22,7 @@
 	},
 	"response": {
 		"status": 200,
-		"bodyFileName": "sdsEndpoint-public-documentRead.json",
+		"bodyFileName": "sdsEndpoint-public-getStructuredRecord.json",
 		"headers": {
 			"Content-Type": "application/fhir+json;",
 			"X-Correlation-Id": "{{request.headers.X-Correlation-Id}}"
