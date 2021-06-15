@@ -1,5 +1,6 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
@@ -11,19 +12,13 @@ import org.springframework.context.annotation.Configuration;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
-import uk.nhs.adaptors.gpc.consumer.utils.FindAPatientDocsUtil;
 
 @Configuration
 @Slf4j
 public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<RoutingGatewayFilterFactory.Config> {
     private static final int PRIORITY = -3;
-    @Value("${gpc-consumer.gpc.gpcConsumerUrl}")
-    private String gpcConsumerUrl;
-    @Value("${gpc-consumer.gpc.gpcUrl}")
-    private String gpcUrl;
+    private static final String PLACEHOLDER_URI = "http://0.0.0.0";
     @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
     private String searchForAPatientsDocumentsPath;
     @Value("${gpc-consumer.gpc.structuredPath}")
@@ -32,6 +27,14 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String findPatientPath;
     @Value("${gpc-consumer.gpc.documentPath}")
     private String documentPath;
+
+    @Value("${gpc-consumer.sds.enableSDS}")
+    private String enableSds;
+    @Value("${gpc-consumer.gpc.overrideGpcProviderUrl}")
+    private String overrideGpcProviderUrl;
+
+    @Autowired
+    private UrlsInResponseBodyRewriteFunction urlsInResponseBodyRewriteFunction;
 
     @Override
     public GatewayFilter apply(Config config) {
@@ -44,27 +47,27 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
         return builder.routes()
             .route("get-document", r -> r.path(documentPath)
                 .and()
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .route("get-structured-record", r -> r.path(structuredPath)
                 .and()
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .route("find-a-patient", r -> r.path(findPatientPath)
                 .and()
-                .uri(gpcUrl))
+                .uri(getDefaultTargetUri()))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
-                .filters(f -> f.modifyResponseBody(String.class, String.class,
-                    (exchange, s) -> handleResponse(s)))
-                .uri(gpcUrl))
+                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
+                .uri(getDefaultTargetUri()))
             .build();
     }
 
-    @SneakyThrows
-    private Mono<String> handleResponse(String responseBody) {
-        if (responseBody.isBlank()) {
-            LOGGER.error("An error with status occurred");
-            return Mono.empty();
+    private String getDefaultTargetUri() {
+        if (Boolean.parseBoolean(enableSds)) {
+            LOGGER.info("SDS is enabled. Configuring proxy paths to target an unrouteable placeholder address. "
+                + "SdsFilter will replace this target URI at runtime.");
+            return PLACEHOLDER_URI;
         } else {
-            return Mono.just(FindAPatientDocsUtil.replaceUrl(gpcConsumerUrl, gpcUrl, responseBody));
+            LOGGER.warn("SDS is disabled. Configuring proxy paths to target the override GPC provider URL. The SdsFilter will not run.");
+            return overrideGpcProviderUrl;
         }
     }
 

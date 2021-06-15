@@ -30,7 +30,7 @@ public class SspFilter implements GlobalFilter, Ordered {
             URI uri = (URI) exchange.getAttributes()
                 .get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
 
-            URI resolvedUri = uri.resolve(getSspUrlPrefix() + uri.toString());
+            URI resolvedUri = uri.resolve(getSspUrlPrefix() + uri);
 
             exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, resolvedUri);
@@ -39,11 +39,15 @@ public class SspFilter implements GlobalFilter, Ordered {
     }
 
     private String getSspUrlPrefix() {
-        return gpcConfiguration.getSspDomain();
+        var baseUrl = gpcConfiguration.getSspUrl();
+        if (!baseUrl.endsWith("/")) {
+            return baseUrl + "/";
+        }
+        return baseUrl;
     }
 
     private boolean isSspEnabled() {
-        return StringUtils.isNotBlank(gpcConfiguration.getSspDomain());
+        return StringUtils.isNotBlank(gpcConfiguration.getSspUrl());
     }
 
     @Override

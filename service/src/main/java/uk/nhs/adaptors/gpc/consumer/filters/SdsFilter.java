@@ -65,6 +65,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     var id = extractInteractionId(serverHttpRequest.getHeaders());
                     return proceedSdsLookup(exchange, id.get());
                 } else {
+                    LoggingUtil.warn(LOGGER, exchange, "SDS is disabled. Using override GPC provider url.");
                     return Mono.just(SdsClient.SdsResponseData.builder().build());
                 }
             }).doOnNext(v -> {
