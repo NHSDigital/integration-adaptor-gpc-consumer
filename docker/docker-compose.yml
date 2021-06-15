@@ -24,9 +24,9 @@ services:
       - GPC_CONSUMER_SDS_APIKEY
       - GPC_CONSUMER_SSP_URL
       - GPC_ENABLE_SDS
-  gpcc-wiremock:
-    build: ./wiremock
+  gpcc-mocks:
+    build:
+      context: ../
+      dockerfile: docker/gpcc-mocks/Dockerfile
     ports:
       - "8110:8080"
-    command:
-      - -global-response-templating

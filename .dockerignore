@@ -3,3 +3,7 @@
 !service/src
 !service/build.gradle
 !service/settings.gradle
+!gpcc-mocks/config
+!gpcc-mocks/src
+!gpcc-mocks/build.gradle
+!gpcc-mocks/settings.gradle
