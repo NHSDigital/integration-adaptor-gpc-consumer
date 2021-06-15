@@ -1,5 +1,5 @@
 {
-    "fullUrl": "https://orange.testlab.nhs.uk/B82617/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
+    "fullUrl": "{{baseUrl}}/{{odsCode}}/STU3/1/gpconnect/documents/fhir/DocumentReference/27863182736",
     "resource": {
         "resourceType": "DocumentReference",
         "id": "27863182736",
@@ -29,7 +29,7 @@
             ]
         },
         "subject": {
-            "reference": "Patient/2"
+            "reference": "Patient/{{patientId}}"
         },
         "created": "2019-06-24T09:35:00+11:00",
         "indexed": "2019-07-02T09:43:41+11:00",
@@ -43,7 +43,7 @@
             {
                 "attachment": {
                     "contentType": "application/msword",
-                    "url": "{{request.baseUrl}}/GP0001/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                    "url": "{{baseUrl}}/{{odsCode}}/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
                     "size": 3654
                 }
             }

@@ -92,7 +92,8 @@ public class GpcController {
 
         GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
             .baseUrl("http://" + host)
-            .odsCode(odsCode);
+            .odsCode(odsCode)
+            .patientId(patientId);
 
         switch (patientId) {
             case "1":
