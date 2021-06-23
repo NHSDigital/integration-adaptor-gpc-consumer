@@ -15,6 +15,16 @@ public class OperationOutcomes {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    public static ResponseEntity<String> invalidNhsNumber(String message) {
+        var model = OperationOutcomeModel.builder()
+            .fhirCode("structure")
+            .spineCode("INVALID_NHS_NUMBER")
+            .message(message)
+            .build();
+        var body = TemplateUtils.fillTemplate("operationOutcome", model);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
     public static ResponseEntity<String> patientNotFound(String message) {
         var model = OperationOutcomeModel.builder()
             .fhirCode("not-found")

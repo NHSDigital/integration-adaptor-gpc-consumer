@@ -354,8 +354,9 @@
         },
         "managingOrganization": {
           "reference": "Organization/db67f447-b30d-442a-8e31-6918d1367eeb"
-        }{{#hasDocuments}},{{>partials/documentReference}}{{/hasDocuments}}
+        }
       }
-    }
+    }{{#hasDocuments}},
+    {{>partials/documentReference}}{{/hasDocuments}}
   ]
 }

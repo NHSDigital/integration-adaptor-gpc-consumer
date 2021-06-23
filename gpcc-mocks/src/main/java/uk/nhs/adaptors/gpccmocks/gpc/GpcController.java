@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.ACCEPTED;
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getResponseHeaders;
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.isUuid;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.badRequest;
+import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.invalidNhsNumber;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.patientNotFound;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.referenceNotFound;
 
@@ -50,6 +51,12 @@ public class GpcController {
         // Use X-Forwarded-Host if provided to support LB / Proxy
         host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
 
+        log.debug("Request for 'Access Structured Record'. " +
+                "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
+            odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
+
+        log.debug("Request body for 'Access Structured Record'\n{}", requestBody);
+
         if (!isUuid(sspTraceId)) {
             return badRequest("Ssp-TraceID header must be a UUID");
         }
@@ -60,13 +67,20 @@ public class GpcController {
         }
         var nhsNumber = (String) result.get(0);
 
-        GpcModel gpcModel = GpcModel.builder()
+        GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
             .baseUrl("http://" + host)
-            .odsCode(odsCode)
-            .nhsNumber(nhsNumber)
-            .build();
+            .odsCode(odsCode);
 
-        var body = TemplateUtils.fillTemplate("gpc/accessRecordStructured", gpcModel);
+        switch (nhsNumber) {
+            case "9690937294":
+            case "9690937286":
+                gpcModelBuilder.nhsNumber(nhsNumber);
+                break;
+            default:
+                return patientNotFound("Patient " + nhsNumber + " not found");
+        }
+
+        var body = TemplateUtils.fillTemplate("gpc/accessRecordStructured", gpcModelBuilder.build());
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 
@@ -85,6 +99,10 @@ public class GpcController {
 
         // Use X-Forwarded-Host if provided to support LB / Proxy
         host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
+
+        log.debug("Request for 'Find a patient's documents'. " +
+                "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
+            odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
         if (!isUuid(sspTraceId)) {
             return badRequest("Ssp-TraceID header must be a UUID");
@@ -128,11 +146,18 @@ public class GpcController {
         // Use X-Forwarded-Host if provided to support LB / Proxy
         host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
 
+        log.debug("Request for 'Find a patient'. " +
+                "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
+            odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
+
         if (!isUuid(sspTraceId)) {
             return badRequest("Ssp-TraceID header must be a UUID");
         }
 
         var nhsNumber = identifier.split("\\|")[1];
+        if (!nhsNumber.matches("[0-9]+")) {
+            return invalidNhsNumber("Invalid NHS number");
+        }
 
         GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
             .baseUrl("http://" + host)
@@ -165,6 +190,10 @@ public class GpcController {
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
+        log.debug("Request for 'Retrieve a document'. " +
+                "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={}",
+            odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId);
+
         if (!isUuid(sspTraceId)) {
             return badRequest("Ssp-TraceID header must be a UUID");
         }
@@ -173,7 +202,9 @@ public class GpcController {
             return referenceNotFound("Binary/" + documentId + " not found");
         }
 
-        var gpcModel = GpcModel.builder().build();
+        var gpcModel = GpcModel.builder()
+            .documentId(documentId)
+            .build();
 
         var body = TemplateUtils.fillTemplate("gpc/retrieveADocument", gpcModel);
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);

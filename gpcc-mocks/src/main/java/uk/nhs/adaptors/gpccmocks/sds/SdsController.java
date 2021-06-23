@@ -36,6 +36,10 @@ public class SdsController {
         // Use X-Forwarded-Host if provided to support LB / Proxy
         host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
 
+        log.debug("Request for 'SDS /Endpoint'. " +
+                "organization={} identifier={} X-Correlation-Id={} apikey={} Host/X-Forwarded-Host: {}",
+            organization, identifier, correlationId, apikey, host);
+
         if (!ControllerHelpers.isUuid(correlationId)) {
             return badRequest("X-Correlation-Id header must be a UUID");
         }
