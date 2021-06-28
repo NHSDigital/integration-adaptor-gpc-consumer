@@ -1,100 +1,84 @@
 package uk.nhs.adaptors.gpc.consumer;
 
 import java.time.Duration;
-import java.util.UUID;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import com.github.tomakehurst.wiremock.WireMockServer;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
 import lombok.Getter;
+import uk.nhs.adaptors.gpc.consumer.testcontainers.GpccMockExtension;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(GpccMockExtension.class)
 public class CloudGatewayRouteBaseTest {
-    private static final int WIREMOCK_PORT = 8210;
-    private static final int MAX_TIMEOUT = 10;
-    private static final String LOCALHOST_URI = "http://localhost:";
-    protected static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(WIREMOCK_PORT);
-    protected static final String GPC_URL_ENVIRONMENT_VARIABLE_NAME = "GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL";
-    protected static final String ENDPOINT = "/Endpoint";
     protected static final String SSP_FROM_HEADER = "Ssp-From";
     protected static final String SSP_TO_HEADER = "Ssp-To";
     protected static final String SSP_INTERACTION_ID_HEADER = "Ssp-InteractionID";
     protected static final String SSP_TRACE_ID_HEADER = "Ssp-TraceID";
     protected static final String ANY_STRING = "any";
-    protected static final String RANDOM_UUID = String.valueOf(UUID.randomUUID());
-    protected static final String GET_DOCUMENT_URI = "/GP0001/STU3/1/gpconnect/documents/Binary/07a6483f-732b-461e-86b6-edb665c45510";
-    protected static final String EXPECTED_DOCUMENT_BODY = "{"
-        + " \"resourceType\": \"Binary\","
-        + " \"id\": \"07a6483f-732b-461e-86b6-edb665c45510\","
-        + " \"contentType\": \"application/msword\","
-        + " \"content\": \"response content\""
-        + "}";
-    protected static final String DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
-    protected static final String DOCUMENT_PATIENT_URI = "/GP0001/STU3/1/gpconnect/documents/Patient";
-    protected static final String EXAMPLE_SDS_BODY = "{"
-        + " \"resourceType\":\"Bundle\","
-        + " \"id\":\"47DBB1CA-256D-410E-B00B-C19C1F13E9F6\","
-        + " \"entry\":[{"
-        + "     \"resource\":{"
-        + "         \"resourceType\":\"Endpoint\","
-        + "         \"id\":\"307B4278-DFED-4A27-8B51-1539DB1B2C62\","
-        + "         \"address\":\"%s/GP0001/STU3/1/gpconnect/\""
-        + "     }"
-        + " }]"
-        + "}";
-    protected static final String EXPECTED_NOT_FOUND_BODY = "{"
-        + " \"resourceType\": \"OperationOutcome\","
-        + " \"meta\": {"
-        + "     \"profile\":[\"https://fhir.nhs.uk/StructureDefinition/gpconnect-operationoutcome-1\" ]"
-        + " },"
-        + " \"issue\": [{"
-        + "     \"severity\": \"error\","
-        + "     \"code\": \"invalid\","
-        + "     \"details\": {"
-        + "         \"coding\":[{"
-        + "             \"system\": \"https://fhir.nhs.uk/ValueSet/gpconnect-error-or-warning-code-1\","
-        + "             \"code\": \"NO_RECORD_FOUND\","
-        + "             \"display\": \"No Record Found\""
-        + "         }]"
-        + "     },"
-        + "     \"diagnostics\": \"No record found\""
-        + " }]"
-        + "}";
+    protected static final String SSP_TRACEID_VALUE = "921fef26-764b-4a36-80b3-a835abde3304";
 
+    private static final int MAX_TIMEOUT = 10;
+    private static final String LOCALHOST_URI = "http://localhost:";
+    private static final int MAX_IN_MEMORY_BYTES = 100 * 1024 * 1024;
     @LocalServerPort
-    private int port = 0;
+    private int port;
     @Getter
     private WebTestClient webTestClient;
-    private String baseUri;
-
-    @BeforeAll
-    public static void initialize() {
-        WIRE_MOCK_SERVER.start();
-    }
-
-    @AfterAll
-    public static void deinitialize() {
-        WIRE_MOCK_SERVER.stop();
-    }
+    @Getter
+    private String gpccAdaptorBaseUri;
 
     @BeforeEach
     public void setUp() {
-        baseUri = LOCALHOST_URI + port;
+        gpccAdaptorBaseUri = LOCALHOST_URI + port;
         webTestClient = WebTestClient.bindToServer()
             .responseTimeout(Duration.ofSeconds(MAX_TIMEOUT))
-            .baseUrl(baseUri)
+            .baseUrl(gpccAdaptorBaseUri)
+            .exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer
+                .defaultCodecs()
+                .maxInMemorySize(MAX_IN_MEMORY_BYTES))
+                .build())
             .build();
     }
 
-    @AfterEach
-    public void tearDown() {
-        WIRE_MOCK_SERVER.resetAll();
+    protected WebTestClient.RequestBodySpec getWebTestClientForStandardPost(String requestUri, String interactionId) {
+        return webTestClient.post()
+            .uri(requestUri)
+            .header(SSP_FROM_HEADER, ANY_STRING)
+            .header(SSP_TO_HEADER, ANY_STRING)
+            .header(SSP_INTERACTION_ID_HEADER, interactionId)
+            .header(SSP_TRACE_ID_HEADER, SSP_TRACEID_VALUE)
+            .header(HttpHeaders.AUTHORIZATION, "anytoken");
     }
+
+    protected void When_GetRequestProducesSdsError_Expect_OperationOutcomeErrorResponse(String requestUri, String interactionId) {
+        // Using Ssp-TraceID not a UUID to force an error from the SDS mock
+        webTestClient.get().uri(requestUri)
+            .header(SSP_FROM_HEADER, ANY_STRING)
+            .header(SSP_TO_HEADER, ANY_STRING)
+            .header(SSP_INTERACTION_ID_HEADER, interactionId)
+            .header(SSP_TRACE_ID_HEADER, "NotUUID")
+            .header(HttpHeaders.AUTHORIZATION, "anytoken")
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        // TODO: NIAD-1165 GPCC should use the SDS API OperationOutcome here instead of a Spring default error response body
+    }
+
+    protected WebTestClient.RequestHeadersSpec<?> getWebTestClientForStandardGet(String requestUri, String interactionId) {
+        return webTestClient.get()
+            .uri(requestUri)
+            .header(SSP_FROM_HEADER, ANY_STRING)
+            .header(SSP_TO_HEADER, ANY_STRING)
+            .header(SSP_INTERACTION_ID_HEADER, interactionId)
+            .header(SSP_TRACE_ID_HEADER, SSP_TRACEID_VALUE)
+            .header(HttpHeaders.AUTHORIZATION, "anytoken");
+    }
+
 }

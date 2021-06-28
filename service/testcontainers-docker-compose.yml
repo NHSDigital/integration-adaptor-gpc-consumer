@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  gpcc-mocks:
+    build:
+      context: ../
+      dockerfile: ../docker/gpcc-mocks/Dockerfile
+    ports:
+      - "8110:8080"

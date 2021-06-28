@@ -49,7 +49,7 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
                 .and()
                 .uri(getDefaultTargetUri()))
             .route("get-structured-record", r -> r.path(structuredPath)
-                .and()
+                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
                 .uri(getDefaultTargetUri()))
             .route("find-a-patient", r -> r.path(findPatientPath)
                 .and()

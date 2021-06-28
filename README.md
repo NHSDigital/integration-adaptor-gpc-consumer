@@ -46,7 +46,6 @@ Variables without a default value and not marked optional, *MUST* be defined for
 | Environment Variable                        | Default                   | Description
 | --------------------------------------------|---------------------------|-------------
 | GPC_CONSUMER_SERVER_PORT                    | 8090                      | The port on which the GPC Consumer Adaptor will run.
-| GPC_CONSUMER_URL                            | http://localhost:8090     | The scheme, host, and port of the GP Connect Consumer Adaptor. This is the address GP Connect Consumers use to make requests to the adaptor.
 | GPC_CONSUMER_ROOT_LOGGING_LEVEL             | WARN                      | The logging level applied to the entire application (including third-party dependencies).
 | GPC_CONSUMER_LOGGING_LEVEL                  | INFO                      | The logging level applied to GPC Consumer Adaptor components.
 | GPC_CONSUMER_LOGGING_FORMAT                 | (*)                       | Defines how to format log events on stdout
@@ -147,16 +146,31 @@ You must run all gradle commands from the `service/` directory.
 ./gradlew test
 ```
 
+### How to run integration tests:
+
+Without special configuration, you must build the gpcc-mocks container using docker-compose before running integration 
+tests and after making any changes to the mocks project. The JUnit tests use 
+[Testcontainers](https://www.testcontainers.org/) to run the mock service.
+
+```shell script
+cd docker/
+docker-compose build gpcc-mocks
+```
+
+Then run the integration tests from within the IDE or using gradle
+
+```shell script
+./gradlew integrationTest
+```
+
+It is also possible to run the integration tests without Testcontainers; Setting the `GPC_CONSUMER_SDS_URL` disables
+Testcontainers. You must configure the other environment variables also to use the correct services. The integration
+tests use the same variables as the application.
+
 ### How to run all checks:
 
 ```shell script
 ./gradlew check
-```
-
-### How to run integration tests:
-
-```shell script
-./gradlew integrationTest
 ```
 
 ## Operating the Adaptor
@@ -201,7 +215,7 @@ The request URL made to the adaptor includes the ODS code of the patient's pract
 variables (with * as wildcard) must have values matching the full request URL.
 
 https://gpcconsumer.prod.mydomain.com/A12345/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord
-|            $GPC_CONSUMER_URL      |          $GPC_CONSUMER_GPC_STRUCTURED_PATH                               |
+|            Adaptor's Host          |          $GPC_CONSUMER_GPC_STRUCTURED_PATH                             |
 
 The adaptor then performs an SDS lookup and constructs a new path using the Spine
 Secure Proxy and the practice's GP Connect Provider's internal URL.
@@ -243,7 +257,7 @@ the adaptor replaces the GP Connect Provider Hosts (`https://orange.testlab.nhs.
 ...
 ```
 
-with the value of the `GPC_CONSUMER_URL` environment variable.
+with the dns name / port used in the original request.
 
 ```
 ...
@@ -263,8 +277,6 @@ with the value of the `GPC_CONSUMER_URL` environment variable.
                 ],
 ...
 ```
-
-In this example the `GPC_CONSUMER_URL` is set to its default value: `http://localhost:8090`.
 
 ## Troubleshooting
 
