@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,8 +37,9 @@ import uk.nhs.adaptors.gpccmocks.common.TemplateUtils;
 @RestController
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequestMapping("/{odsCode}/STU3/1/gpconnect")
 public class GpcController {
-    @PostMapping(value = "/{odsCode}/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord")
+    @PostMapping(value = "/structured/fhir/Patient/$gpc.getstructuredrecord")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> accessStructuredRecord(
         HttpServletRequest request,
@@ -84,7 +86,7 @@ public class GpcController {
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{odsCode}/STU3/1/gpconnect/documents/fhir/Patient/{patientId}/DocumentReference")
+    @GetMapping(value = "/documents/fhir/Patient/{patientId}/DocumentReference")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> findPatientsDocuments(
         HttpServletRequest request,
@@ -128,7 +130,7 @@ public class GpcController {
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{odsCode}/STU3/1/gpconnect/documents/fhir/Patient")
+    @GetMapping(value = "/documents/fhir/Patient")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> findAPatient(
         HttpServletRequest request,
@@ -175,7 +177,7 @@ public class GpcController {
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{odsCode}/STU3/1/gpconnect/documents/fhir/Binary/{documentId}")
+    @GetMapping(value = "/documents/fhir/Binary/{documentId}")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> retrieveADocument(
         @PathVariable String odsCode,
