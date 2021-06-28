@@ -2,7 +2,10 @@ package uk.nhs.adaptors.gpccmocks.sds;
 
 import static org.springframework.http.HttpStatus.ACCEPTED;
 
+import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getHostAndPortFromRequest;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.badRequest;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,15 +29,13 @@ public class SdsController {
     @GetMapping(value = "/spine-directory/Endpoint")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> postMockMhs(
+        HttpServletRequest request,
         @RequestParam String organization,
         @RequestParam String identifier,
         @RequestHeader(name = "X-Correlation-Id") String correlationId,
-        @RequestHeader(name = "apikey") String apikey,
-        @RequestHeader(name = "Host") String host,
-        @RequestHeader(name = "X-Forwarded-Host", required = false) String xForwardedHost) {
+        @RequestHeader(name = "apikey") String apikey) {
 
-        // Use X-Forwarded-Host if provided to support LB / Proxy
-        host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
+        var host = getHostAndPortFromRequest(request);
 
         log.debug("Request for 'SDS /Endpoint'. " +
                 "organization={} identifier={} X-Correlation-Id={} apikey={} Host/X-Forwarded-Host: {}",

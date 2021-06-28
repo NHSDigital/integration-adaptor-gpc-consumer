@@ -7,7 +7,9 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TemplateUtils {
     private static final String TEMPLATES_RESOURCE_ROOT = "templates";
     private static final String TEMPLATES_EXTENSION = ".mustache";
@@ -17,7 +19,9 @@ public class TemplateUtils {
         var template = loadTemplate(templateName + TEMPLATES_EXTENSION);
         StringWriter writer = new StringWriter();
         template.execute(writer, content).flush();
-        return writer.toString();
+        var output = writer.toString();
+        log.debug("Template {} with parameters {} produced output\n{}", template, content, output);
+        return output;
     }
 
     private static Mustache loadTemplate(String templateName) {

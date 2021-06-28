@@ -2,6 +2,7 @@ package uk.nhs.adaptors.gpccmocks.gpc;
 
 import static org.springframework.http.HttpStatus.ACCEPTED;
 
+import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getHostAndPortFromRequest;
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getResponseHeaders;
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.isUuid;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.badRequest;
@@ -11,11 +12,12 @@ import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.referenceNotFou
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,18 +40,16 @@ public class GpcController {
     @PostMapping(value = "/{odsCode}/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> accessStructuredRecord(
+        HttpServletRequest request,
         @PathVariable String odsCode,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
         @RequestHeader(name = "Ssp-To") String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
-        @RequestHeader(name = HttpHeaders.HOST) String host,
-        @RequestHeader(name = "X-Forwarded-Host", required = false) String xForwardedHost,
         @RequestBody String requestBody) {
 
-        // Use X-Forwarded-Host if provided to support LB / Proxy
-        host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
+        var host = getHostAndPortFromRequest(request);
 
         log.debug("Request for 'Access Structured Record'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
@@ -87,18 +87,16 @@ public class GpcController {
     @GetMapping(value = "/{odsCode}/STU3/1/gpconnect/documents/fhir/Patient/{patientId}/DocumentReference")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> findPatientsDocuments(
+        HttpServletRequest request,
         @PathVariable String odsCode,
         @PathVariable String patientId,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
         @RequestHeader(name = "Ssp-To") String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
-        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
-        @RequestHeader(name = HttpHeaders.HOST) String host,
-        @RequestHeader(name = "X-Forwarded-Host", required = false) String xForwardedHost) {
+        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
-        // Use X-Forwarded-Host if provided to support LB / Proxy
-        host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
+        var host = getHostAndPortFromRequest(request);
 
         log.debug("Request for 'Find a patient's documents'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
@@ -133,18 +131,16 @@ public class GpcController {
     @GetMapping(value = "/{odsCode}/STU3/1/gpconnect/documents/fhir/Patient")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> findAPatient(
+        HttpServletRequest request,
         @PathVariable String odsCode,
         @RequestParam String identifier,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
         @RequestHeader(name = "Ssp-To") String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
-        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
-        @RequestHeader(name = HttpHeaders.HOST) String host,
-        @RequestHeader(name = "X-Forwarded-Host", required = false) String xForwardedHost) {
+        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
-        // Use X-Forwarded-Host if provided to support LB / Proxy
-        host = StringUtils.hasText(xForwardedHost) ? xForwardedHost : host;
+        var host = getHostAndPortFromRequest(request);
 
         log.debug("Request for 'Find a patient'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",

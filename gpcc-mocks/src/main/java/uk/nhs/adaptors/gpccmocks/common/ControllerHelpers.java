@@ -1,10 +1,14 @@
 package uk.nhs.adaptors.gpccmocks.common;
 
+import java.net.URI;
 import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpHeaders;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 public class ControllerHelpers {
     public static boolean isUuid(@NonNull String str) {
@@ -21,4 +25,11 @@ public class ControllerHelpers {
         headers.add(HttpHeaders.CONTENT_TYPE, "application/json+fhir");
         return headers;
     }
+
+    @SneakyThrows
+    public static String getHostAndPortFromRequest(HttpServletRequest httpServletRequest) {
+        URI uri = new URI(httpServletRequest.getRequestURL().toString());
+        return uri.getAuthority();
+    }
+
 }
