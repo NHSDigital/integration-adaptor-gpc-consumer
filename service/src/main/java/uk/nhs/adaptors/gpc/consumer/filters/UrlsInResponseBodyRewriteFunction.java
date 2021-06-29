@@ -31,11 +31,11 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
             .map(originalResponseBody -> {
                 var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI());
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
-                
+
                 URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
                 var gpcProducerUrlPrefix = getUrlBase(proxyTargetUri);
                 LoggingUtil.info(LOGGER, exchange, "The URL prefix of the GPC Producer endpoint is {}", gpcProducerUrlPrefix);
-                
+
                 LOGGER.debug("Replacing all occurrences of '{}' in the response body with '{}'",
                     gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
                 return originalResponseBody.replace(gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
