@@ -1,61 +1,68 @@
 package uk.nhs.adaptors.gpc.consumer;
 
-import static org.apache.commons.fileupload.FileUploadBase.CONTENT_TYPE;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static uk.nhs.adaptors.gpc.consumer.Fixtures.Organization.MOCK_ORG;
 
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SearchForAPatientsDocumentsRouteTest extends CloudGatewayRouteBaseTest {
-    private static final String FIND_PATIENT_DOCS_URI = DOCUMENT_PATIENT_URI + "/2/DocumentReference?_include=DocumentReferen"
-        + "ce%3Asubject%3APatient&_include=DocumentReference%3Acustodian%3AOrganization&_include=DocumentReference%3Aauthor%3AOrganization&"
-        + "_include=DocumentReference%3Aauthor%3APractitioner&_revinclude%3Arecurse=PractitionerRole%3Apractitioner";
-    private static final String EXAMPLE_MESSAGE_BODY = "{\"resourceType\":\"Bundle\","
-        + "\"meta\":{\"profile\":[\"https://fhir.nhs.uk/STU3/StructureDefinition/GPConnect-Searchset-Bundle-1\"]},"
-        + "\"type\":\"collection\",\"entry\":[]}";
-    private static final String DOCUMENT_SEARCH_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
+    static final String REQUEST_URI_TEMPLATE = "/%s/STU3/1/gpconnect/documents/fhir/Patient/%s"
+        + "/DocumentReference?_include=DocumentReference:subject:Patient"
+        + "&_include=DocumentReference:custodian:Organization"
+        + "&_include=DocumentReference:author:Organization"
+        + "&_include=DocumentReference:author:Practitioner"
+        + "&_revinclude:recurse=PractitionerRole:practitioner";
+    static final String DOCUMENT_SEARCH_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
 
-    @Test
-    public void When_MakingRequestForStructuredDocument_Expect_OkResponse() {
-        WIRE_MOCK_SERVER.stubFor(get(urlEqualTo(FIND_PATIENT_DOCS_URI))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.SC_OK)
-                .withHeader(CONTENT_TYPE, "application/fhir+json;charset=UTF-8")
-                .withBody(EXAMPLE_MESSAGE_BODY)));
-        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo(ENDPOINT))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.SC_OK)
-                .withBody(String.format(EXAMPLE_SDS_BODY, WIRE_MOCK_SERVER.baseUrl()))));
-
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(WIRE_MOCK_SERVER.baseUrl());
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-
-        getWebTestClient().get()
-            .uri(factory.expand(FIND_PATIENT_DOCS_URI))
-            .header(SSP_FROM_HEADER, ANY_STRING)
-            .header(SSP_TO_HEADER, ANY_STRING)
-            .header(SSP_INTERACTION_ID_HEADER, DOCUMENT_SEARCH_ID)
-            .header(SSP_TRACE_ID_HEADER, ANY_STRING)
+    @ParameterizedTest(name = "{argumentsWithNames} {displayName}")
+    @MethodSource(value = "uk.nhs.adaptors.gpc.consumer.Fixtures#orgCodes")
+    public void When_PatientHasDocuments_Expect_OkResponseSearchsetWithDocumentReference(String odsCode) {
+        var patientId = Fixtures.Patient.HAS_DOCUMENTS.getAccessDocumentLogicalId();
+        var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode, patientId);
+        var body = getWebTestClientForStandardGet(requestUri, DOCUMENT_SEARCH_ID)
             .exchange()
             .expectStatus()
             .isOk()
             .expectBody()
-            .json(EXAMPLE_MESSAGE_BODY);
+            .jsonPath("$.type").isEqualTo("searchset")
+            .jsonPath("$.entry[*].resource.resourceType").value(hasItem("DocumentReference"))
+            .jsonPath("$.entry[*].resource.content[*].attachment.url").value(hasItem(startsWith(getGpccAdaptorBaseUri())))
+            .returnResult()
+            .getResponseBody();
+        System.out.println(new String(body));
     }
 
     @Test
-    public void When_MakingRequestForFindPatientWithoutIdentifier_Expect_NotFoundResponse() {
-        getWebTestClient().get()
-            .uri(FIND_PATIENT_DOCS_URI)
+    public void When_PatientHasNoDocuments_Expect_OkResponseEmptySearchsetWithoutDocumentReference() {
+        var patientId = Fixtures.Patient.NO_DOCUMENTS.getAccessDocumentLogicalId();
+        var odsCode = MOCK_ORG.getOdsCode();
+        var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode, patientId);
+
+        getWebTestClientForStandardGet(requestUri, DOCUMENT_SEARCH_ID)
             .exchange()
             .expectStatus()
-            .isNotFound();
+            .isOk()
+            .expectBody()
+            .jsonPath("$.type").isEqualTo("searchset")
+            .jsonPath("$.entry[*].resource.resourceType").value(not(hasItem("DocumentReference")));
     }
+
+    @Test
+    public void When_PatientDoesNotExist_Expect_NotFoundResponse() {
+        var patientId = "notfound";
+        var odsCode = MOCK_ORG.getOdsCode();
+        var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode, patientId);
+        getWebTestClientForStandardGet(requestUri, DOCUMENT_SEARCH_ID)
+            .exchange()
+            .expectStatus()
+            .isNotFound()
+            .expectBody()
+            .jsonPath("issue[*].details.coding[*].code").isEqualTo("PATIENT_NOT_FOUND");
+    }
+
 }
