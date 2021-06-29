@@ -29,16 +29,13 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
     public Publisher<String> apply(ServerWebExchange exchange, String responseBody) {
         return Mono.just(responseBody)
             .map(originalResponseBody -> {
-                // TODO: Steps for NIAD-1283 to enable multiple GPC providers
-                // 1) Determine the correct prefix of *this* service - GPC_URL env var
                 var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI());
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
-                // 2) Calculate a pattern for the URL we need to replace (based on previous SDS lookup, put onto event context)
+                
                 URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-
                 var gpcProducerUrlPrefix = getUrlBase(proxyTargetUri);
                 LoggingUtil.info(LOGGER, exchange, "The URL prefix of the GPC Producer endpoint is {}", gpcProducerUrlPrefix);
-                // 3) Perform the replace operation using calculated pattern
+                
                 LOGGER.debug("Replacing all occurrences of '{}' in the response body with '{}'",
                     gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
                 return originalResponseBody.replace(gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
