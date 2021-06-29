@@ -1,8 +1,12 @@
 HELP.md
-service/.gradle
+**/.gradle
 build/
 *.DS_Store
-!gradle/wrapper/gradle-wrapper.jar
+gradlew
+gradlew.bat
+/gradle
+!service/gradle/wrapper/gradle-wrapper.jar
+!gpcc-mocks/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
