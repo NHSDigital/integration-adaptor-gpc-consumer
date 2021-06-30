@@ -7,14 +7,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
-public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest{
+public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest {
     static final String REQUEST_URI_TEMPLATE = "/%s/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord";
     static final String REQUEST_BODY_TEMPLATE = ResourceHelper.loadClasspathResourceAsString("/gpc/migrateStructuredPatient.json");
     static final String MIGRATE_STRUCTURED_INTERACTION_ID = "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1";
 
     @ParameterizedTest(name = "{argumentsWithNames} {displayName}")
     @MethodSource(value = "uk.nhs.adaptors.gpc.consumer.Fixtures#orgCodes")
-    public void When_MakingRequestForStructuredRecord_Expect_OkResponse(String odsCode) {
+    public void When_MakingRequestForMigrateStructuredRecordPatient_Expect_OkResponse(String odsCode) {
         var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode);
         var nhsNumber = Fixtures.Patient.HAS_DOCUMENTS.getNhsNumber();
         var requestBody = String.format(REQUEST_BODY_TEMPLATE, nhsNumber);
@@ -28,7 +28,7 @@ public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest
     }
 
     @Test
-    public void When_MakingRequestForNonExistingStructuredRecord_Expect_NotFoundResponse() {
+    public void When_MakingRequestForNonExistingMigrateStructuredRecordPatient_Expect_NotFoundResponse() {
         var odsCode = Fixtures.Organization.MOCK_ORG.getOdsCode();
         var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode);
         var requestBody = String.format(REQUEST_BODY_TEMPLATE, "1234567890");
@@ -42,7 +42,7 @@ public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest
     }
 
     @Test
-    public void When_SdsErrorOccursBeforeAccessStructuredRecord_Expect_ProxyResponseIsServerErrorOperationOutcome() {
+    public void When_SdsErrorOccursBeforeAccessMigrateStructuredPatient_Expect_ProxyResponseIsServerErrorOperationOutcome() {
         var odsCode = Fixtures.Organization.MOCK_ORG.getOdsCode();
         var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode);
         var nhsNumber = Fixtures.Patient.HAS_DOCUMENTS.getNhsNumber();

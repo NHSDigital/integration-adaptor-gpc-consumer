@@ -251,7 +251,7 @@ public class GpcController {
                 return patientNotFound("Patient " + nhsNumber + " not found");
         }
 
-        var body = TemplateUtils.fillTemplate("gpc/accessRecordStructured", gpcModelBuilder.build());
+        var body = TemplateUtils.fillTemplate("gpc/migrateStructuredPatient", gpcModelBuilder.build());
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 }
