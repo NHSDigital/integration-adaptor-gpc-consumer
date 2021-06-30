@@ -63,6 +63,9 @@ public class SdsController {
             case "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1":
                 sdsModelBuilder.fhirBase("STU3/1/gpconnect/documents/fhir");
                 break;
+            case "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1":
+                sdsModelBuilder.fhirBase("STU3/1/gpconnect/fhir");
+                break;
             default:
                 return badRequest("Unsupported interaction id " + interaction);
         }

@@ -27,6 +27,8 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String findPatientPath;
     @Value("${gpc-consumer.gpc.documentPath}")
     private String documentPath;
+    @Value("${gpc-consumer.gpc.migrateStructuredPath}")
+    private String migrateStructuredPath;
 
     @Value("${gpc-consumer.sds.enableSDS}")
     private String enableSds;
@@ -52,6 +54,9 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
                 .uri(getDefaultTargetUri()))
             .route("find-a-patient", r -> r.path(findPatientPath)
+                .and()
+                .uri(getDefaultTargetUri()))
+            .route("migrate-structured-record", r -> r.path(migrateStructuredPath)
                 .and()
                 .uri(getDefaultTargetUri()))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)

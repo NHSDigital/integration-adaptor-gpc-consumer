@@ -35,6 +35,8 @@ public class SdsRequestBuilder {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
     private static final String RETRIEVE_DOCUMENT_INTERACTION =
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
+    private static final String MIGRATE_STRUCTURED_INTERACTION =
+        "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1";
 
     private static final String API_KEY_HEADER = "apikey";
     private static final String X_CORRELATION_ID_HEADER = "X-Correlation-Id";
@@ -44,6 +46,10 @@ public class SdsRequestBuilder {
 
     public WebClient.RequestHeadersSpec<?> buildGetStructuredRecordRequest(String fromOdsCode, String correlationId) {
         return buildRequest(fromOdsCode, GET_STRUCTURED_INTERACTION, correlationId);
+    }
+
+    public WebClient.RequestHeadersSpec<?> buildMigrateStructuredRecordRequest(String fromOdsCode, String correlationId) {
+        return buildRequest(fromOdsCode, MIGRATE_STRUCTURED_INTERACTION, correlationId);
     }
 
     public WebClient.RequestHeadersSpec<?> buildPatientSearchAccessDocumentRequest(String fromOdsCode, String correlationId) {

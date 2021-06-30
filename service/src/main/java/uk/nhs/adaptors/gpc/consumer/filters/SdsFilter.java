@@ -43,6 +43,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
     private static final String INTERACTION_ID_PREFIX = "urn:nhs:names:services:gpconnect:";
     private static final String STRUCTURED_ID = INTERACTION_ID_PREFIX + "fhir:operation:gpc.getstructuredrecord-1";
+    private static final String MIGRATE_STRUCTURED_ID = "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1";
     private static final String PATIENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:patient-1";
     private static final String DOCUMENT_SEARCH_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:search:documentreference-1";
     private static final String BINARY_READ_ID = INTERACTION_ID_PREFIX + "documents:fhir:rest:read:binary-1";
@@ -87,7 +88,8 @@ public class SdsFilter implements GlobalFilter, Ordered {
             STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
             PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
             DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
-            BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord);
+            BINARY_READ_ID, sdsClient::callForRetrieveDocumentRecord,
+            MIGRATE_STRUCTURED_ID, sdsClient::callForMigrateStructuredRecord);
     }
 
     private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {

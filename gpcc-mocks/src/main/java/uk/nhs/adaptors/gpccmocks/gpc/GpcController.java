@@ -207,4 +207,51 @@ public class GpcController {
         var body = TemplateUtils.fillTemplate("gpc/retrieveADocument", gpcModel);
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
+
+    @PostMapping(value = "/fhir/Patient/$gpc.migratestructuredrecord")
+    @ResponseStatus(value = ACCEPTED)
+    public ResponseEntity<String> migrateStructuredRecord(
+        HttpServletRequest request,
+        @PathVariable String odsCode,
+        @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
+        @RequestHeader(name = "Ssp-From") String sspFrom,
+        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
+        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
+        @RequestBody String requestBody) {
+
+        var host = getHostAndPortFromRequest(request);
+
+        log.debug("Request for 'Migrate Structured Record'. " +
+                "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
+            odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
+
+        log.debug("Request body for 'Migrate Structured Record'\n{}", requestBody);
+
+        if (!isUuid(sspTraceId)) {
+            return badRequest("Ssp-TraceID header must be a UUID");
+        }
+
+        var result = (List<?>) JsonPath.read(requestBody, "$.parameter[:1].valueIdentifier.value");
+        if (result.isEmpty()) {
+            return badRequest("Request body does not include patient identifier");
+        }
+        var nhsNumber = (String) result.get(0);
+
+        GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
+            .baseUrl("http://" + host)
+            .odsCode(odsCode);
+
+        switch (nhsNumber) {
+            case "9690937294":
+            case "9690937286":
+                gpcModelBuilder.nhsNumber(nhsNumber);
+                break;
+            default:
+                return patientNotFound("Patient " + nhsNumber + " not found");
+        }
+
+        var body = TemplateUtils.fillTemplate("gpc/accessRecordStructured", gpcModelBuilder.build());
+        return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
+    }
 }
