@@ -14,11 +14,16 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
+
 @Configuration
 @Slf4j
 public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<RoutingGatewayFilterFactory.Config> {
     private static final int PRIORITY = -3;
     private static final String PLACEHOLDER_URI = "http://0.0.0.0";
+    private static final String INTERACTION_ID_HEADER_NAME = "Ssp-InteractionID";
+
     @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
     private String searchForAPatientsDocumentsPath;
     @Value("${gpc-consumer.gpc.structuredPath}")
@@ -49,6 +54,11 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
         return builder.routes()
             .route("get-document", r -> r.path(documentPath)
                 .and()
+                .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_READ_ID)
+                .uri(getDefaultTargetUri()))
+            .route("migrate-document", r -> r.path(documentPath)
+                .and()
+                .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_MIGRATE_ID)
                 .uri(getDefaultTargetUri()))
             .route("get-structured-record", r -> r.path(structuredPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))

@@ -35,6 +35,8 @@ public class SdsRequestBuilder {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
     private static final String RETRIEVE_DOCUMENT_INTERACTION =
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
+    private static final String MIGRATE_DOCUMENT_INTERACTION =
+        "urn:nhs:names:services:gpconnect:documents:fhir:rest:migrate:binary-1";
     private static final String MIGRATE_STRUCTURED_INTERACTION =
         "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1";
 
@@ -58,6 +60,10 @@ public class SdsRequestBuilder {
 
     public WebClient.RequestHeadersSpec<?> buildSearchForDocumentRequest(String fromOdsCode, String correlationId) {
         return buildRequest(fromOdsCode, SEARCH_FOR_DOCUMENT_INTERACTION, correlationId);
+    }
+
+    public WebClient.RequestHeadersSpec<?> buildMigrateDocumentRequest(String fromOdsCode, String correlationId) {
+        return buildRequest(fromOdsCode, MIGRATE_DOCUMENT_INTERACTION, correlationId);
     }
 
     public WebClient.RequestHeadersSpec<?> buildRetrieveDocumentRequest(String fromOdsCode, String correlationId) {
