@@ -29,6 +29,11 @@ public class SdsClient {
         return retrieveData(request, exchange);
     }
 
+    public Mono<SdsResponseData> callForMigrateStructuredRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
+        var request = sdsRequestBuilder.buildMigrateStructuredRecordRequest(fromOdsCode, correlationId);
+        return retrieveData(request, exchange);
+    }
+
     public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId,
         ServerWebExchange exchange) {
         var request = sdsRequestBuilder.buildPatientSearchAccessDocumentRequest(fromOdsCode, correlationId);
