@@ -30,6 +30,7 @@ gpc-consumer:
     findPatientPath: ${GPC_CONSUMER_GPC_GET_PATIENT_PATH:/*/STU3/1/gpconnect/documents/fhir/Patient}
     # this is a common path for 'retrieve document' and 'migrate document' requests
     documentPath: ${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/*/STU3/1/gpconnect/documents/fhir/Binary/**}
+    migrateDocumentPath: ${GPC_CONSUMER_GPC_MIGRATE_DOCUMENT_PATH:/*/STU3/1/gpconnect/fhir/Binary/**}
     migrateStructuredPath: ${GPC_CONSUMER_GPC_MIGRATE_STRUCTURED_PATH:/*/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord}
     sspUrl: ${GPC_CONSUMER_SSP_URL:}
   sds:

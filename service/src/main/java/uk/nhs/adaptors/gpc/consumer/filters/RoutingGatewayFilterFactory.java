@@ -34,6 +34,8 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private String documentPath;
     @Value("${gpc-consumer.gpc.migrateStructuredPath}")
     private String migrateStructuredPath;
+    @Value("${gpc-consumer.gpc.migrateDocumentPath}")
+    private String migrateDocumentPath;
 
     @Value("${gpc-consumer.sds.enableSDS}")
     private String enableSds;
@@ -56,7 +58,7 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
                 .and()
                 .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_READ_ID)
                 .uri(getDefaultTargetUri()))
-            .route("migrate-document", r -> r.path(documentPath)
+            .route("migrate-document", r -> r.path(migrateDocumentPath)
                 .and()
                 .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_MIGRATE_ID)
                 .uri(getDefaultTargetUri()))

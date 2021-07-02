@@ -208,6 +208,37 @@ public class GpcController {
         return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 
+    @GetMapping(value = "/fhir/Binary/{documentId}")
+    @ResponseStatus(value = ACCEPTED)
+    public ResponseEntity<String> retrieveMigrateDocument(
+        @PathVariable String odsCode,
+        @PathVariable String documentId,
+        @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
+        @RequestHeader(name = "Ssp-From") String sspFrom,
+        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
+        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
+
+        log.debug("Request for 'Retrieve a document'. " +
+                "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={}",
+            odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId);
+
+        if (!isUuid(sspTraceId)) {
+            return badRequest("Ssp-TraceID header must be a UUID");
+        }
+
+        if (!"07a6483f-732b-461e-86b6-edb665c45510".equals(documentId)) {
+            return referenceNotFound("Binary/" + documentId + " not found");
+        }
+
+        var gpcModel = GpcModel.builder()
+            .documentId(documentId)
+            .build();
+
+        var body = TemplateUtils.fillTemplate("gpc/retrieveADocument", gpcModel);
+        return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
+    }
+
     @PostMapping(value = "/fhir/Patient/$gpc.migratestructuredrecord")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> migrateStructuredRecord(
