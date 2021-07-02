@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class MigrateDocumentRouteTest extends CloudGatewayRouteBaseTest {
 
     static final String MIGRATE_DOCUMENT_INTERACTION_ID = "urn:nhs:names:services:gpconnect:documents:fhir:rest:migrate:binary-1";
-    private static final String REQUEST_URI_TEMPLATE = "/%s/STU3/1/gpconnect/documents/fhir/Binary/%s";
+    private static final String REQUEST_URI_TEMPLATE = "/%s/STU3/1/gpconnect/fhir/Binary/%s";
 
     @ParameterizedTest(name = "{argumentsWithNames} {displayName}")
     @MethodSource(value = "uk.nhs.adaptors.gpc.consumer.Fixtures#orgCodes")
