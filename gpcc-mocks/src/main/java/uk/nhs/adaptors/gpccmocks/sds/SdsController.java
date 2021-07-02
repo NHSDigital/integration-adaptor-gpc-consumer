@@ -60,6 +60,7 @@ public class SdsController {
                 break;
             case "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:patient-1":
             case "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1":
+            case "urn:nhs:names:services:gpconnect:documents:fhir:rest:migrate:binary-1":
             case "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1":
                 sdsModelBuilder.fhirBase("STU3/1/gpconnect/documents/fhir");
                 break;

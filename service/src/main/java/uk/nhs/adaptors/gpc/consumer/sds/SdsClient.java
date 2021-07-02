@@ -50,6 +50,11 @@ public class SdsClient {
         return retrieveData(request, exchange);
     }
 
+    public Mono<SdsResponseData> callForMigrateDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
+        var request = sdsRequestBuilder.buildMigrateDocumentRequest(fromOdsCode, correlationId);
+        return retrieveData(request, exchange);
+    }
+
     private Mono<SdsResponseData> retrieveData(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request,
         ServerWebExchange exchange) {
         LOGGER.info("Using SDS to determine GPC provider endpoint");

@@ -61,6 +61,8 @@ public class SdsClientComponentTest {
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
     private static final String RETRIEVE_DOCUMENT_INTERACTION =
         "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
+    private static final String MIGRATE_DOCUMENT_INTERACTION =
+        "urn:nhs:names:services:gpconnect:documents:fhir:rest:migrate:binary-1";
 
     @Autowired
     private WireMockServer wireMockServer;
@@ -98,7 +100,9 @@ public class SdsClientComponentTest {
             Pair.of(GET_STRUCTURED_INTERACTION, sdsClient::callForGetStructuredRecord),
             Pair.of(PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION, sdsClient::callForPatientSearchAccessDocument),
             Pair.of(SEARCH_FOR_DOCUMENT_INTERACTION, sdsClient::callForSearchForDocumentRecord),
-            Pair.of(RETRIEVE_DOCUMENT_INTERACTION, sdsClient::callForRetrieveDocumentRecord));
+            Pair.of(RETRIEVE_DOCUMENT_INTERACTION, sdsClient::callForRetrieveDocumentRecord),
+            Pair.of(MIGRATE_DOCUMENT_INTERACTION, sdsClient::callForMigrateDocumentRecord)
+        );
     }
 
     @BeforeAll
