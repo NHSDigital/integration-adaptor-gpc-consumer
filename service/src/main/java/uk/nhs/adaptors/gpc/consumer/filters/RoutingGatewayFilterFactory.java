@@ -67,7 +67,7 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
                 .and()
                 .uri(getDefaultTargetUri()))
             .route("migrate-structured-record", r -> r.path(migrateStructuredPath)
-                .and()
+                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
                 .uri(getDefaultTargetUri()))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
