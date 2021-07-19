@@ -32,7 +32,6 @@ NIAD-1518: support multiple orgs (#46)
 NIAD-1533: GPCC mocks (#45)
 NIAD-1517: Refactoring required to enable multiple GPC providers (#43)
 
-
 ## [0.0.5] - 2021-05-06
 
 ### Known Issues and Limitations
