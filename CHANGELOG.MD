@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.6] - 2021-07-19
+
+## Known Issues and Limitations
+
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268
+- https://snyk.io/vuln/SNYK-JAVA-NETMINIDEV-1298655
+- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1313686
+- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1300835
+- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1319666
+- https://snyk.io/vuln/SNYK-JAVA-ORGSPRINGFRAMEWORK-1296829
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316638
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316639
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641
+- https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098
+
+### Added
+add url replacement for migrate structure doc refs (#50)
+NIAD-1508: add a route to GPC's 'migrate document' endpoint (#48)
+NIAD-1417: Migrate Patient Record (#47)
+NIAD-1518 support multiple orgs (#46)
+NIAD-1533 GPCC mocks (#45)
+NIAD-1517 Refactoring required to enable multiple GPC providers (#43)
+
+
 ## [0.0.5] - 2021-05-06
 
 ### Known Issues and Limitations
