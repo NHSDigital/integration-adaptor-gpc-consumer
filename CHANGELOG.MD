@@ -11,18 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Known Issues and Limitations
 
-- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268
-- https://snyk.io/vuln/SNYK-JAVA-NETMINIDEV-1298655
-- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1313686
-- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1300835
-- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1319666
-- https://snyk.io/vuln/SNYK-JAVA-ORGSPRINGFRAMEWORK-1296829
-- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268
-- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316638
-- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316639
-- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640
-- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641
-- https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098
+- https://snyk.io/vuln/SNYK-JAVA-NETMINIDEV-1298655 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1313686 [Low Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1300835 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1319666 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGSPRINGFRAMEWORK-1296829 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316638 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316639 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316640 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641 [Medium Severity]
+- https://snyk.io/vuln/SNYK-JAVA-ORGGLASSFISH-1297098 [High Severity]
 
 ### Added
 NIAD-1418: add url replacement for migrate structure doc refs (#50)
