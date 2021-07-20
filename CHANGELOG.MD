@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.6] - 2021-07-19
+## [0.1.5] - 2021-07-19
 - Added GPC 1.6.0 endpoints to proxy
 
 ## Known Issues and Limitations
