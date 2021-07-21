@@ -1,5 +1,5 @@
 plugins {
-	id "org.springframework.boot" version "2.4.5"
+	id "org.springframework.boot" version "2.5.2"
 	id "io.spring.dependency-management" version "1.0.11.RELEASE"
 	id "java"
 	id "checkstyle"
@@ -22,7 +22,7 @@ repositories {
 }
 
 ext {
-	set("springCloudVersion", "2020.0.1")
+	set("springCloudVersion", "2020.0.3")
 }
 
 lombok {
@@ -30,17 +30,24 @@ lombok {
 }
 
 dependencies {
-	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	implementation ("org.springframework.boot:spring-boot-starter-actuator") {
+		exclude group: "org.eclipse.jetty", module: "jetty-webapp"
+	}
 	implementation("org.springframework.cloud:spring-cloud-starter-gateway") {
 		exclude group: "io.netty", module: "netty-codec-http2"
 	}
 	implementation "io.netty:netty-codec-http2:4.1.61.Final"
 
-	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:5.3.0"
+	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:5.4.0"
 
 	implementation "com.heroku.sdk:env-keystore:1.1.6"
 
-	implementation "org.apache.commons:commons-lang3:3.12.0"
+	implementation ("org.apache.commons:commons-lang3:3.12.0") {
+		exclude group: "org.apache.commons", module: "commons-compress"
+	}
+
+	implementation "org.apache.commons:commons-compress:1.21"
+	implementation "org.eclipse.jetty:jetty-webapp:9.4.43.v20210629"
 
 	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -49,7 +56,7 @@ dependencies {
 	testImplementation("com.jayway.jsonpath:json-path:2.5.0") {
 		exclude group: "net.minidev", module: "json-smart"
 	}
-	testImplementation "net.minidev:json-smart:2.4.1"
+	testImplementation "net.minidev:json-smart:2.4.7"
 	testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.0"
 	testImplementation "com.github.tomakehurst:wiremock:2.27.2"
 	testImplementation "uk.org.webcompere:system-stubs-jupiter:1.2.0"
@@ -57,9 +64,6 @@ dependencies {
 	testImplementation "org.testcontainers:testcontainers:1.15.3"
 
 	constraints {
-		implementation('commons-io:commons-io:2.7') {
-			because 'https://snyk.io/vuln/SNYK-JAVA-COMMONSIO-1277109'
-		}
 		implementation('org.bouncycastle:bcprov-jdk15on:1.68') {
 			because 'https://snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448'
 		}

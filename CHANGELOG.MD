@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2021-07-19
+- Added GPC 1.6.0 endpoints to proxy
+
+## Known Issues and Limitations
+
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268 [Medium Severity]
+
+### Added
+NIAD-1418: add url replacement for migrate structure doc refs (#50)
+NIAD-1508: add a route to GPC's 'migrate document' endpoint (#48)
+NIAD-1417: Migrate Patient Record (#47)
+NIAD-1518: support multiple orgs (#46)
+NIAD-1533: GPCC mocks (#45)
+NIAD-1517: Refactoring required to enable multiple GPC providers (#43)
+
 ## [0.0.5] - 2021-05-06
 
 ### Known Issues and Limitations
