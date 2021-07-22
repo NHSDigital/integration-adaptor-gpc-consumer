@@ -125,8 +125,15 @@ cp vars.opentest.sh vars.sh
 Edit `vars.sh` to add any missing values e.g. Spine certificates.
 
 ### Using the helper script for Docker Compose
+
+For local environment to run against mocks:
 ```bash
-./start-local-environment.sh
+./start-local-environment-mocks.sh
+```
+
+For local environment to run against gp demonstrator 1.6.0
+```bash
+./start-local-environment-gpc-1.6.0.sh
 ```
 
 You can also run the docker-compose commands directly.

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+export GPC_CONSUMER_SERVER_PORT="8090"
+export GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL="http://tkw:4854"
+export GPC_ENABLE_SDS="false"
+export GPC_CONSUMER_SDS_APIKEY="anykey"
+export GPC_CONSUMER_LOGGING_LEVEL="DEBUG"

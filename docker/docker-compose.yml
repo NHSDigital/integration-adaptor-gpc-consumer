@@ -3,6 +3,8 @@ version: '3.4'
 services: 
   gpc-consumer:
     image: ${GPC_CONSUMER_IMAGE:-local/gpc-consumer:latest}
+    networks:
+      - commonforgpc
     build:
         context: ../
         dockerfile: docker/service/Dockerfile
@@ -25,8 +27,59 @@ services:
       - GPC_CONSUMER_SSP_URL
       - GPC_ENABLE_SDS
   gpcc-mocks:
+    networks:
+      - commonforgpc
     build:
       context: ../
       dockerfile: docker/gpcc-mocks/Dockerfile
     ports:
       - "8110:8080"
+  gpconnect-db:
+    image: mariadb
+    networks: 
+      - commonforgpc
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_USER=gpconnectdbuser
+      - MYSQL_PASSWORD=gpc0nn3ct
+      - MYSQL_DATABASE=gpconnect1_5
+    command: [
+        '--wait_timeout=28800',
+    ]
+
+  gpconnect-api:
+    image: nhsdigitalmait/gpconnect:1.5.1
+    restart : always
+    ports:
+        - 5000:19191
+    networks: 
+      - commonforgpc
+    environment:
+      - TZ=Europe/London
+      - DATABASE_ADDRESS=gpconnect-db
+      - DATABASE_USERNAME=gpconnectdbuser
+      - DATABASE_PASSWORD=gpc0nn3ct
+      - DATABASE_SCHEMA=gpconnect1_5
+      - SERVER_BASE_URL=https://data.developer.nhs.uk/B82617/STU3/1/gpconnect/fhir
+      - CONTEXT_PATH=/B82617/STU3/1/gpconnect/
+    links:
+      - gpconnect-db
+    depends_on:
+      - gpconnect-db
+   
+  tkw:
+    image: nhsdigitalmait/tkw_gpconnect_simulator:1.5.1
+    restart : always
+    ports:
+        - 4854:4854
+    networks: 
+      - commonforgpc
+    environment:
+      - TZ=Europe/London
+    links:
+      - gpconnect-api
+    depends_on:
+      - gpconnect-api
+networks:
+  commonforgpc:
+    external: true

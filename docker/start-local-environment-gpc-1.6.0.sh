@@ -10,4 +10,4 @@ fi
 
 docker-compose down --rmi=local --remove-orphans
 docker-compose build
-docker-compose up
+docker-compose up gpc-consumer tkw gpconnect-api gpconnect-db
