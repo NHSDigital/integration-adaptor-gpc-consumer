@@ -22,6 +22,7 @@ pipeline {
                         script {
                             sh '''
                                 source docker/vars.local.sh
+                                docker network create commonforgpc
                                 docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml build
                                 docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml up --exit-code-from gpc-consumer
                             '''
@@ -77,6 +78,7 @@ pipeline {
     }
     post {
         always {
+            sh label: 'Remove docker network', script: 'docker network create commonforgpc'
             sh label: 'Remove images created by docker-compose', script: 'docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml down --rmi local'
             sh label: 'Remove exited containers', script: 'docker rm $(docker ps -a -f status=exited -q)'
             sh label: 'Remove images tagged with current BUILD_TAG', script: 'docker image rm -f $(docker images "*/*:*${BUILD_TAG}" -q) $(docker images "*/*/*:*${BUILD_TAG}" -q) || true'
