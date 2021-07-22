@@ -23,6 +23,7 @@ pipeline {
                             sh '''
                                 source docker/vars.local.sh
                                 docker network create commonforgpc
+                                docker network create commonforgpc
                                 docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml build
                                 docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml up --exit-code-from gpc-consumer gpcc-mocks
                             '''
@@ -30,6 +31,7 @@ pipeline {
                     }
                     post {
                         always {
+                            sh "docker network create commonforgpc"
                             sh "docker cp tests:/home/gradle/service/build ."
                             archiveArtifacts artifacts: 'build/reports/**/*.*', fingerprint: true
                             junit '**/build/test-results/**/*.xml'
