@@ -8,6 +8,8 @@ else
   echo "No vars.sh defined. Using docker-compose defaults."
 fi
 
+docker network create commonforgpc
 docker-compose down --rmi=local --remove-orphans
 docker-compose build
-docker-compose up
+docker-compose up gpc-consumer gpcc-mocks 
+docker network rm commonforgpc

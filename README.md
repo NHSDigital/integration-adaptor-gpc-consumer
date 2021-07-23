@@ -111,7 +111,7 @@ adequate infrastructure and connections to external APIs.
 
 We provide several example configurations:
 
-* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](https://orange.testlab.nhs.uk/) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
+* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](Docker image - https://developer.nhs.uk/apis/gpconnect-1-6-0/overview_release_notes_1_6_0.html) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
 * `vars.opentest.sh` runs the adaptor on the OpenTest environment using the Spine Security Proxy and the GP Connect 
 provider. The SDS FHIR API is not available in OpenTest; this configuration uses `GPC_CONSUMER_OVERRIDE_GPC_PROVIDER_URL` to hardcode
 the provider endpoint.
@@ -125,8 +125,15 @@ cp vars.opentest.sh vars.sh
 Edit `vars.sh` to add any missing values e.g. Spine certificates.
 
 ### Using the helper script for Docker Compose
+
+For local environment to run against mocks:
 ```bash
-./start-local-environment.sh
+./start-local-environment-mocks.sh
+```
+
+For local environment to run against gp demonstrator 1.6.0
+```bash
+./start-local-environment-public.sh
 ```
 
 You can also run the docker-compose commands directly.
