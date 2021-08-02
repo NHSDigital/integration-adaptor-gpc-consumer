@@ -1,1 +1,14 @@
-{{>partials/binary}}
+{
+"resourceType": "Binary",
+"id": "{{documentId}}",
+"contentType": "application/msword",
+{{#binary1}}
+"content": "{{>partials/binary1}}"
+{{/binary1}}
+{{#binary2}}
+"content": "{{>partials/binary2}}"
+{{/binary2}}
+{{#binary3}}
+"content": "{{>partials/binary3}}"
+{{/binary3}}
+}

@@ -12,6 +12,9 @@ public class GpcModel {
     private String odsCode;
     private String nhsNumber;
     private boolean hasDocuments;
+    private boolean binary1;
+    private boolean binary2;
+    private boolean binary3;
     private String patientId;
     private String documentId;
 }
