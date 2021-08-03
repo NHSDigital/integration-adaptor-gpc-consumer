@@ -53,7 +53,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Access Structured Record'. " +
+        log.info("Request for 'Access Structured Record'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -100,7 +100,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Find a patient's documents'. " +
+        log.info("Request for 'Find a patient's documents'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -144,7 +144,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Find a patient'. " +
+        log.info("Request for 'Find a patient'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -188,7 +188,7 @@ public class GpcController {
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
-        log.debug("Request for 'Retrieve a document'. " +
+        log.info("Request for 'Retrieve a document'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId);
 
@@ -235,7 +235,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Migrate Structured Record'. " +
+        log.info("Request for 'Migrate Structured Record'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
