@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2021-08-06
+- Added GPC 1.6.0 endpoints to proxy
+
+## Known Issues and Limitations
+
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268 [Medium Severity]
+
+###Added
+
+- NIAD-1483: Local script run against gpc 1.6.0 (#52)
+
+
 ## [0.1.5] - 2021-07-19
 - Added GPC 1.6.0 endpoints to proxy
 

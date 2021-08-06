@@ -17,6 +17,10 @@ else
   exit 1
 fi
 
+if [[ "$(docker network ls | grep "commonforgpc")" == "" ]] ; then
+    docker network create commonforgpc
+fi
+
 echo -e "${LIGHT_GREEN}Stopping running containers${NC}"
 docker-compose down
 
