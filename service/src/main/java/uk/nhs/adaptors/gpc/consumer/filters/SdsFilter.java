@@ -6,6 +6,7 @@ import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_SEARCH_ID
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.MIGRATE_STRUCTURED_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.PATIENT_SEARCH_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.GATEWAY_REQUEST_URL_ATTR_BACKUP;
 import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
 
 import java.net.URI;
@@ -116,6 +117,8 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     organisation)))
             ).doOnNext(response -> {
                 LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
+                var backupUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+                exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR_BACKUP, backupUri);
                 prepareLookupUri(response.getAddress(), serverHttpRequest)
                     .ifPresent(uri -> exchange.getAttributes()
                         .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
