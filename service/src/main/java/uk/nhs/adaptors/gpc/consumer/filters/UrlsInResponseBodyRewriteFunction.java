@@ -1,5 +1,6 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.GATEWAY_REQUEST_URL_ATTR_BACKUP;
 import static uk.nhs.adaptors.gpc.consumer.utils.UrlHelpers.getUrlBase;
 
 import java.net.URI;
@@ -32,7 +33,12 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                 var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI());
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
 
-                URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+                URI proxyTargetUri = null;
+                if (exchange.getAttributes().containsKey(GATEWAY_REQUEST_URL_ATTR_BACKUP))
+                    proxyTargetUri = (URI) exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR_BACKUP);
+                else
+                    proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+
                 var gpcProducerUrlPrefix = getUrlBase(proxyTargetUri);
                 LoggingUtil.info(LOGGER, exchange, "The URL prefix of the GPC Producer endpoint is {}", gpcProducerUrlPrefix);
 
