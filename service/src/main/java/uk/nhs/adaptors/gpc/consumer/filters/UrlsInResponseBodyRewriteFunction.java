@@ -36,8 +36,7 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                 URI proxyTargetUri = null;
                 if (exchange.getAttributes().containsKey(GATEWAY_REQUEST_URL_ATTR_BACKUP)) {
                     proxyTargetUri = (URI) exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR_BACKUP);
-                }
-                else {
+                } else {
                     proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
                 }
 
