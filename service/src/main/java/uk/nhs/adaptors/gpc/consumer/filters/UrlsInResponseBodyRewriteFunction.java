@@ -36,7 +36,6 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
 
                 URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-                proxyTargetUri = proxyTargetUri.resolve(sspUrl + proxyTargetUri);
 
                 if (isSspEnabled()) {
                     var uriAsStringWithoutSspPrefix = proxyTargetUri.toString().substring(sspUrl.length());
@@ -46,7 +45,7 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                 var gpcProducerUrlPrefix = getUrlBase(proxyTargetUri);
                 LoggingUtil.info(LOGGER, exchange, "The URL prefix of the GPC Producer endpoint is {}", gpcProducerUrlPrefix);
 
-                LOGGER.info("Replacing all occurrences of '{}' in the response body with '{}'",
+                LOGGER.debug("Replacing all occurrences of '{}' in the response body with '{}'",
                     gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
                 return originalResponseBody.replace(gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
             });
