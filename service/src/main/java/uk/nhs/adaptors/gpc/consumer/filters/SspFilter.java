@@ -30,7 +30,7 @@ public class SspFilter implements GlobalFilter, Ordered {
             URI uri = (URI) exchange.getAttributes()
                 .get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
 
-            URI resolvedUri = uri.resolve(getSspUrlPrefix() + uri);
+            URI resolvedUri = uri.resolve(uri);
 
             exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, resolvedUri);
