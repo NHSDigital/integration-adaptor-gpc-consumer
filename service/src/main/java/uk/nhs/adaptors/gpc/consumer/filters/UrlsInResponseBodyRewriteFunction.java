@@ -1,10 +1,10 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
-import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.GATEWAY_REQUEST_URL_ATTR_BACKUP;
 import static uk.nhs.adaptors.gpc.consumer.utils.UrlHelpers.getUrlBase;
 
 import java.net.URI;
 
+import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -21,6 +21,8 @@ import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String, String> {
     @Value("${gpc-consumer.gpc.overrideGpcProviderUrl}")
     private String overrideGpcProviderUrl;
+    @Value("${gpc-consumer.gpc.sspUrl}")
+    private String sspUrl;
 
     public static String replaceUrl(String gpcConsumerUrl, String overrideGpcProviderUrl, String responseBody) {
         return responseBody.replace(overrideGpcProviderUrl, gpcConsumerUrl);
@@ -33,11 +35,11 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                 var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI());
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
 
-                URI proxyTargetUri = null;
-                if (exchange.getAttributes().containsKey(GATEWAY_REQUEST_URL_ATTR_BACKUP)) {
-                    proxyTargetUri = (URI) exchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR_BACKUP);
-                } else {
-                    proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+                URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+
+                if (isSspEnabled()) {
+                    var uriAsStringWithoutSspPrefix = proxyTargetUri.toString().substring(sspUrl.length());
+                    proxyTargetUri = proxyTargetUri.resolve(uriAsStringWithoutSspPrefix);
                 }
 
                 var gpcProducerUrlPrefix = getUrlBase(proxyTargetUri);
@@ -47,5 +49,9 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                     gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
                 return originalResponseBody.replace(gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
             });
+    }
+
+    private boolean isSspEnabled() {
+        return StringUtils.isNotBlank(sspUrl);
     }
 }

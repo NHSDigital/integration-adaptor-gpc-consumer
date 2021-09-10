@@ -1,7 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
-import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.GATEWAY_REQUEST_URL_ATTR_BACKUP;
-
 import java.net.URI;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,9 +29,6 @@ public class SspFilter implements GlobalFilter, Ordered {
         if (isSspEnabled()) {
             URI uri = (URI) exchange.getAttributes()
                 .get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-
-            exchange.getAttributes()
-                .put(GATEWAY_REQUEST_URL_ATTR_BACKUP, uri);
 
             URI resolvedUri = uri.resolve(getSspUrlPrefix() + uri);
 
