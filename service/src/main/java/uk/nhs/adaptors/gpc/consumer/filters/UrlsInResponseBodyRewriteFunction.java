@@ -54,7 +54,7 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
     private boolean isSspEnabled() {
         return StringUtils.isNotBlank(sspUrl);
     }
-
+    
     private String getSspUrlWithTrailingSlash() {
         if (!sspUrl.endsWith("/")) {
             return sspUrl + "/";
