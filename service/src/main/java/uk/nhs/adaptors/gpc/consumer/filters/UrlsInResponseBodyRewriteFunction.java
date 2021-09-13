@@ -38,14 +38,14 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
                 URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
 
                 if (isSspEnabled()) {
-                    var uriAsStringWithoutSspPrefix = proxyTargetUri.toString().substring(sspUrl.length());
+                    var uriAsStringWithoutSspPrefix = proxyTargetUri.toString().substring(getSspUrlWithTrailingSlash().length());
                     proxyTargetUri = proxyTargetUri.resolve(uriAsStringWithoutSspPrefix);
                 }
 
                 var gpcProducerUrlPrefix = getUrlBase(proxyTargetUri);
                 LoggingUtil.info(LOGGER, exchange, "The URL prefix of the GPC Producer endpoint is {}", gpcProducerUrlPrefix);
 
-                LOGGER.debug("Replacing all occurrences of '{}' in the response body with '{}'",
+                LOGGER.info("Replacing all occurrences of '{}' in the response body with '{}'",
                     gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
                 return originalResponseBody.replace(gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
             });
@@ -53,5 +53,12 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
 
     private boolean isSspEnabled() {
         return StringUtils.isNotBlank(sspUrl);
+    }
+
+    private String getSspUrlWithTrailingSlash() {
+        if (!sspUrl.endsWith("/")) {
+            return sspUrl + "/";
+        }
+        return sspUrl;
     }
 }
