@@ -10,20 +10,18 @@ The adaptor proxies GP Connect API requests to the correct GP Connect producer. 
 
 The GP Connect Consumer Adaptor adheres to the GP Connect API specifications.
 
-We only support the four endpoints required for the GP2GP use case:
+We only support the two endpoints required for the GP2GP use case:
 
-* Capability: [Access Record Structured](https://gpc-structured-1-5-0.netlify.app/accessrecord_structured.html) 
-  * Endpoint: [Retrieve a patient's structured record](https://gpc-structured-1-5-0.netlify.app/accessrecord_structured_development_retrieve_patient_record.html)
+* Capability: [Migrate Structured Record](https://gpc-structured-1-5-0.netlify.app/accessrecord_structured.html) 
+  * Endpoint: [Migrate a patient's structured record](https://developer.nhs.uk/apis/gpconnect-1-6-0/accessrecord_structured_development_migrate_patient_record.html)
 * Capability: [Access Document](https://gpc-structured-1-5-0.netlify.app/access_documents.html)
-  * Endpoint: [Find a patient](https://gpc-structured-1-5-0.netlify.app/access_documents_use_case_find_a_patient.html)
-  * Endpoint: [Search for a patient's documents](https://gpc-structured-1-5-0.netlify.app/access_documents_development_search_patient_documents.html)
   * Endpoint: [Retrieve a document](https://gpc-structured-1-5-0.netlify.app/access_documents_development_retrieve_patient_documents.html)
 
 ### Service Root URL
 
 We follow the [Service Root URL](https://gpc-structured-1-5-0.netlify.app/development_general_api_guidance.html#service-root-url-versioning) scheme defined by GP Connect.
 
-Example (Retrieve a patient's structured record, ODS Code GP0001): `POST https://gpcadaptor.com/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.getstructuredrecord`
+Example (Retrieve a patient's structured record, ODS Code GP0001): `POST https://gpcadaptor.com/GP0001/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord`
 
 ### Known Limitations
 

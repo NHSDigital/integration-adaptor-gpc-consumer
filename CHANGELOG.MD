@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2021-09-13
+- Bug fixes
+
+## Known Issues and Limitations
+
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268 [Medium Severity]
+
+## fixed
+
+NIAD-1742 - URL rewrite bug fix (#57 / #58)
+
 ## [0.2.5] - 2021-08-06
 - Added GPC 1.6.0 endpoints to proxy
 
