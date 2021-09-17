@@ -4,6 +4,7 @@ import static uk.nhs.adaptors.gpc.consumer.utils.UrlHelpers.getUrlBase;
 
 import java.net.URI;
 
+import com.google.common.net.HttpHeaders;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +33,8 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
     public Publisher<String> apply(ServerWebExchange exchange, String responseBody) {
         return Mono.just(responseBody)
             .map(originalResponseBody -> {
-                var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI());
+
+                var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI(), exchange.getRequest().getHeaders().get(HttpHeaders.X_FORWARDED_PROTO));
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
 
                 URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
