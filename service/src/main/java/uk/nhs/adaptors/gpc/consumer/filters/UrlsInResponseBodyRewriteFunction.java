@@ -34,7 +34,8 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
         return Mono.just(responseBody)
             .map(originalResponseBody -> {
 
-                var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI(), exchange.getResponse().getHeaders().get(HttpHeaders.X_FORWARDED_PROTO));
+                var gpcConsumerUrlPrefix = getUrlBase(exchange.getRequest().getURI(),
+                    exchange.getResponse().getHeaders().get(HttpHeaders.X_FORWARDED_PROTO));
                 LoggingUtil.debug(LOGGER, exchange, "The URL prefix for *this* GPC Consumer service is {}", gpcConsumerUrlPrefix);
 
                 URI proxyTargetUri = (URI) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
