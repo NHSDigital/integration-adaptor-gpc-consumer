@@ -19,6 +19,7 @@ public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest
         var nhsNumber = Fixtures.Patient.HAS_DOCUMENTS.getNhsNumber();
         var requestBody = String.format(REQUEST_BODY_TEMPLATE, nhsNumber);
         getWebTestClientForStandardPost(requestUri, MIGRATE_STRUCTURED_INTERACTION_ID)
+            .header("Testing-X-Forward", "false")
             .bodyValue(requestBody)
             .exchange()
             .expectStatus()
@@ -33,6 +34,7 @@ public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest
         var requestUri = String.format(REQUEST_URI_TEMPLATE, odsCode);
         var requestBody = String.format(REQUEST_BODY_TEMPLATE, "1234567890");
         getWebTestClientForStandardPost(requestUri, MIGRATE_STRUCTURED_INTERACTION_ID)
+            .header("Testing-X-Forward", "false")
             .bodyValue(requestBody)
             .exchange()
             .expectStatus()
