@@ -10,8 +10,7 @@ public class UrlHelpers {
 
     public static String getUrlBase(URI uri, List<String> protocolHeader) {
         if (ObjectUtils.isNotEmpty(protocolHeader)) {
-            String protocol = String.valueOf(protocolHeader);
-            return protocol + "://" + uri.getAuthority();
+            return protocolHeader.get(0) + "://" + uri.getAuthority();
         }
         return getUrlBase(uri);
     }

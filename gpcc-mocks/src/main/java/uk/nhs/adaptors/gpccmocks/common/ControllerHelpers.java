@@ -26,6 +26,12 @@ public class ControllerHelpers {
         return headers;
     }
 
+    public static HttpHeaders getResponseHeadersWithForwardedProto() {
+        HttpHeaders httpHeaders = getResponseHeaders();
+        httpHeaders.add("X-Forwarded-Proto", "https");
+        return httpHeaders;
+    }
+
     @SneakyThrows
     public static String getHostAndPortFromRequest(HttpServletRequest httpServletRequest) {
         URI uri = new URI(httpServletRequest.getRequestURL().toString());
