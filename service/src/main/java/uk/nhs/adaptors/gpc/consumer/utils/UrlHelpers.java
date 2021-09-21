@@ -24,5 +24,4 @@ public class UrlHelpers {
         return getUrlBase(new URI(url));
     }
 
-
 }
