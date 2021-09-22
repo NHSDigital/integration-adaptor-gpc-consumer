@@ -23,7 +23,7 @@ you are testing to ensure compatibility with configurations and scripts.
 
 ```bash
 git pull
-git checkout 0.2.5
+git checkout 0.2.7
 ```
 
 ## Find the docker directory
