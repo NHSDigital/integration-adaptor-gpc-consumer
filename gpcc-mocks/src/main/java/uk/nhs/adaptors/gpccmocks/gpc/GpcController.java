@@ -54,7 +54,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Access Structured Record'. " +
+        log.info("Request for 'Access Structured Record'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -101,7 +101,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Find a patient's documents'. " +
+        log.info("Request for 'Find a patient's documents'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -145,7 +145,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Find a patient'. " +
+        log.info("Request for 'Find a patient'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -189,7 +189,7 @@ public class GpcController {
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
-        log.debug("Request for 'Retrieve a document'. " +
+        log.info("Request for 'Retrieve a document'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId);
 
@@ -197,16 +197,29 @@ public class GpcController {
             return badRequest("Ssp-TraceID header must be a UUID");
         }
 
-        if (!"07a6483f-732b-461e-86b6-edb665c45510".equals(documentId)) {
+        if (documentId.equals("07a6483f-732b-461e-86b6-edb665c45510") || documentId.equals("11737b22-8cff-47e2-b741-e7f27c8c61a8")
+            || documentId.equals("29c434d6-ad47-415f-b5f5-fd1dc2941d8d")) {
+
+            var gpcModel = GpcModel.builder()
+                .documentId(documentId);
+
+            switch (documentId) {
+                case "07a6483f-732b-461e-86b6-edb665c45510":
+                    gpcModel.binary1(true);
+                    break;
+                case "11737b22-8cff-47e2-b741-e7f27c8c61a8":
+                    gpcModel.binary2(true);
+                    break;
+                case "29c434d6-ad47-415f-b5f5-fd1dc2941d8d":
+                    gpcModel.binary3(true);
+                    break;
+            }
+
+            var body = TemplateUtils.fillTemplate("gpc/retrieveADocument", gpcModel.build());
+            return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
+        } else {
             return referenceNotFound("Binary/" + documentId + " not found");
         }
-
-        var gpcModel = GpcModel.builder()
-            .documentId(documentId)
-            .build();
-
-        var body = TemplateUtils.fillTemplate("gpc/retrieveADocument", gpcModel);
-        return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 
     @PostMapping(value = "/fhir/Patient/$gpc.migratestructuredrecord")
@@ -224,7 +237,7 @@ public class GpcController {
 
         var host = getHostAndPortFromRequest(request);
 
-        log.debug("Request for 'Migrate Structured Record'. " +
+        log.info("Request for 'Migrate Structured Record'. " +
                 "odsCode={} Ssp-TraceID={} Ssp-From={} Ssp-To={} Ssp-InteractionID={} Host/X-Forwarded-Host: {}",
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
@@ -245,9 +258,28 @@ public class GpcController {
             .odsCode(odsCode);
 
         switch (nhsNumber) {
+            // no docs
             case "9690937294":
+                gpcModelBuilder.nhsNumber(nhsNumber);
+                gpcModelBuilder.hasDocuments(false);
+                break;
             case "9690937286":
                 gpcModelBuilder.nhsNumber(nhsNumber);
+                gpcModelBuilder.hasDocuments(true);
+                gpcModelBuilder.binary1(true);
+                gpcModelBuilder.documentId("07a6483f-732b-461e-86b6-edb665c45510");
+                break;
+            case "9690937819":
+                gpcModelBuilder.nhsNumber(nhsNumber);
+                gpcModelBuilder.hasDocuments(true);
+                gpcModelBuilder.binary2(true);
+                gpcModelBuilder.documentId("11737b22-8cff-47e2-b741-e7f27c8c61a8");
+                break;
+            case "9690937841":
+                gpcModelBuilder.nhsNumber(nhsNumber);
+                gpcModelBuilder.hasDocuments(true);
+                gpcModelBuilder.binary3(true);
+                gpcModelBuilder.documentId("29c434d6-ad47-415f-b5f5-fd1dc2941d8d");
                 break;
             default:
                 return patientNotFound("Patient " + nhsNumber + " not found");

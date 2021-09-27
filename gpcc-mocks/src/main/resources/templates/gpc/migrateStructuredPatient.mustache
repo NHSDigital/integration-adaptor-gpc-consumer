@@ -16408,7 +16408,7 @@
                     }
                 ]
             }
-        },
+        }{{#hasDocuments}},
         {
             "resource": {
                 "resourceType": "DocumentReference",
@@ -16442,7 +16442,7 @@
                     {
                         "attachment": {
                             "contentType": "application/octet-stream",
-                            "url": "{{baseUrl}}/{{odsCode}}/STU3/1/gpconnect/documents/fhir/Binary/07a6483f-732b-461e-86b6-edb665c45510",
+                            "url": "{{baseUrl}}/{{odsCode}}/STU3/1/gpconnect/documents/fhir/Binary/{{documentId}}",
                             "size": 13
                         }
                     }
@@ -16453,6 +16453,6 @@
                     }
                 }
             }
-        }
+        }{{/hasDocuments}}
     ]
 }
