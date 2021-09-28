@@ -80,7 +80,6 @@ public class RewriteUrlsInBodyTest extends CloudGatewayRouteBaseTest {
         var requestBody = String.format(MigrateStructuredPatientRouteTest.REQUEST_BODY_TEMPLATE, nhsNumber);
 
         var bodyBytes = getWebTestClientForStandardPost(requestUri, MigrateStructuredPatientRouteTest.MIGRATE_STRUCTURED_INTERACTION_ID)
-            .header("Testing-X-Forward", "false")
             .bodyValue(requestBody)
             .exchange()
             .expectStatus()
@@ -96,33 +95,6 @@ public class RewriteUrlsInBodyTest extends CloudGatewayRouteBaseTest {
             .doesNotStartWith(GpccMocksContainer.getInstance().getMockBaseUrl())
             .contains(odsCode);
         assertThatUrlIsAccessibleBinaryResource(url);
-    }
-
-    @ParameterizedTest(name = "{argumentsWithNames} {displayName}")
-    @MethodSource(value = "uk.nhs.adaptors.gpc.consumer.Fixtures#orgCodes")
-    public void When_UsingXForwardingProto_Expect_DocumentsToBeRewrittenWithHttps(String odsCode) {
-        var nhsNumber = Fixtures.Patient.HAS_DOCUMENTS.getNhsNumber();
-        var requestUri = String.format(MigrateStructuredPatientRouteTest.REQUEST_URI_TEMPLATE, odsCode);
-        var requestBody = String.format(MigrateStructuredPatientRouteTest.REQUEST_BODY_TEMPLATE, nhsNumber);
-
-        var bodyBytes = getWebTestClientForStandardPost(requestUri, MigrateStructuredPatientRouteTest.MIGRATE_STRUCTURED_INTERACTION_ID)
-            .header("Testing-X-Forward", "true")
-            .bodyValue(requestBody)
-            .exchange()
-            .expectStatus()
-            .isOk()
-            .expectBody()
-            .returnResult();
-
-        var body = new String(bodyBytes.getResponseBody(), StandardCharsets.UTF_8);
-        var headers = bodyBytes.getResponseHeaders();
-        var url = getUrlFromFirstDocumentReference(body);
-
-        assertThat(url)
-            .startsWith("https")
-            .doesNotStartWith(GpccMocksContainer.getInstance().getMockBaseUrl())
-            .contains(odsCode);
-        assertThat(headers.get(HttpHeaders.X_FORWARDED_PROTO)).isNotNull();
     }
 
     private void assertThatUrlIsAccessibleBinaryResource(String url) {

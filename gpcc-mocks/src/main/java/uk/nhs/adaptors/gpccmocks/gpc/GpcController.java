@@ -219,7 +219,6 @@ public class GpcController {
         @RequestHeader(name = "Ssp-To") String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
-        @RequestHeader(name = "Testing-X-Forward") String testingXForward,
         @RequestBody String requestBody) {
 
         var host = getHostAndPortFromRequest(request);
@@ -254,9 +253,6 @@ public class GpcController {
         }
 
         var body = TemplateUtils.fillTemplate("gpc/migrateStructuredPatient", gpcModelBuilder.build());
-        if (testingXForward.equals(Boolean.FALSE.toString())){
-            return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(body, getResponseHeadersWithForwardedProto(), HttpStatus.OK);
+        return new ResponseEntity<>(body, getResponseHeaders(), HttpStatus.OK);
     }
 }
