@@ -26,6 +26,7 @@ services:
       - GPC_CONSUMER_SDS_APIKEY
       - GPC_CONSUMER_SSP_URL
       - GPC_ENABLE_SDS
+
   gpcc-mocks:
     networks:
       - commonforgpc
@@ -34,6 +35,7 @@ services:
       dockerfile: docker/gpcc-mocks/Dockerfile
     ports:
       - "8110:8080"
+      
   gpconnect-db:
     image: mariadb
     networks: 
@@ -80,6 +82,18 @@ services:
       - gpconnect-api
     depends_on:
       - gpconnect-api
+
+
+  gpcc-nginx:
+    networks:
+      - commonforgpc
+    depends_on:
+      - gpc-consumer
+    build:
+      context: ./nginx
+    ports:
+      - "8091:443"
+
 networks:
   commonforgpc:
     external: true
