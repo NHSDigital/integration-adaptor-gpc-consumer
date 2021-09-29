@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.8] - 2021-09-29
+- Bug fixes
+
+## Known Issues and Limitations
+
+- https://snyk.io/vuln/SNYK-JAVA-IONETTY-1042268 [Medium Severity]
+
+## fixed
+
+- NIAD-1758 support multiple protocols for url rewriting (#63)
+- 
+- [https://snyk.io/vuln/SNYK-JAVA-IONETTY-1584063] [High Severity]
+- [https://snyk.io/vuln/SNYK-JAVA-IONETTY-1584064] [High Severity]
+
 ## [0.2.7] - 2021-09-22
 - Bug fixes
 
