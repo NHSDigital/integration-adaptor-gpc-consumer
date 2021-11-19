@@ -50,7 +50,7 @@ public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String
 
                 LOGGER.info("Replacing all occurrences of '{}' in the response body with '{}'",
                     gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
-                return originalResponseBody.replace(gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
+                return originalResponseBody.replaceAll("(?i)" + gpcProducerUrlPrefix, gpcConsumerUrlPrefix);
             });
     }
 
