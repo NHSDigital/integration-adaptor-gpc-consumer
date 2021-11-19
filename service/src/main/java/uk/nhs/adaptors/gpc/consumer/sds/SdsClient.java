@@ -3,6 +3,8 @@ package uk.nhs.adaptors.gpc.consumer.sds;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Endpoint;
+import org.hl7.fhir.dstu3.model.Identifier;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,6 +23,7 @@ import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class SdsClient {
+    private static final String NHS_MHS_ID = "https://fhir.nhs.uk/Id/nhsMHSId";
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
@@ -61,25 +64,44 @@ public class SdsClient {
         return performRequest(request)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {
-                LOGGER.info("Attempting to parse the bundle response from SDS");
-                if (!bundle.hasEntry()) {
-                    throw new RuntimeException("SDS returned no result");
-                }
-
-                if (bundle.getEntry().size() > 1) {
-                    LOGGER.warn("SDS returned more than 1 result. Taking the first one");
-                }
-
+                doBundleEntryCheck(bundle);
                 var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
-                var address = endpoint.getAddress();
-                if (StringUtils.isBlank(address)) {
-                    throw new RuntimeException("SDS returned a result but with an empty address");
-                }
-                LOGGER.info("Found GPC provider endpoint in SDS: {}", address);
+
                 return SdsResponseData.builder()
-                    .address(address)
+                    .address(getAddressFromEndpoint(endpoint))
+                    .nhsMhsId(getNhsMhsId(endpoint))
                     .build();
             });
+    }
+
+    private String getNhsMhsId(Endpoint endpoint) {
+        return endpoint.getIdentifier()
+            .stream()
+            .filter(id -> NHS_MHS_ID.equals(id.getSystem()))
+            .map(id -> id.getValue())
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException(String.format("Identifier of system %s not found", NHS_MHS_ID)));
+    }
+
+    private void doBundleEntryCheck(Bundle bundle) {
+        LOGGER.info("Attempting to parse the bundle response from SDS");
+        if (!bundle.hasEntry()) {
+            throw new RuntimeException("SDS returned no result");
+        }
+
+        if (bundle.getEntry().size() > 1) {
+            LOGGER.warn("SDS returned more than 1 result. Taking the first one");
+        }
+    }
+
+    @NotNull
+    private String getAddressFromEndpoint(Endpoint endpoint) {
+        var address = endpoint.getAddress();
+        if (StringUtils.isBlank(address)) {
+            throw new RuntimeException("SDS returned a result but with an empty address");
+        }
+        LOGGER.info("Found GPC provider endpoint in SDS: {}", address);
+        return address;
     }
 
     private Mono<String> performRequest(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request) {
@@ -92,5 +114,6 @@ public class SdsClient {
     @EqualsAndHashCode
     public static class SdsResponseData {
         private final String address;
+        private final String nhsMhsId;
     }
 }

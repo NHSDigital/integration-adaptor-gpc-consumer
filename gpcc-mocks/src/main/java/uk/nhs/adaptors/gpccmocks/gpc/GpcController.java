@@ -4,7 +4,6 @@ import static org.springframework.http.HttpStatus.ACCEPTED;
 
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getHostAndPortFromRequest;
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getResponseHeaders;
-import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getResponseHeadersWithForwardedProto;
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.isUuid;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.badRequest;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.invalidNhsNumber;
@@ -47,7 +46,7 @@ public class GpcController {
         @PathVariable String odsCode,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
-        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-To", required = false) String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
         @RequestBody String requestBody) {
@@ -95,7 +94,7 @@ public class GpcController {
         @PathVariable String patientId,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
-        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-To", required = false) String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
@@ -139,7 +138,7 @@ public class GpcController {
         @RequestParam String identifier,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
-        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-To", required = false) String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
@@ -185,7 +184,7 @@ public class GpcController {
         @PathVariable String documentId,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
-        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-To", required = false) String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization) {
 
@@ -216,7 +215,7 @@ public class GpcController {
         @PathVariable String odsCode,
         @RequestHeader(name = "Ssp-TraceID") String sspTraceId,
         @RequestHeader(name = "Ssp-From") String sspFrom,
-        @RequestHeader(name = "Ssp-To") String sspTo,
+        @RequestHeader(name = "Ssp-To", required = false) String sspTo,
         @RequestHeader(name = "Ssp-InteractionID") String sspInteractionId,
         @RequestHeader(name = HttpHeaders.AUTHORIZATION) String authorization,
         @RequestBody String requestBody) {

@@ -30,6 +30,7 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -69,10 +70,23 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     LoggingUtil.warn(LOGGER, exchange, "SDS is disabled. Using override GPC provider url.");
                     return Mono.just(SdsClient.SdsResponseData.builder().build());
                 }
-            }).doOnNext(v -> {
+            }).
+            doOnNext(response -> {
                 if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
+
+                String sspTo = exchange.getRequest().getHeaders()
+                    .get("Ssp-To").stream().findFirst().orElse(response.getNhsMhsId());
+
+                ServerHttpRequest mutateRequest = exchange.getRequest().mutate()
+                    .header("Ssp-To", sspTo)
+                    .build();
+
+                // chain.filter(exchange.mutate().request(mutateRequest).build());
+
+                exchange.getRequest().getHeaders().set("Ssp-To", sspTo);
+
             }).then(chain.filter(exchange));
     }
 
