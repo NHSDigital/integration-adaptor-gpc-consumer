@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -30,7 +32,6 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -57,37 +58,52 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest serverHttpRequest = exchange.getRequest();
+        SdsClient.SdsResponseData response = getSdsResponseData(exchange);
+        ServerWebExchange mutatedExchange = appendSspToHeaderIfNeeded(exchange, response.getNhsMhsId());
 
+        return chain.filter(mutatedExchange);
+    }
+
+    @NotNull
+    private ServerWebExchange appendSspToHeaderIfNeeded(ServerWebExchange exchange, String nhsMhsId) {
+        List<String> sspToHeader = exchange.getRequest().getHeaders().get("Ssp-To");
+
+        String sspTo = nhsMhsId;
+
+        if (sspToHeader != null) {
+            sspTo = sspToHeader.stream().findFirst().orElse(nhsMhsId);
+        }
+
+        ServerHttpRequest mutateRequest = exchange.getRequest()
+            .mutate()
+            .header("Ssp-To", sspTo)
+            .build();
+
+        return exchange.mutate().request(mutateRequest).build();
+    }
+
+    @Nullable
+    private SdsClient.SdsResponseData getSdsResponseData(ServerWebExchange exchange) {
         return Mono.just(enableSds)
             .map(Boolean::valueOf)
-            .flatMap(isSdsEnabled -> {
-                if (isSdsEnabled) {
-                    LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
-                    var id = extractInteractionId(serverHttpRequest.getHeaders());
-                    return proceedSdsLookup(exchange, id.get());
-                } else {
-                    LoggingUtil.warn(LOGGER, exchange, "SDS is disabled. Using override GPC provider url.");
-                    return Mono.just(SdsClient.SdsResponseData.builder().build());
-                }
-            }).
-            doOnNext(response -> {
-                if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+            .flatMap(isSdsEnabled -> processSdsResponse(exchange, isSdsEnabled))
+            .doOnNext(v -> {
+                if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
+            }).block();
+    }
 
-                String sspTo = exchange.getRequest().getHeaders()
-                    .get("Ssp-To").stream().findFirst().orElse(response.getNhsMhsId());
-
-                ServerHttpRequest mutateRequest = exchange.getRequest().mutate()
-                    .header("Ssp-To", sspTo)
-                    .build();
-
-                // chain.filter(exchange.mutate().request(mutateRequest).build());
-
-                exchange.getRequest().getHeaders().set("Ssp-To", sspTo);
-
-            }).then(chain.filter(exchange));
+    @NotNull
+    private Mono<SdsClient.SdsResponseData> processSdsResponse(ServerWebExchange exchange, Boolean isSdsEnabled) {
+        if (isSdsEnabled) {
+            LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
+            var id = extractInteractionId(exchange.getRequest().getHeaders());
+            return proceedSdsLookup(exchange, id.get());
+        } else {
+            LoggingUtil.warn(LOGGER, exchange, "SDS is disabled. Using override GPC provider url.");
+            return Mono.just(SdsClient.SdsResponseData.builder().build());
+        }
     }
 
     @Override
