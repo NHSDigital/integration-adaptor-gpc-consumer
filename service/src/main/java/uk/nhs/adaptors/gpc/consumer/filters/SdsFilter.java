@@ -59,7 +59,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         SdsClient.SdsResponseData response = getSdsResponseData(exchange);
-        ServerWebExchange mutatedExchange = appendSspToHeaderIfNeeded(exchange, response.getNhsMhsId());
+        ServerWebExchange mutatedExchange = appendSspToHeaderIfNeeded(exchange, response.getNhsSpineAsid());
 
         return chain.filter(mutatedExchange);
     }

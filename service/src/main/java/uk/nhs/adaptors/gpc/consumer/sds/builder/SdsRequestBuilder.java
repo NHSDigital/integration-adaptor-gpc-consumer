@@ -52,6 +52,10 @@ public class SdsRequestBuilder {
         return buildMhsEndpointRequest(fromOdsCode, GET_STRUCTURED_INTERACTION, correlationId);
     }
 
+    public WebClient.RequestHeadersSpec<?> buildGetStructuredRecordAsDeviceRequest(String fromOdsCode, String correlationId) {
+        return buildAsDeviceRequest(fromOdsCode, GET_STRUCTURED_INTERACTION, correlationId);
+    }
+
     public WebClient.RequestHeadersSpec<?> buildMigrateStructuredRecordMhsRequest(String fromOdsCode, String correlationId) {
         return buildMhsEndpointRequest(fromOdsCode, MIGRATE_STRUCTURED_INTERACTION, correlationId);
     }
@@ -64,16 +68,32 @@ public class SdsRequestBuilder {
         return buildMhsEndpointRequest(fromOdsCode, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION, correlationId);
     }
 
+    public WebClient.RequestHeadersSpec<?> buildPatientSearchAccessDocumentAsDeviceRequest(String fromOdsCode, String correlationId) {
+        return buildAsDeviceRequest(fromOdsCode, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION, correlationId);
+    }
+
     public WebClient.RequestHeadersSpec<?> buildSearchForDocumentRequest(String fromOdsCode, String correlationId) {
         return buildMhsEndpointRequest(fromOdsCode, SEARCH_FOR_DOCUMENT_INTERACTION, correlationId);
+    }
+
+    public WebClient.RequestHeadersSpec<?> buildSearchForDocumentAsDeviceRequest(String fromOdsCode, String correlationId) {
+        return buildAsDeviceRequest(fromOdsCode, SEARCH_FOR_DOCUMENT_INTERACTION, correlationId);
     }
 
     public WebClient.RequestHeadersSpec<?> buildMigrateDocumentRequest(String fromOdsCode, String correlationId) {
         return buildMhsEndpointRequest(fromOdsCode, MIGRATE_DOCUMENT_INTERACTION, correlationId);
     }
 
+    public WebClient.RequestHeadersSpec<?> buildMigrateDocumentAsDeviceRequest(String fromOdsCode, String correlationId) {
+        return buildAsDeviceRequest(fromOdsCode, MIGRATE_DOCUMENT_INTERACTION, correlationId);
+    }
+
     public WebClient.RequestHeadersSpec<?> buildRetrieveDocumentRequest(String fromOdsCode, String correlationId) {
         return buildMhsEndpointRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION, correlationId);
+    }
+
+    public WebClient.RequestHeadersSpec<?> buildRetrieveDocumentAsDeviceRequest(String fromOdsCode, String correlationId) {
+        return buildAsDeviceRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION, correlationId);
     }
 
     private WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> buildMhsEndpointRequest(String odsCode, String interaction,

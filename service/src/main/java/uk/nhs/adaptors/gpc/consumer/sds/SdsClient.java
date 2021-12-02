@@ -32,8 +32,10 @@ public class SdsClient {
     private final SdsRequestBuilder sdsRequestBuilder;
 
     public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
+        var asDeviceSdsRequest = sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
+        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
         var request = sdsRequestBuilder.buildGetStructuredRecordRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange);
+        return retrieveData(request, exchange, nshSpineAsid);
     }
 
     public Mono<SdsResponseData> callForMigrateStructuredRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
@@ -45,23 +47,31 @@ public class SdsClient {
 
     public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId,
         ServerWebExchange exchange) {
+        var asDeviceSdsRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
         var request = sdsRequestBuilder.buildPatientSearchAccessDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange);
+        return retrieveData(request, exchange, nshSpineAsid);
     }
 
     public Mono<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
+        var asDeviceSdsRequest = sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
         var request = sdsRequestBuilder.buildSearchForDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange);
+        return retrieveData(request, exchange, nshSpineAsid);
     }
 
     public Mono<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
+        var asDeviceSdsRequest = sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
         var request = sdsRequestBuilder.buildRetrieveDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange);
+        return retrieveData(request, exchange, nshSpineAsid);
     }
 
     public Mono<SdsResponseData> callForMigrateDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
+        var asDeviceSdsRequest = sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
         var request = sdsRequestBuilder.buildMigrateDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange);
+        return retrieveData(request, exchange, nshSpineAsid);
     }
 
     private Mono<SdsResponseData> retrieveData(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request,
