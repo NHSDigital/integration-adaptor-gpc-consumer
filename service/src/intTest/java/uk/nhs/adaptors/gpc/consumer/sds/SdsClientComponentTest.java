@@ -13,11 +13,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.assertj.core.util.TriFunction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +52,8 @@ public class SdsClientComponentTest {
     private static final String SSP_TRACE_ID = "Ssp-TraceID";
     private static final String X_CORRELATION_ID = String.valueOf(UUID.randomUUID());
     private static final String ADDRESS = "http://test/";
+    private static final String ASID = "928942012545";
+    private static final String NHS_MHS_ID = "4ec1563fbe8e49bb8c3c";
 
     private static final String GET_STRUCTURED_INTERACTION =
         "urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1";
@@ -73,14 +75,17 @@ public class SdsClientComponentTest {
     @Autowired
     private SdsClient sdsClient;
 
-    @Value("classpath:sds/sds_response.json")
-    private Resource sdsResponse;
+    @Value("classpath:sds/sds_endpoint_response.json")
+    private Resource sdsEndpointResponse;
+
+    @Value("classpath:sds/sds_device_response.json")
+    private Resource sdsDeviceResponse;
 
     @Value("classpath:sds/sds_no_result_response.json")
     private Resource sdsNoResultResponse;
 
-    @Value("classpath:sds/sds_no_address_response.json")
-    private Resource sdsNoAddressResponse;
+    @Value("classpath:sds/sds_endpoint_no_address_response.json")
+    private Resource sdsEndpointNoAddressResponse;
 
     @Value("classpath:sds/sds_error_response.json")
     private Resource sdsErrorResponse;
@@ -92,7 +97,7 @@ public class SdsClientComponentTest {
     @Mock
     private static HttpHeaders httpHeaders;
 
-    private static List<Pair<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>>> allInteractions;
+    private static List<Pair<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>>> allInteractions;
 
     @PostConstruct
     public void postConstruct() {
@@ -118,19 +123,19 @@ public class SdsClientComponentTest {
         when(httpHeaders.getFirst(SSP_TRACE_ID)).thenReturn(SSP_TRACE_ID);
     }
 
-    private void stubEndpoint(String interaction, String response) {
-        stubFor(get(urlPathEqualTo("/Endpoint"))
-                .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + FROM_ODS_CODE))
-                .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId|" + interaction))
-                .withHeader("apikey", matching(".*"))
-                .withHeader("X-Correlation-Id", matching("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"))
+    private void stubSdsOperation(String interaction, String path, String response) {
+        stubFor(get(urlPathEqualTo(path))
+            .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + FROM_ODS_CODE))
+            .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId|" + interaction))
+            .withHeader("apikey", matching(".*"))
+            .withHeader("X-Correlation-Id", matching("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"))
             .willReturn(aResponse()
                 .withHeader("Content-Type", "application/fhir+json")
                 .withBody(response)));
     }
 
-    private void stubEndpointError() {
-        stubFor(get(urlPathEqualTo("/Endpoint"))
+    private void stubSdsError(String path) {
+        stubFor(get(urlPathEqualTo(path))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.UNAUTHORIZED.value())
                 .withHeader("Content-Type", "application/fhir+json")
@@ -141,21 +146,27 @@ public class SdsClientComponentTest {
     public void When_SdsReturnsResult_Expect_AddressIsReturned() {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
-            stubEndpoint(pair.getKey(), ResourceReader.asString(sdsResponse));
-            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional();
+            stubSdsOperation(pair.getKey(), "/Endpoint", ResourceReader.asString(sdsEndpointResponse));
+            stubSdsOperation(pair.getKey(), "/Device", ResourceReader.asString(sdsDeviceResponse));
+            var retrievedSdsData = pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).blockOptional();
             assertThat(retrievedSdsData)
                 .isNotEmpty()
-                .hasValue(SdsClient.SdsResponseData.builder().address(ADDRESS).build());
+                .hasValue(SdsClient.SdsResponseData.builder()
+                    .address(ADDRESS)
+                    .nhsMhsId(NHS_MHS_ID)
+                    .nhsSpineAsid(ASID)
+                    .build());
             wireMockServer.resetAll();
         });
     }
 
     @Test
-    public void When_SdsReturnsNoResult_Expect_EmptyResultIsReturned() {
+    public void When_SdsEndpointReturnsNoResult_Expect_EmptyResultIsReturned() {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
-            stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoResultResponse));
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).block())
+            stubSdsOperation(pair.getKey(), "/Endpoint", ResourceReader.asString(sdsNoResultResponse));
+            stubSdsOperation(pair.getKey(), "/Device", ResourceReader.asString(sdsDeviceResponse));
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("SDS returned no result");
             wireMockServer.resetAll();
@@ -166,10 +177,24 @@ public class SdsClientComponentTest {
     public void When_SdsReturnsEmptyAddress_Expect_EmptyResultIsReturned() {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
-            stubEndpoint(pair.getKey(), ResourceReader.asString(sdsNoAddressResponse));
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).block())
+            stubSdsOperation(pair.getKey(), "/Endpoint", ResourceReader.asString(sdsEndpointNoAddressResponse));
+            stubSdsOperation(pair.getKey(), "/Device", ResourceReader.asString(sdsDeviceResponse));
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("SDS returned a result but with an empty address");
+            wireMockServer.resetAll();
+        });
+    }
+
+    @Test
+    public void When_SdsDeviceReturnsNoResults_Expect_EmptyResultIsReturned() {
+        allInteractions.forEach(pair -> {
+            wireMockServer.resetAll();
+            stubSdsOperation(pair.getKey(), "/Endpoint", ResourceReader.asString(sdsEndpointResponse));
+            stubSdsOperation(pair.getKey(), "/Device", ResourceReader.asString(sdsNoResultResponse));
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("SDS returned no result");
             wireMockServer.resetAll();
         });
     }
@@ -178,8 +203,9 @@ public class SdsClientComponentTest {
     public void When_SdsReturnsError_Expect_Exception() {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
-            stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID, exchange).blockOptional())
+            stubSdsError("/Endpoint");
+            stubSdsError("/Device");
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).blockOptional())
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });
@@ -189,8 +215,9 @@ public class SdsClientComponentTest {
     public void When_NoXCorrelationIdPresent_Expect_Exception() {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
-            stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, null, exchange).blockOptional())
+            stubSdsError("/Endpoint");
+            stubSdsError("/Device");
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, null).blockOptional())
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });
@@ -200,8 +227,9 @@ public class SdsClientComponentTest {
     public void When_InvalidXCorrelationId_Expect_Exception() {
         allInteractions.forEach(pair -> {
             wireMockServer.resetAll();
-            stubEndpointError();
-            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, "not-UUID", exchange).blockOptional())
+            stubSdsError("/Endpoint");
+            stubSdsError("/Device");
+            assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, "not-UUID").blockOptional())
                 .isInstanceOf(SdsException.class);
             wireMockServer.resetAll();
         });

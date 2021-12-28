@@ -1,8 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer.sds;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Device;
@@ -10,8 +7,7 @@ import org.hl7.fhir.dstu3.model.Endpoint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 
 import ca.uhn.fhir.parser.IParser;
 import lombok.Builder;
@@ -31,53 +27,47 @@ public class SdsClient {
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
-    public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
-        var asDeviceSdsRequest = sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
-        var request = sdsRequestBuilder.buildGetStructuredRecordRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange, nshSpineAsid);
+    public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
+        var sdsEndpointRequest = sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(fromOdsCode, correlationId);
+        return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
-    public Mono<SdsResponseData> callForMigrateStructuredRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
-        var asDeviceSdsRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
-        var request = sdsRequestBuilder.buildMigrateStructuredRecordMhsRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange, nshSpineAsid);
+    public Mono<SdsResponseData> callForMigrateStructuredRecord(String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
+        var sdsEndpointRequest = sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(fromOdsCode, correlationId);
+        return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
-    public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId,
-        ServerWebExchange exchange) {
-        var asDeviceSdsRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
-        var request = sdsRequestBuilder.buildPatientSearchAccessDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange, nshSpineAsid);
+    public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var sdsEndpointRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentEndpointRequest(fromOdsCode, correlationId);
+        return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
-    public Mono<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
-        var asDeviceSdsRequest = sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
-        var request = sdsRequestBuilder.buildSearchForDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange, nshSpineAsid);
+    public Mono<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var sdsEndpointRequest = sdsRequestBuilder.buildSearchForDocumentEndpointRequest(fromOdsCode, correlationId);
+        return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
-    public Mono<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
-        var asDeviceSdsRequest = sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
-        var request = sdsRequestBuilder.buildRetrieveDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange, nshSpineAsid);
+    public Mono<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var sdsEndpointRequest = sdsRequestBuilder.buildRetrieveDocumentEndpointRequest(fromOdsCode, correlationId);
+        return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
-    public Mono<SdsResponseData> callForMigrateDocumentRecord(String fromOdsCode, String correlationId, ServerWebExchange exchange) {
-        var asDeviceSdsRequest = sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(asDeviceSdsRequest);
-        var request = sdsRequestBuilder.buildMigrateDocumentRequest(fromOdsCode, correlationId);
-        return retrieveData(request, exchange, nshSpineAsid);
+    public Mono<SdsResponseData> callForMigrateDocumentRecord(String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(fromOdsCode, correlationId);
+        var sdsEndpointRequest = sdsRequestBuilder.buildMigrateDocumentEndpointRequest(fromOdsCode, correlationId);
+        return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
-    private Mono<SdsResponseData> retrieveData(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request,
-        ServerWebExchange exchange, String... params) {
+    private Mono<SdsResponseData> retrieveData(RequestHeadersSpec<? extends RequestHeadersSpec<?>> sdsDeviceRequest,
+        RequestHeadersSpec<? extends RequestHeadersSpec<?>> sdsEndpointRequest) {
+        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest);
         LOGGER.info("Using SDS Endpoint endpoint to retrieve GPC provider endpoint details");
-        return performRequest(request)
+        return performRequest(sdsEndpointRequest)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {
                 doBundleEntryCheck(bundle);
@@ -86,12 +76,12 @@ public class SdsClient {
                 return SdsResponseData.builder()
                     .address(getAddressFromEndpoint(endpoint))
                     .nhsMhsId(getNhsMhsId(endpoint))
-                    .nhsSpineAsid(Arrays.stream(params).collect(Collectors.joining("")))
+                    .nhsSpineAsid(nshSpineAsid)
                     .build();
             });
     }
 
-    private String retrieveAsDeviceNhsSpineAsid(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request) {
+    private String retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
         LOGGER.info("Using SDS Device endpoint to retrieve GPC provider Spine ASID");
         return performRequest(request)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
@@ -141,7 +131,7 @@ public class SdsClient {
         return address;
     }
 
-    private Mono<String> performRequest(WebClient.RequestHeadersSpec<? extends WebClient.RequestHeadersSpec<?>> request) {
+    private Mono<String> performRequest(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
         return request.retrieve()
             .bodyToMono(String.class);
     }

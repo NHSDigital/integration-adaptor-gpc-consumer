@@ -20,14 +20,8 @@ import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 @Slf4j
 @Component
 public class UrlsInResponseBodyRewriteFunction implements RewriteFunction<String, String> {
-    @Value("${gpc-consumer.gpc.overrideGpcProviderUrl}")
-    private String overrideGpcProviderUrl;
     @Value("${gpc-consumer.gpc.sspUrl}")
     private String sspUrl;
-
-    public static String replaceUrl(String gpcConsumerUrl, String overrideGpcProviderUrl, String responseBody) {
-        return responseBody.replace(overrideGpcProviderUrl, gpcConsumerUrl);
-    }
 
     @Override
     public Publisher<String> apply(ServerWebExchange exchange, String responseBody) {

@@ -35,11 +35,6 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     @Value("${gpc-consumer.gpc.migrateStructuredPath}")
     private String migrateStructuredPath;
 
-    @Value("${gpc-consumer.sds.enableSDS}")
-    private String enableSds;
-    @Value("${gpc-consumer.gpc.overrideGpcProviderUrl}")
-    private String overrideGpcProviderUrl;
-
     @Autowired
     private UrlsInResponseBodyRewriteFunction urlsInResponseBodyRewriteFunction;
 
@@ -55,35 +50,24 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
             .route("get-document", r -> r.path(documentPath)
                 .and()
                 .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_READ_ID)
-                .uri(getDefaultTargetUri()))
+                .uri(PLACEHOLDER_URI))
             .route("migrate-document", r -> r.path(documentPath)
                 .and()
                 .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_MIGRATE_ID)
-                .uri(getDefaultTargetUri()))
+                .uri(PLACEHOLDER_URI))
             .route("get-structured-record", r -> r.path(structuredPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(getDefaultTargetUri()))
+                .uri(PLACEHOLDER_URI))
             .route("find-a-patient", r -> r.path(findPatientPath)
                 .and()
-                .uri(getDefaultTargetUri()))
+                .uri(PLACEHOLDER_URI))
             .route("migrate-structured-record", r -> r.path(migrateStructuredPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(getDefaultTargetUri()))
+                .uri(PLACEHOLDER_URI))
             .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
                 .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(getDefaultTargetUri()))
+                .uri(PLACEHOLDER_URI))
             .build();
-    }
-
-    private String getDefaultTargetUri() {
-        if (Boolean.parseBoolean(enableSds)) {
-            LOGGER.info("SDS is enabled. Configuring proxy paths to target an unrouteable placeholder address. "
-                + "SdsFilter will replace this target URI at runtime.");
-            return PLACEHOLDER_URI;
-        } else {
-            LOGGER.warn("SDS is disabled. Configuring proxy paths to target the override GPC provider URL. The SdsFilter will not run.");
-            return overrideGpcProviderUrl;
-        }
     }
 
     @Setter
