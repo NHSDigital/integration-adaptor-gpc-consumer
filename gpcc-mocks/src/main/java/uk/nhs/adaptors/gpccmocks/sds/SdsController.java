@@ -1,6 +1,7 @@
 package uk.nhs.adaptors.gpccmocks.sds;
 
 import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.OK;
 
 import static uk.nhs.adaptors.gpccmocks.common.ControllerHelpers.getHostAndPortFromRequest;
 import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.badRequest;
@@ -8,9 +9,7 @@ import static uk.nhs.adaptors.gpccmocks.common.OperationOutcomes.badRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,8 +26,7 @@ import uk.nhs.adaptors.gpccmocks.common.TemplateUtils;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsController {
     @GetMapping(value = "/spine-directory/Endpoint")
-    @ResponseStatus(value = ACCEPTED)
-    public ResponseEntity<String> postMockMhs(
+    public ResponseEntity<String> getEndpoint(
         HttpServletRequest request,
         @RequestParam String organization,
         @RequestParam String identifier,
@@ -72,6 +70,32 @@ public class SdsController {
         }
 
         var body = TemplateUtils.fillTemplate("sds/endpoint", sdsModelBuilder.build());
-        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), OK);
+    }
+
+    @GetMapping(value = "/spine-directory/Device")
+    public ResponseEntity<String> getDevice(
+        HttpServletRequest request,
+        @RequestParam String organization,
+        @RequestParam String identifier,
+        @RequestHeader(name = "X-Correlation-Id") String correlationId,
+        @RequestHeader(name = "apikey") String apikey) {
+
+        var host = getHostAndPortFromRequest(request);
+
+        log.debug("Request for 'SDS /Device'. " +
+                "organization={} identifier={} X-Correlation-Id={} apikey={} Host/X-Forwarded-Host: {}",
+            organization, identifier, correlationId, apikey, host);
+
+        var odsCode = organization.split("\\|")[1];
+        var interaction = identifier.split("\\|")[1];
+
+        SdsModel.SdsModelBuilder sdsModelBuilder = SdsModel.builder()
+            .baseUrl("http://" + host)
+            .interactionId(interaction)
+            .odsCode(odsCode);
+
+        var body = TemplateUtils.fillTemplate("sds/device", sdsModelBuilder.build());
+        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), OK);
     }
 }

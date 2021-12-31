@@ -12,13 +12,14 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -50,30 +51,51 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
     private final SdsClient sdsClient;
-    private Map<String, TriFunction<String, String, ServerWebExchange, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
-    @Value("${gpc-consumer.sds.enableSDS}")
-    private String enableSds;
+    private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest serverHttpRequest = exchange.getRequest();
+        SdsClient.SdsResponseData response = getSdsResponseData(exchange);
+        if (response != null) {
+            ServerWebExchange mutatedExchange = appendSspToHeaderIfNeeded(exchange, response.getNhsSpineAsid());
+            return chain.filter(mutatedExchange);
+        }
+        return chain.filter(exchange);
+    }
 
-        return Mono.just(enableSds)
-            .map(Boolean::valueOf)
-            .flatMap(isSdsEnabled -> {
-                if (isSdsEnabled) {
-                    LoggingUtil.info(LOGGER, exchange, "SDS is enabled. Using SDS API for service discovery");
-                    var id = extractInteractionId(serverHttpRequest.getHeaders());
-                    return proceedSdsLookup(exchange, id.get());
-                } else {
-                    LoggingUtil.warn(LOGGER, exchange, "SDS is disabled. Using override GPC provider url.");
-                    return Mono.just(SdsClient.SdsResponseData.builder().build());
-                }
-            }).doOnNext(v -> {
-                if (serverHttpRequest.getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+    @NotNull
+    private ServerWebExchange appendSspToHeaderIfNeeded(ServerWebExchange exchange, String asid) {
+        List<String> sspToHeader = exchange.getRequest().getHeaders().get("Ssp-To");
+
+        String sspTo = asid;
+
+        if (sspToHeader != null) {
+            sspTo = sspToHeader.stream().findFirst().orElse(asid);
+        }
+
+        ServerHttpRequest mutateRequest = exchange.getRequest()
+            .mutate()
+            .header("Ssp-To", sspTo)
+            .build();
+
+        return exchange.mutate().request(mutateRequest).build();
+    }
+
+    @Nullable
+    private SdsClient.SdsResponseData getSdsResponseData(ServerWebExchange exchange) {
+        return processSdsResponse(exchange)
+            .doOnNext(v -> {
+                if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
-            }).then(chain.filter(exchange));
+            }).block();
+    }
+
+    @NotNull
+    private Mono<SdsClient.SdsResponseData> processSdsResponse(ServerWebExchange exchange) {
+        LoggingUtil.info(LOGGER, exchange, "Using SDS API for service discovery");
+        var id = extractInteractionId(exchange.getRequest().getHeaders());
+        return proceedSdsLookup(exchange, id.get());
     }
 
     @Override
@@ -148,7 +170,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
             LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
                 organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
-                .apply(organisation, sspTraceId, exchange);
+                .apply(organisation, sspTraceId);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }

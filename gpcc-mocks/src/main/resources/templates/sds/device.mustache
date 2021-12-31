@@ -1,0 +1,60 @@
+{
+  "resourceType": "Bundle",
+  "id": "f0f0e921-92ca-4a88-a550-2dbb36f703af",
+  "type": "searchset",
+  "total": 1,
+  "link": [
+    {
+      "relation": "self",
+      "url": "{{baseUrl}}/device?organization=https://fhir.nhs.uk/Id/ods-organization-code|{{odsCode}}&identifier=https://fhir.nhs.uk/Id/nhsServiceInteractionId|service&identifier=https://fhir.nhs.uk/Id/nhsMhsPartyKey|some_party_key&manufacturing-organization=https://fhir.nhs.uk/Id/ods-organization-code|{{interactionId}}"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "{{baseUrl}}/device/f0f0e921-92ca-4a88-a550-2dbb36f703af",
+      "resource": {
+        "resourceType": "Device",
+        "id": "f0f0e921-92ca-4a88-a550-2dbb36f703af",
+        "identifier": [
+          {
+            "system": "https://fhir.nhs.uk/Id/nhsSpineASID",
+            "value": "928942012545"
+          },
+          {
+            "system": "https://fhir.nhs.uk/Id/nhsMhsPartyKey",
+            "value": "{{odsCode}}-822104"
+          }
+        ],
+        "extension": [
+          {
+            "url": "https://fhir.nhs.uk/StructureDefinition/Extension-SDS-ManufacturingOrganisation",
+            "valueReference": {
+              "identifier": {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "{{odsCode}}"
+              }
+            }
+          },
+          {
+            "url": "https://fhir.nhs.uk/StructureDefinition/Extension-SDS-NhsServiceInteractionId",
+            "valueReference": {
+              "identifier": {
+                "system": "https://fhir.nhs.uk/Id/nhsServiceInteractionId",
+                "value": "service:interaction"
+              }
+            }
+          }
+        ],
+        "owner": {
+          "identifier": {
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "{{odsCode}}"
+          }
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}
