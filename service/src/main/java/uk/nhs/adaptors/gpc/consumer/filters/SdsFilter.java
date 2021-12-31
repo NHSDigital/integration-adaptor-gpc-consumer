@@ -176,6 +176,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<URI> prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
+        LOGGER.info("Entering prepareLookupUri " + serviceRootUrl);
         var originalRequestPath = originalRequest.getPath();
         var originalRequestPathValues = originalRequestPath.elements().stream()
             .map(PathContainer.Element::value)
@@ -193,6 +194,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
             .queryParams(originalRequest.getQueryParams())
             .build()
             .toUri();
+        LOGGER.info("constructed uri: " + constructedUri);
         return Optional.of(constructedUri);
     }
 }
