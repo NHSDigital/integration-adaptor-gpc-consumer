@@ -17,42 +17,42 @@ pipeline {
     stages {
         stage('Build') {
             stages {
-                stage('Tests') {
-                    steps {
-                        script {
-                            sh '''
-                                source docker/vars.local.sh
-                                docker network create commonforgpc || true
-                                docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml build
-                                docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml up --exit-code-from gpc-consumer
-                            '''
-                        }
-                    }
-                    post {
-                        always {
-                            sh "docker cp tests:/home/gradle/service/build ."
-                            archiveArtifacts artifacts: 'build/reports/**/*.*', fingerprint: true
-                            junit '**/build/test-results/**/*.xml'
-                            recordIssues(
-                                enabledForFailure: true,
-                                tools: [
-                                    checkStyle(pattern: 'build/reports/checkstyle/*.xml'),
-                                    spotBugs(pattern: 'build/reports/spotbugs/*.xml')
-                                ]
-                            )
-                            step([
-                                $class : 'JacocoPublisher',
-                                execPattern : '**/build/jacoco/*.exec',
-                                classPattern : '**/build/classes/java',
-                                sourcePattern : 'src/main/java',
-                                exclusionPattern : '**/*Test.class'
-                            ])
-                            sh "rm -rf build"
-                            sh "docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml down"
-                            sh "docker network rm commonforgpc || true"
-                        }
-                    }
-                }
+//                 stage('Tests') {
+//                     steps {
+//                         script {
+//                             sh '''
+//                                 source docker/vars.local.sh
+//                                 docker network create commonforgpc || true
+//                                 docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml build
+//                                 docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml up --exit-code-from gpc-consumer
+//                             '''
+//                         }
+//                     }
+//                     post {
+//                         always {
+//                             sh "docker cp tests:/home/gradle/service/build ."
+//                             archiveArtifacts artifacts: 'build/reports/**/*.*', fingerprint: true
+//                             junit '**/build/test-results/**/*.xml'
+//                             recordIssues(
+//                                 enabledForFailure: true,
+//                                 tools: [
+//                                     checkStyle(pattern: 'build/reports/checkstyle/*.xml'),
+//                                     spotBugs(pattern: 'build/reports/spotbugs/*.xml')
+//                                 ]
+//                             )
+//                             step([
+//                                 $class : 'JacocoPublisher',
+//                                 execPattern : '**/build/jacoco/*.exec',
+//                                 classPattern : '**/build/classes/java',
+//                                 sourcePattern : 'src/main/java',
+//                                 exclusionPattern : '**/*Test.class'
+//                             ])
+//                             sh "rm -rf build"
+//                             sh "docker-compose -f docker/docker-compose.yml -f docker/docker-compose-tests.yml down"
+//                             sh "docker network rm commonforgpc || true"
+//                         }
+//                     }
+//                 }
 
                 stage('Build Docker Images') {
                     steps {

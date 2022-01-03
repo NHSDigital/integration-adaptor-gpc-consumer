@@ -69,6 +69,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @NotNull
     private ServerWebExchange appendSspToHeaderIfNeeded(ServerWebExchange exchange, String asid) {
+        LOGGER.info("Before context: " + exchange.getRequest().getPath().contextPath().value());
+        LOGGER.info("Before path: " + exchange.getRequest().getPath().value());
+        LOGGER.info("Before headers: " + exchange.getRequest().getHeaders().values());
         List<String> sspToHeader = exchange.getRequest().getHeaders().get("Ssp-To");
 
         String sspTo = asid;
@@ -85,7 +88,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
         ServerWebExchange build = exchange.mutate().request(mutateRequest).build();
         LOGGER.info("Mutated context: " + build.getRequest().getPath().contextPath().value());
         LOGGER.info("Mutated path: " + build.getRequest().getPath().value());
-        LOGGER.info("Mutated headers: " + build.getRequest().getHeaders().values());
+        LOGGER.info("Mutated headersnenk: " + build.getRequest().getHeaders().values());
         return build;
     }
 
