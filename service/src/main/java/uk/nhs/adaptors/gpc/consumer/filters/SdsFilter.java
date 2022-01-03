@@ -56,7 +56,11 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         SdsClient.SdsResponseData response = getSdsResponseData(exchange);
+        LOGGER.info("SDS response is: " + response);
         if (response != null) {
+            LOGGER.info("SDS Response address: " + response.getAddress());
+            LOGGER.info("SDS Response asid: " + response.getNhsSpineAsid());
+            LOGGER.info("SDS Response mhs id: " + response.getNhsMhsId());
             ServerWebExchange mutatedExchange = appendSspToHeaderIfNeeded(exchange, response.getNhsSpineAsid());
             return chain.filter(mutatedExchange);
         }
@@ -78,16 +82,22 @@ public class SdsFilter implements GlobalFilter, Ordered {
             .header("Ssp-To", sspTo)
             .build();
 
-        return exchange.mutate().request(mutateRequest).build();
+        ServerWebExchange build = exchange.mutate().request(mutateRequest).build();
+        LOGGER.info("Mutated context: " + build.getRequest().getPath().contextPath().value());
+        LOGGER.info("Mutated path: " + build.getRequest().getPath().value());
+        LOGGER.info("Mutated headers: " + build.getRequest().getHeaders().values());
+        return build;
     }
 
     @Nullable
     private SdsClient.SdsResponseData getSdsResponseData(ServerWebExchange exchange) {
         return processSdsResponse(exchange)
             .doOnNext(v -> {
+                LOGGER.info("About to encode query params:");
                 if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
+                LOGGER.info("Encoded: " + exchange.getRequest().getPath().value());
             }).block();
     }
 
@@ -176,7 +186,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Optional<URI> prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
-        LOGGER.info("Entering prepareLookupUri " + serviceRootUrl);
         var originalRequestPath = originalRequest.getPath();
         var originalRequestPathValues = originalRequestPath.elements().stream()
             .map(PathContainer.Element::value)
@@ -194,7 +203,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
             .queryParams(originalRequest.getQueryParams())
             .build()
             .toUri();
-        LOGGER.info("constructed uri: " + constructedUri);
         return Optional.of(constructedUri);
     }
 }

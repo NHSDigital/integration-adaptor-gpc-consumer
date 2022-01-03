@@ -26,6 +26,7 @@ public class SspFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        LOGGER.info("SSP enabled: " + isSspEnabled());
         if (isSspEnabled()) {
             URI uri = (URI) exchange.getAttributes()
                 .get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
