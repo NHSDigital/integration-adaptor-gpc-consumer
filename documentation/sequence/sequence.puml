@@ -1,0 +1,21 @@
+@startuml
+participant "GP2GP Adaptor" as gp2gp
+participant "GPC Consumer" as consumer
+participant "SDS" as sds
+participant "Spine Secure Proxy" as ssp
+participant "GP Connect Provider" as provider
+
+gp2gp -> consumer: Interaction
+consumer -> sds: GET /Device
+sds --> consumer: FHIR Bundle
+consumer -> sds: GET /Endpoint
+sds --> consumer: FHIR Bundle
+consumer -> consumer: Use SDS response to build SSP request
+consumer -> ssp: GPC Interaction
+ssp -> provider: GPC Interaction
+provider --> ssp: FHIR
+ssp --> consumer: FHIR
+consumer -> consumer: Rewrite FHIR URLs
+consumer --> gp2gp: FHIR
+
+@enduml
