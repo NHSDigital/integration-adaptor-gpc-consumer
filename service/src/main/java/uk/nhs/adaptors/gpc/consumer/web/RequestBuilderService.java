@@ -15,7 +15,8 @@ import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class RequestBuilderService {
-    private static final int BYTE_COUNT = 16 * 1024 * 1024;
+
+    private static final int BYTE_COUNT = 150 * 1024 * 1024;
 
     private final GpcConfiguration gpcConfiguration;
 
@@ -32,4 +33,5 @@ public class RequestBuilderService {
                 configurer -> configurer.defaultCodecs()
                     .maxInMemorySize(BYTE_COUNT)).build();
     }
+    
 }

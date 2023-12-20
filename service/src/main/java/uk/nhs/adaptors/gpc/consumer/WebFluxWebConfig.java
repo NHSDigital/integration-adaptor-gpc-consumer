@@ -8,9 +8,11 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 @EnableWebFlux
 @Configuration
 public class WebFluxWebConfig implements WebFluxConfigurer {
-    private static final int FILE_SIZE = 16 * 1024 * 1024;
+
+    private static final int FILE_SIZE = 150 * 1024 * 1024;
     @Override
     public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
         configurer.defaultCodecs().maxInMemorySize(FILE_SIZE);
     }
+
 }
