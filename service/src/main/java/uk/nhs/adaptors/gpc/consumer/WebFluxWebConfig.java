@@ -5,6 +5,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import lombok.RequiredArgsConstructor;
+import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 
 @EnableWebFlux
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
