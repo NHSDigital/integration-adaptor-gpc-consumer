@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
+import lombok.RequiredArgsConstructor;
 
 @EnableWebFlux
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
