@@ -31,7 +31,7 @@ public class RequestBuilderService {
             .builder()
             .codecs(
                 configurer -> configurer.defaultCodecs()
-                    .maxInMemorySize(BYTE_COUNT)).build();
+                    .maxInMemorySize(gpcConfiguration.getMaxRequestSize())).build();
     }
     
 }

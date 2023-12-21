@@ -6,13 +6,15 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 @EnableWebFlux
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Configuration
 public class WebFluxWebConfig implements WebFluxConfigurer {
 
-    private static final int FILE_SIZE = 150 * 1024 * 1024;
+    private final GpcConfiguration gpcConfiguration;
+
     @Override
     public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
-        configurer.defaultCodecs().maxInMemorySize(FILE_SIZE);
+        configurer.defaultCodecs().maxInMemorySize(gpcConfiguration.getMaxRequestSize());
     }
 
 }
