@@ -16,8 +16,6 @@ import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 @Slf4j
 public class RequestBuilderService {
 
-    private static final int BYTE_COUNT = 150 * 1024 * 1024;
-
     private final GpcConfiguration gpcConfiguration;
 
     @SneakyThrows
