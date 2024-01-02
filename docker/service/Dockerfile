@@ -1,4 +1,4 @@
-FROM gradle:jdk11-hotspot AS build
+FROM gradle:6.9.4-jdk11 AS build
 
 COPY --chown=gradle:gradle service /home/gradle/service
 
