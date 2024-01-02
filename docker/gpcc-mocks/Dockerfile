@@ -1,4 +1,4 @@
-FROM gradle:jdk11 AS build
+FROM gradle:6.9.4-jdk11 AS build
 
 COPY --chown=gradle:gradle gpcc-mocks /home/gradle/gpcc-mocks
 
