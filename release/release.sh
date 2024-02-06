@@ -4,17 +4,11 @@ set -e
 
 source ./version.sh
 
-cd ../docker
-docker-compose build gpc-consumer
+git fetch
+git checkout $RELEASE_VERSION
 
-docker tag local/gpc-consumer:latest nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}
+cd ../
 
-docker scan --severity high --file ../docker/service/Dockerfile --exclude-base nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}
+docker buildx build -f docker/service/Dockerfile . --platform linux/arm64/v8,linux/amd64 --tag nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION} --push
 
-if [ "$1" == "-y" ];
-then
-  echo "Tagging and pushing Docker image and git tag"
-  docker push nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}
-  git tag -a ${RELEASE_VERSION} -m "Release ${RELEASE_VERSION}"
-  git push origin ${RELEASE_VERSION}
-fi
+docker scout cves --only-severity critical,high --ignore-base nhsdev/nia-gpc-consumer-adaptor:${RELEASE_VERSION}
