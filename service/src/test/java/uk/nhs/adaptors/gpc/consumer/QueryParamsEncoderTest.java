@@ -28,6 +28,7 @@ import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 
 @ExtendWith(MockitoExtension.class)
 public class QueryParamsEncoderTest {
+
     private static final String FIRST_PARAM = "first";
     private static final String SECOND_PARAM = "second";
     private static final String TEST_URI = "http://www.testhost.com";
@@ -72,6 +73,7 @@ public class QueryParamsEncoderTest {
     public void When_EncodingUri_Expect_UriWithProperlyEncodedParams(String inputUri,
             MultiValueMap<String, String> queryParams,
             String outputUri) {
+
         when(serverHttpRequest.getQueryParams()).thenReturn(queryParams);
 
         ATTRIBUTES.put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, prepareUri(inputUri, queryParams));

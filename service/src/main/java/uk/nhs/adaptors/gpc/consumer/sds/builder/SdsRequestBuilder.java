@@ -26,6 +26,7 @@ public class SdsRequestBuilder {
     private static final String ORG_CODE_PARAMETER = "organization";
     private static final String ORG_CODE_IDENTIFIER = "https://fhir.nhs.uk/Id/ods-organization-code";
     private static final String INTERACTION_PARAMETER = "identifier";
+    private static final String MANUFACTURING_ORGANIZATION = "manufacturing-organization";
     private static final String INTERACTION_IDENTIFIER = "https://fhir.nhs.uk/Id/nhsServiceInteractionId";
     private static final String ENDPOINT_MHS_ENDPOINT = "/Endpoint";
     private static final String ENDPOINT_AS_DEVICE = "/Device";
@@ -57,7 +58,13 @@ public class SdsRequestBuilder {
         return buildAsDeviceRequest(fromOdsCode, GET_STRUCTURED_INTERACTION, correlationId);
     }
 
+    public RequestHeadersSpec<?> buildGetMigrateStructuredRecordDeviceRequest(String fromOdsCode, String supplierOdsCode,
+                                                                              String correlationId) {
+        return buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, MIGRATE_STRUCTURED_INTERACTION, correlationId);
+    }
+
     public RequestHeadersSpec<?> buildMigrateStructuredRecordEndpointRequest(String fromOdsCode, String correlationId) {
+
         return buildMhsEndpointRequest(fromOdsCode, MIGRATE_STRUCTURED_INTERACTION, correlationId);
     }
 
@@ -97,21 +104,45 @@ public class SdsRequestBuilder {
         return buildAsDeviceRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION, correlationId);
     }
 
-    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildMhsEndpointRequest(String odsCode, String interaction,
-        String correlationId) {
-        return buildClientFor(odsCode, interaction, correlationId, ENDPOINT_MHS_ENDPOINT);
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildMhsEndpointRequest(String consumerOrgOdsCode,
+                                                                                        String interaction, String correlationId) {
+        return buildClientFor(consumerOrgOdsCode, interaction, correlationId, ENDPOINT_MHS_ENDPOINT);
     }
 
-    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceRequest(String odsCode, String interaction,
-        String correlationId) {
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceRequest(String odsCode,
+                                                                                     String interaction, String correlationId) {
         return buildClientFor(odsCode, interaction, correlationId, ENDPOINT_AS_DEVICE);
+    }
+
+    public RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceAsidRequest(String odsCode, String supplierOdsCode,
+                                                                                        String interaction, String correlationId) {
+        return buildAsidClientFor(odsCode, supplierOdsCode, interaction, correlationId, ENDPOINT_AS_DEVICE);
+    }
+
+    @NotNull
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsidClientFor(String odsCode, String supplierOdsCode,
+                                                                                   String interaction, String correlationId,
+                                                                                   String path) {
+
+        var httpClient = getHttpClient();
+
+        return buildWebClient(httpClient)
+            .get()
+            .uri(uriBuilder -> uriBuilder
+                .path(path)
+                .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + odsCode)
+                .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE + interaction)
+                .queryParam(MANUFACTURING_ORGANIZATION, ORG_CODE_IDENTIFIER + PIPE + supplierOdsCode)
+                .build())
+            .header(API_KEY_HEADER, sdsConfiguration.getApiKey())
+            .header(X_CORRELATION_ID_HEADER, correlationId);
     }
 
     @NotNull
     private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildClientFor(String odsCode, String interaction,
-        String correlationId, String path) {
-        var sslContext = requestBuilderService.buildStandardSslContext();
-        var httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
+                                                                               String correlationId, String path) {
+        var httpClient = getHttpClient();
+
         return buildWebClient(httpClient)
             .get()
             .uri(uriBuilder -> uriBuilder
@@ -131,6 +162,12 @@ public class SdsRequestBuilder {
             .filters(this::addWebClientFilters)
             .baseUrl(sdsConfiguration.getUrl())
             .build();
+    }
+
+    @NotNull
+    private HttpClient getHttpClient() {
+        var sslContext = requestBuilderService.buildStandardSslContext();
+        return HttpClient.create().secure(t -> t.sslContext(sslContext));
     }
 
     private void addWebClientFilters(List<ExchangeFilterFunction> filters) {

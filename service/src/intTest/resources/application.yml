@@ -33,3 +33,4 @@ gpc-consumer:
   sds:
     url: ${GPC_CONSUMER_SDS_URL:}
     apiKey: ${GPC_CONSUMER_SDS_APIKEY:}
+    supplierOdsCode: ${GPC_SUPPLIER_ODS_CODE:XYZ222}

@@ -21,12 +21,14 @@ import uk.nhs.adaptors.gpc.consumer.filters.SspFilter;
 
 @ExtendWith(MockitoExtension.class)
 public class SspFilterTest {
+
     private static final String ORIGINAL_RELATIVE_PATH = "https://myhost.com/some/path/here";
     private static final String SSP_URL_NO_TRAILING_SLASH = "https://ssp.com";
     private static final String SSP_URL_WITH_TRAILING_SLASH = SSP_URL_NO_TRAILING_SLASH + "/";
 
     @Mock
     private ServerWebExchange exchange;
+
     @Mock
     private GatewayFilterChain chain;
     private SspFilter sspFilter;
@@ -50,8 +52,9 @@ public class SspFilterTest {
 
         sspFilter.filter(exchange, chain);
 
-        assertThat(attributes.get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR))
-            .isEqualTo(new URI(SSP_URL_WITH_TRAILING_SLASH + ORIGINAL_RELATIVE_PATH));
+        assertThat(attributes)
+            .containsEntry(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR,
+                           new URI(SSP_URL_WITH_TRAILING_SLASH + ORIGINAL_RELATIVE_PATH));
     }
 
     @Test
@@ -61,8 +64,9 @@ public class SspFilterTest {
 
         sspFilter.filter(exchange, chain);
 
-        assertThat(attributes.get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR))
-            .isEqualTo(new URI(SSP_URL_WITH_TRAILING_SLASH + ORIGINAL_RELATIVE_PATH));
+        assertThat(attributes)
+            .containsEntry(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR,
+                           new URI(SSP_URL_WITH_TRAILING_SLASH + ORIGINAL_RELATIVE_PATH));
     }
 
 }

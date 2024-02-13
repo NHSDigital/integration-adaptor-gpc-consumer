@@ -6,6 +6,7 @@ import org.hl7.fhir.dstu3.model.Device;
 import org.hl7.fhir.dstu3.model.Endpoint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 
@@ -22,10 +23,19 @@ import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class SdsClient {
+
     private static final String NHS_MHS_ID = "https://fhir.nhs.uk/Id/nhsMHSId";
     private static final String NHS_SPINE_ASID = "https://fhir.nhs.uk/Id/nhsSpineASID";
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
+
+    @Value("${gpc-consumer.sds.supplierOdsCode}")
+    private String supplierOdsCode;
+
+    public String callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
+        var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
+        return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest);
+    }
 
     public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId) {
         var sdsDeviceRequest = sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
@@ -67,6 +77,7 @@ public class SdsClient {
         RequestHeadersSpec<? extends RequestHeadersSpec<?>> sdsEndpointRequest) {
         var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest);
         LOGGER.info("Using SDS Endpoint endpoint to retrieve GPC provider endpoint details");
+
         return performRequest(sdsEndpointRequest)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {
