@@ -12,7 +12,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.MIGRATE_STRUCTURED_ID;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +24,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -171,14 +172,16 @@ public class SdsClientComponentTest {
                 .withBody(ResourceReader.asString(sdsErrorResponse))));
     }
 
-    @Test
-    public void callForGetAsidTest() {
+    @ParameterizedTest
+    @ValueSource(strings = {MIGRATE_STRUCTURED_INTERACTION, MIGRATE_DOCUMENT_INTERACTION, RETRIEVE_DOCUMENT_INTERACTION,
+                            SEARCH_FOR_DOCUMENT_INTERACTION, GET_STRUCTURED_INTERACTION, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION})
+    public void callForGetAsidTest(String interactionId) {
         wireMockServer.resetAll();
-        stubSdsAsidOperation(MIGRATE_STRUCTURED_ID, DEVICE, ResourceReader.asString(sdsDeviceResponse));
+        stubSdsAsidOperation(interactionId, DEVICE, ResourceReader.asString(sdsDeviceResponse));
 
         assertEquals("ASIDs are not equal",
                      "928942012545",
-                     sdsClient.callForGetAsid(MIGRATE_STRUCTURED_INTERACTION, FROM_ODS_CODE, X_CORRELATION_ID
+                     sdsClient.callForGetAsid(interactionId, FROM_ODS_CODE, X_CORRELATION_ID
         ));
 
         wireMockServer.resetAll();
