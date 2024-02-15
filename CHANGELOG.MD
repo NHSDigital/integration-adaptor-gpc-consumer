@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Fix GpConnectException (ASID_CHECK_FAILED_MESSAGESENDER) being thrown, 
+  a correct ASID value is fetched based on interactionId and ODS code, GPC_SUPPLIER_ODS_CODE should be set as env variable
+
 ## [0.3.4] - 2023-12-20
 - REST buffer limits have been increased to 150 Mb
 
