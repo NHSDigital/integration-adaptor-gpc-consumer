@@ -66,6 +66,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
             return chain.filter(mutatedExchange);
         }
+
         return chain.filter(exchange);
     }
 

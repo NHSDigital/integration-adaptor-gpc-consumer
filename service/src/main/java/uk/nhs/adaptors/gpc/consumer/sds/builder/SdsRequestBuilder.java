@@ -2,6 +2,7 @@ package uk.nhs.adaptors.gpc.consumer.sds.builder;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient.RequestHeaders
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
+import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
@@ -56,11 +58,6 @@ public class SdsRequestBuilder {
 
     public RequestHeadersSpec<?> buildGetStructuredRecordAsDeviceRequest(String fromOdsCode, String correlationId) {
         return buildAsDeviceRequest(fromOdsCode, GET_STRUCTURED_INTERACTION, correlationId);
-    }
-
-    public RequestHeadersSpec<?> buildGetMigrateStructuredRecordDeviceRequest(String fromOdsCode, String supplierOdsCode,
-                                                                              String correlationId) {
-        return buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, MIGRATE_STRUCTURED_INTERACTION, correlationId);
     }
 
     public RequestHeadersSpec<?> buildMigrateStructuredRecordEndpointRequest(String fromOdsCode, String correlationId) {
@@ -116,21 +113,24 @@ public class SdsRequestBuilder {
 
     public RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceAsidRequest(String odsCode, String supplierOdsCode,
                                                                                         String interaction, String correlationId) {
-        return buildAsidClientFor(odsCode, supplierOdsCode, interaction, correlationId, ENDPOINT_AS_DEVICE);
+        return buildAsidClientFor(odsCode, supplierOdsCode, interaction, correlationId);
     }
 
     @NotNull
-    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsidClientFor(String odsCode, String supplierOdsCode,
-                                                                                   String interaction, String correlationId,
-                                                                                   String path) {
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsidClientFor(String consumerOrgOdsCode, String supplierOdsCode,
+                                                                                   String interaction, String correlationId) {
+
+        if (StringUtils.isEmpty(supplierOdsCode)) {
+            throw new GpConnectException("Supplier ODS code variable must be defined");
+        }
 
         var httpClient = getHttpClient();
 
         return buildWebClient(httpClient)
             .get()
             .uri(uriBuilder -> uriBuilder
-                .path(path)
-                .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + odsCode)
+                .path(ENDPOINT_AS_DEVICE)
+                .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + consumerOrgOdsCode)
                 .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE + interaction)
                 .queryParam(MANUFACTURING_ORGANIZATION, ORG_CODE_IDENTIFIER + PIPE + supplierOdsCode)
                 .build())

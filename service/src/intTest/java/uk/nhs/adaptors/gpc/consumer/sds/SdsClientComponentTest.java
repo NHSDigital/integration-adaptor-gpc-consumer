@@ -3,6 +3,8 @@ package uk.nhs.adaptors.gpc.consumer.sds;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -43,6 +47,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.common.ResourceReader;
+import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.testcontainers.WiremockExtension;
@@ -177,12 +182,33 @@ public class SdsClientComponentTest {
                             SEARCH_FOR_DOCUMENT_INTERACTION, GET_STRUCTURED_INTERACTION, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION})
     public void callForGetAsidTest(String interactionId) {
         wireMockServer.resetAll();
+
+        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", SUPPLIER_ODS_CODE);
         stubSdsAsidOperation(interactionId, DEVICE, ResourceReader.asString(sdsDeviceResponse));
 
         assertEquals("ASIDs are not equal",
                      "928942012545",
                      sdsClient.callForGetAsid(interactionId, FROM_ODS_CODE, X_CORRELATION_ID
         ));
+
+        wireMockServer.resetAll();
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", " "})
+    public void callForGetAsidAndExpectExceptionWhenODSCodeIsNullTest(String emptyOrNullOdsCode) {
+        wireMockServer.resetAll();
+
+        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", null);
+
+        GpConnectException thrownGpConnectException
+                            = assertThrows(GpConnectException.class,
+                                           () -> sdsClient.callForGetAsid(GET_STRUCTURED_INTERACTION, emptyOrNullOdsCode, X_CORRELATION_ID),
+                                           "Test is expected to throw an exception when ODS code is null"
+                                           );
+
+        assertTrue(thrownGpConnectException.getMessage().contains("Supplier ODS code variable must be defined"));
 
         wireMockServer.resetAll();
     }
