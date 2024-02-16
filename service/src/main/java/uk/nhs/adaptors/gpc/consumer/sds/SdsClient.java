@@ -94,7 +94,7 @@ public class SdsClient {
 
     private String retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
 
-        LOGGER.info("Using SDS Device endpoint to retrieve GPC provider Spine ASID");
+        LOGGER.info("Using SDS Device endpoint to retrieve Spine ASID");
 
         return performRequest(request)
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
