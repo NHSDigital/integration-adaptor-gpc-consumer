@@ -2,6 +2,7 @@ package uk.nhs.adaptors.gpc.consumer.sds.builder;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient.RequestHeaders
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
+import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
@@ -26,6 +28,7 @@ public class SdsRequestBuilder {
     private static final String ORG_CODE_PARAMETER = "organization";
     private static final String ORG_CODE_IDENTIFIER = "https://fhir.nhs.uk/Id/ods-organization-code";
     private static final String INTERACTION_PARAMETER = "identifier";
+    private static final String MANUFACTURING_ORGANIZATION = "manufacturing-organization";
     private static final String INTERACTION_IDENTIFIER = "https://fhir.nhs.uk/Id/nhsServiceInteractionId";
     private static final String ENDPOINT_MHS_ENDPOINT = "/Endpoint";
     private static final String ENDPOINT_AS_DEVICE = "/Device";
@@ -58,6 +61,7 @@ public class SdsRequestBuilder {
     }
 
     public RequestHeadersSpec<?> buildMigrateStructuredRecordEndpointRequest(String fromOdsCode, String correlationId) {
+
         return buildMhsEndpointRequest(fromOdsCode, MIGRATE_STRUCTURED_INTERACTION, correlationId);
     }
 
@@ -97,21 +101,48 @@ public class SdsRequestBuilder {
         return buildAsDeviceRequest(fromOdsCode, RETRIEVE_DOCUMENT_INTERACTION, correlationId);
     }
 
-    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildMhsEndpointRequest(String odsCode, String interaction,
-        String correlationId) {
-        return buildClientFor(odsCode, interaction, correlationId, ENDPOINT_MHS_ENDPOINT);
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildMhsEndpointRequest(String consumerOrgOdsCode,
+                                                                                        String interaction, String correlationId) {
+        return buildClientFor(consumerOrgOdsCode, interaction, correlationId, ENDPOINT_MHS_ENDPOINT);
     }
 
-    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceRequest(String odsCode, String interaction,
-        String correlationId) {
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceRequest(String odsCode,
+                                                                                     String interaction, String correlationId) {
         return buildClientFor(odsCode, interaction, correlationId, ENDPOINT_AS_DEVICE);
+    }
+
+    public RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceAsidRequest(String odsCode, String supplierOdsCode,
+                                                                                        String interaction, String correlationId) {
+        return buildAsidClientFor(odsCode, supplierOdsCode, interaction, correlationId);
+    }
+
+    @NotNull
+    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsidClientFor(String consumerOrgOdsCode, String supplierOdsCode,
+                                                                                   String interaction, String correlationId) {
+
+        if (StringUtils.isEmpty(supplierOdsCode)) {
+            throw new GpConnectException("Supplier ODS code variable must be defined");
+        }
+
+        var httpClient = getHttpClient();
+
+        return buildWebClient(httpClient)
+            .get()
+            .uri(uriBuilder -> uriBuilder
+                .path(ENDPOINT_AS_DEVICE)
+                .queryParam(ORG_CODE_PARAMETER, ORG_CODE_IDENTIFIER + PIPE + consumerOrgOdsCode)
+                .queryParam(INTERACTION_PARAMETER, INTERACTION_IDENTIFIER + PIPE + interaction)
+                .queryParam(MANUFACTURING_ORGANIZATION, ORG_CODE_IDENTIFIER + PIPE + supplierOdsCode)
+                .build())
+            .header(API_KEY_HEADER, sdsConfiguration.getApiKey())
+            .header(X_CORRELATION_ID_HEADER, correlationId);
     }
 
     @NotNull
     private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildClientFor(String odsCode, String interaction,
-        String correlationId, String path) {
-        var sslContext = requestBuilderService.buildStandardSslContext();
-        var httpClient = HttpClient.create().secure(t -> t.sslContext(sslContext));
+                                                                               String correlationId, String path) {
+        var httpClient = getHttpClient();
+
         return buildWebClient(httpClient)
             .get()
             .uri(uriBuilder -> uriBuilder
@@ -131,6 +162,12 @@ public class SdsRequestBuilder {
             .filters(this::addWebClientFilters)
             .baseUrl(sdsConfiguration.getUrl())
             .build();
+    }
+
+    @NotNull
+    private HttpClient getHttpClient() {
+        var sslContext = requestBuilderService.buildStandardSslContext();
+        return HttpClient.create().secure(t -> t.sslContext(sslContext));
     }
 
     private void addWebClientFilters(List<ExchangeFilterFunction> filters) {

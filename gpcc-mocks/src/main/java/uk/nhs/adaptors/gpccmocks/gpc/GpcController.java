@@ -39,6 +39,7 @@ import uk.nhs.adaptors.gpccmocks.common.TemplateUtils;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @RequestMapping("/{odsCode}/STU3/1/gpconnect")
 public class GpcController {
+
     @PostMapping(value = "/structured/fhir/Patient/$gpc.getstructuredrecord")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> accessStructuredRecord(

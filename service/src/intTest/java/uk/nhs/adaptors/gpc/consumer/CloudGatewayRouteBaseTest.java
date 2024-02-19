@@ -17,6 +17,7 @@ import uk.nhs.adaptors.gpc.consumer.testcontainers.GpccMockExtension;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(GpccMockExtension.class)
 public class CloudGatewayRouteBaseTest {
+
     protected static final String SSP_FROM_HEADER = "Ssp-From";
     protected static final String SSP_TO_HEADER = "Ssp-To";
     protected static final String SSP_INTERACTION_ID_HEADER = "Ssp-InteractionID";

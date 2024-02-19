@@ -20,6 +20,7 @@ import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SspFilter implements GlobalFilter, Ordered {
+
     static final int SSP_FILTER_ORDER = SdsFilter.SDS_FILTER_ORDER + 1;
 
     private final GpcConfiguration gpcConfiguration;

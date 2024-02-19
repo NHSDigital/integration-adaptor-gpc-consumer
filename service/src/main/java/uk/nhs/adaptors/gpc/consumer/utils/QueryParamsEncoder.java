@@ -20,6 +20,7 @@ public final class QueryParamsEncoder {
 
         if (attributes.containsKey(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR)) {
             MultiValueMap<String, String> encodedParams = new LinkedMultiValueMap<>();
+
             exchange.getRequest().getQueryParams().forEach(
                 (key, values) -> values.forEach(
                     value -> encodedParams.add(UriUtils.encode(key, StandardCharsets.UTF_8),

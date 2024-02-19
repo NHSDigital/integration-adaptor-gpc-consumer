@@ -25,6 +25,7 @@ import uk.nhs.adaptors.gpccmocks.common.TemplateUtils;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SdsController {
+
     @GetMapping(value = "/spine-directory/Endpoint")
     public ResponseEntity<String> getEndpoint(
         HttpServletRequest request,

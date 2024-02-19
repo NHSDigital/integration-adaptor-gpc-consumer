@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+**Breaking Change**: New environment variable `GPC_SUPPLIER_ODS_CODE` is required to be set.
+
+### Fixed
+
+- Fix `GpConnectException` (ASID_CHECK_FAILED_MESSAGESENDER) from being thrown.
+  Previously the adaptor wasn't respecting the consumer rules of GP Connect,
+  and the Spine Secure Proxy would throw an error.
+  Now, a correct `Ssp-From` ASID value is fetched from SDS based on `interactionId`,
+  `ODS code`, and `GPC_SUPPLIER_ODS_CODE`.
+
 ## [0.3.4] - 2023-12-20
 - REST buffer limits have been increased to 150 Mb
 
