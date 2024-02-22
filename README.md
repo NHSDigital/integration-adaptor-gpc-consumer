@@ -4,7 +4,7 @@
 
 The GP Connect Consumer Adaptor allows a GP Connect Consumer to connect to a GP Connect Producer over Spine.
 The adaptor proxies GP Connect API requests to the correct GP Connect producer. It performs the
- [Spine integration required to consume GP Connect capabilities](https://gpc-structured-1-5-0.netlify.app/integration_illustrated.html#spine-integration-required-to-consume-gp-connect-capabilities).
+ [Spine integration required to consume GP Connect capabilities](https://developer.nhs.uk/apis/gpconnect-1-6-0/integration_illustrated.html#spine-integration-required-to-consume-gp-connect-capabilities).
 
 ## Adaptor API
 
@@ -273,13 +273,19 @@ with the dns name / port used in the original request.
 ...
 ```
 
-## Troubleshooting
+## Example Deployment
 
-### gradle-wrapper.jar doesn't exist
+We release adaptor image on Dockerhub as [nhsdev/nia-gpc-consumer-adaptor][docker-hub-image],
+with the latest changes documented within the [CHANGELOG.MD](/CHANGELOG.MD).
 
-If gradle-wrapper.jar doesn't exist run in terminal:
-* Install Gradle (MacOS) `brew install gradle`
-* Update gradle `gradle wrapper`
+When performing assurance against a simulated workload involving the transfer of 100MB documents, we
+have identified a minimum of 2GB of RAM and 2 vCPUs to the container is required.
+
+We provide [Terraform scripts][exemplar-deployment] to perform an exemplar deployment of the GP2GP adaptor
+and GP Connect Consumer adaptor into AWS.
+
+[exemplar-deployment]: https://github.com/nhsconnect/integration-adaptors/tree/develop/terraform/aws/components/gp2gp
+[docker-hub-image]: https://hub.docker.com/r/nhsdev/nia-gpc-consumer-adaptor
 
 ## Licensing
 This code is dual licensed under the MIT license and the OGL (Open Government License). Any new work added to this repository must conform to the conditions of these licenses. In particular this means that this project may not depend on GPL-licensed or AGPL-licensed libraries, as these would violate the terms of those libraries' licenses.
