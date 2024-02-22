@@ -4,7 +4,7 @@
 
 The GP Connect Consumer Adaptor allows a GP Connect Consumer to connect to a GP Connect Producer over Spine.
 The adaptor proxies GP Connect API requests to the correct GP Connect producer. It performs the
- [Spine integration required to consume GP Connect capabilities](https://gpc-structured-1-5-0.netlify.app/integration_illustrated.html#spine-integration-required-to-consume-gp-connect-capabilities).
+ [Spine integration required to consume GP Connect capabilities](https://developer.nhs.uk/apis/gpconnect-1-6-0/integration_illustrated.html#spine-integration-required-to-consume-gp-connect-capabilities).
 
 ## Adaptor API
 
