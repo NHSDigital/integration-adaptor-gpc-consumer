@@ -30,7 +30,6 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-lombok.config
 
 ### NetBeans ###
 /nbproject/private/

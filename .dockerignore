@@ -2,6 +2,7 @@
 !service/config
 !service/src
 !service/build.gradle
+!service/lombok.config
 !service/settings.gradle
 !gpcc-mocks/config
 !gpcc-mocks/src
