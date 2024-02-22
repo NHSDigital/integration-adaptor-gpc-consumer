@@ -273,6 +273,20 @@ with the dns name / port used in the original request.
 ...
 ```
 
+## Example Deployment
+
+We release adaptor image on Dockerhub as [nhsdev/nia-gpc-consumer-adaptor][docker-hub-image],
+with the latest changes documented within the [CHANGELOG.MD](/CHANGELOG.MD).
+
+When performing assurance against a simulated workload involving the transfer of 100MB documents, we
+have identified a minimum of 2GB of RAM and 2 vCPUs to the container is required.
+
+We provide [Terraform scripts][exemplar-deployment] to perform an exemplar deployment of the GP2GP adaptor
+and GP Connect Consumer adaptor into AWS.
+
+[exemplar-deployment]: https://github.com/nhsconnect/integration-adaptors/tree/develop/terraform/aws/components/gp2gp
+[docker-hub-image]: https://hub.docker.com/r/nhsdev/nia-gpc-consumer-adaptor
+
 ## Troubleshooting
 
 ### gradle-wrapper.jar doesn't exist
