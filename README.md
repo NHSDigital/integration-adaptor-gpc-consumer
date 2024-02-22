@@ -287,14 +287,6 @@ and GP Connect Consumer adaptor into AWS.
 [exemplar-deployment]: https://github.com/nhsconnect/integration-adaptors/tree/develop/terraform/aws/components/gp2gp
 [docker-hub-image]: https://hub.docker.com/r/nhsdev/nia-gpc-consumer-adaptor
 
-## Troubleshooting
-
-### gradle-wrapper.jar doesn't exist
-
-If gradle-wrapper.jar doesn't exist run in terminal:
-* Install Gradle (MacOS) `brew install gradle`
-* Update gradle `gradle wrapper`
-
 ## Licensing
 This code is dual licensed under the MIT license and the OGL (Open Government License). Any new work added to this repository must conform to the conditions of these licenses. In particular this means that this project may not depend on GPL-licensed or AGPL-licensed libraries, as these would violate the terms of those libraries' licenses.
 
