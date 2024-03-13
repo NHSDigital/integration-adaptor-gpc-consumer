@@ -38,7 +38,7 @@ dependencies {
 
 	implementation "com.heroku.sdk:env-keystore:1.1.6"
 
-	implementation ("org.apache.commons:commons-lang3:3.12.0") {
+	implementation ("org.apache.commons:commons-lang3:3.14.0") {
 		exclude group: "org.apache.commons", module: "commons-compress"
 	}
 
