@@ -38,11 +38,8 @@ dependencies {
 
 	implementation "com.heroku.sdk:env-keystore:1.1.6"
 
-	implementation ("org.apache.commons:commons-lang3:3.12.0") {
-		exclude group: "org.apache.commons", module: "commons-compress"
-	}
+	implementation ("org.apache.commons:commons-lang3:3.14.0")
 
-	implementation "org.apache.commons:commons-compress:1.21"
 	implementation "org.eclipse.jetty:jetty-webapp:9.4.43.v20210629"
 
 	// Test
