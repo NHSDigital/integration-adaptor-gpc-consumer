@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'uk.nhs.adaptors'
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
 configurations {
 	compileOnly {
