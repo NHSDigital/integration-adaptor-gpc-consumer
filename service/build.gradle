@@ -4,7 +4,7 @@ plugins {
 	id "java"
 	id "checkstyle"
 	id "com.github.spotbugs" version "6.0.9"
-	id "io.freefair.lombok" version "6.6.3"
+	id "io.freefair.lombok" version "8.6"
 	id "jacoco"
 }
 
