@@ -30,6 +30,7 @@ gpc-consumer:
     documentPath: ${GPC_CONSUMER_GPC_GET_DOCUMENT_PATH:/*/STU3/1/gpconnect/documents/fhir/Binary/**}
     migrateStructuredPath: ${GPC_CONSUMER_GPC_MIGRATE_STRUCTURED_PATH:/*/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord}
     sspUrl: ${GPC_CONSUMER_SSP_URL:}
+    maxRequestSize: ${GPC_MAX_REQUEST_SIZE:150000000}
   sds:
     url: ${GPC_CONSUMER_SDS_URL:}
     apiKey: ${GPC_CONSUMER_SDS_APIKEY:}

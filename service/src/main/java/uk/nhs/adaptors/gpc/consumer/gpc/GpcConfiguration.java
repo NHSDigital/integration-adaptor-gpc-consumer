@@ -17,4 +17,5 @@ public class GpcConfiguration {
     private String subCA;
     private String structuredFhirBasePathRegex;
     private String sspUrl;
+    private String maxRequestSize;
 }
