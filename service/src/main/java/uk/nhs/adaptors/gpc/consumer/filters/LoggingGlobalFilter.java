@@ -22,7 +22,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
@@ -97,7 +97,7 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isErrorResponseCode(ServerHttpResponse response) {
-        HttpStatus httpStatus = response.getStatusCode();
+        HttpStatusCode httpStatus = response.getStatusCode();
         return httpStatus != null && !httpStatus.is2xxSuccessful();
     }
 }
