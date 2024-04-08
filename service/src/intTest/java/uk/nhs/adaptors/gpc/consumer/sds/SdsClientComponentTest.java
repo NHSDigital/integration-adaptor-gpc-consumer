@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeAll;
