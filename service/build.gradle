@@ -32,7 +32,7 @@ dependencies {
 	implementation("org.springframework.cloud:spring-cloud-starter-gateway") {
 		exclude group: "io.netty", module: "netty-codec-http2"
 	}
-	implementation "io.netty:netty-codec-http2:4.1.61.Final"
+	implementation "io.netty:netty-codec-http2:4.1.109.Final"
 
 	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:5.4.0"
 
