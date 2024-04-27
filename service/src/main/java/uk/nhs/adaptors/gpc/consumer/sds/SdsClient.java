@@ -32,7 +32,7 @@ public class SdsClient {
     @Value("${gpc-consumer.sds.supplierOdsCode}")
     private String supplierOdsCode;
 
-    public String callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
+    public Mono<String> callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
         var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
         return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest);
     }
@@ -75,24 +75,25 @@ public class SdsClient {
 
     private Mono<SdsResponseData> retrieveData(RequestHeadersSpec<? extends RequestHeadersSpec<?>> sdsDeviceRequest,
         RequestHeadersSpec<? extends RequestHeadersSpec<?>> sdsEndpointRequest) {
-        var nshSpineAsid = retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest);
         LOGGER.info("Using SDS Endpoint endpoint to retrieve GPC provider endpoint details");
 
-        return performRequest(sdsEndpointRequest)
-            .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
-            .map(bundle -> {
-                doBundleEntryCheck(bundle);
-                var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
+        return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest)
+                .flatMap(nhsSpineAsid -> performRequest(sdsEndpointRequest)
+                    .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
+                    .map(bundle -> {
+                        doBundleEntryCheck(bundle);
+                        var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
 
-                return SdsResponseData.builder()
-                    .address(getAddressFromEndpoint(endpoint))
-                    .nhsMhsId(getNhsMhsId(endpoint))
-                    .nhsSpineAsid(nshSpineAsid)
-                    .build();
-            });
+                        return SdsResponseData.builder()
+                                .address(getAddressFromEndpoint(endpoint))
+                                .nhsMhsId(getNhsMhsId(endpoint))
+                                .nhsSpineAsid(nhsSpineAsid)
+                                .build();
+                    })
+                );
     }
 
-    private String retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
+    private Mono<String> retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
 
         LOGGER.info("Using SDS Device endpoint to retrieve Spine ASID");
 
@@ -102,7 +103,7 @@ public class SdsClient {
                 doBundleEntryCheck(bundle);
                 var device = (Device) bundle.getEntryFirstRep().getResource();
                 return getNhsSpineAsid(device);
-            }).block();
+            });
     }
 
     private String getNhsSpineAsid(Device endpoint) {

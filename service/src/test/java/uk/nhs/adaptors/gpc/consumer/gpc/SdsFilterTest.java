@@ -57,11 +57,11 @@ public class SdsFilterTest {
                                 "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1").build();
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
-        when(sdsClient.callForGetAsid(MIGRATE_STRUCTURED_INTERACTION, odsCode, correlationId)).thenReturn(gpConnectConsumerAsid);
+        when(sdsClient.callForGetAsid(MIGRATE_STRUCTURED_INTERACTION, odsCode, correlationId)).thenReturn(Mono.just(gpConnectConsumerAsid));
         when(sdsClient.callForMigrateStructuredRecord(odsCode, correlationId))
                                     .thenReturn(Mono.just(SdsClient.SdsResponseData.builder().nhsSpineAsid(gpConnectServerAsid).build()));
 
-        sdsFilter.filter(exchange, filterChain);
+        sdsFilter.filter(exchange, filterChain).block();
 
         var resultExchange = captor.getValue();
         assertEquals(gpConnectConsumerAsid, resultExchange.getRequest().getHeaders().get("ssp-From").get(0));
@@ -87,11 +87,11 @@ public class SdsFilterTest {
             .build();
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
-        when(sdsClient.callForGetAsid(MIGRATE_STRUCTURED_INTERACTION, odsCode, correlationId)).thenReturn("928942012545");
+        when(sdsClient.callForGetAsid(MIGRATE_STRUCTURED_INTERACTION, odsCode, correlationId)).thenReturn(Mono.just("928942012545"));
         when(sdsClient.callForMigrateStructuredRecord(odsCode, correlationId))
             .thenReturn(Mono.just(SdsClient.SdsResponseData.builder().nhsSpineAsid("928940000057").build()));
 
-        sdsFilter.filter(exchange, filterChain);
+        sdsFilter.filter(exchange, filterChain).block();
 
         var resultExchange = captor.getValue();
         assertEquals(gpConnectConsumerAsid, resultExchange.getRequest().getHeaders().get("ssp-From").get(0));
