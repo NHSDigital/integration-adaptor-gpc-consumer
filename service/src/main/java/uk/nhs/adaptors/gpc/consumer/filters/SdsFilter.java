@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -56,21 +55,21 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        return getGpcProviderEndpointDetails(exchange).flatMap(gpcProviderEndpointDetails -> {
+            if (gpcProviderEndpointDetails != null) {
+                return getGpcConsumerAsid(exchange).flatMap(gpcConsumerAsid -> {
+                    var mutatedExchange = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
+                    mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
 
-        SdsClient.SdsResponseData gpcProviderEndpointDetails = getGpcProviderEndpointDetails(exchange);
+                    return chain.filter(mutatedExchange);
+                });
+            }
 
-        if (gpcProviderEndpointDetails != null) {
-            String gpcConsumerAsid = getGpcConsumerAsid(exchange);
-            ServerWebExchange mutatedExchange = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
-            mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
-
-            return chain.filter(mutatedExchange);
-        }
-
-        return chain.filter(exchange);
+            return chain.filter(exchange);
+        });
     }
 
-    private String getGpcConsumerAsid(ServerWebExchange exchange) {
+    private Mono<String> getGpcConsumerAsid(ServerWebExchange exchange) {
         LoggingUtil.info(LOGGER, exchange, "Using SDS API to fetch GPC consumer ASID value");
 
         var odsCode = extractOrganisation(exchange.getRequest().getPath());
@@ -98,15 +97,14 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return exchange.mutate().request(mutateRequest).build();
     }
 
-    @Nullable
-    private SdsClient.SdsResponseData getGpcProviderEndpointDetails(ServerWebExchange exchange) {
+    private Mono<SdsClient.SdsResponseData> getGpcProviderEndpointDetails(ServerWebExchange exchange) {
 
         return performGpcProviderSdsLookup(exchange)
             .doOnNext(v -> {
                 if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
                     QueryParamsEncoder.encodeQueryParams(exchange);
                 }
-            }).block();
+            });
     }
 
     @NotNull

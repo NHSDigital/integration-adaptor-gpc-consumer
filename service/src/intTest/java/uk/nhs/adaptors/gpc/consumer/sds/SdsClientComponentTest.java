@@ -3,6 +3,7 @@ package uk.nhs.adaptors.gpc.consumer.sds;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -13,7 +14,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 import java.util.List;
 import java.util.UUID;
@@ -186,10 +186,10 @@ public class SdsClientComponentTest {
         ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", SUPPLIER_ODS_CODE);
         stubSdsAsidOperation(interactionId, DEVICE, ResourceReader.asString(sdsDeviceResponse));
 
-        assertEquals("ASIDs are not equal",
-                     "928942012545",
-                     sdsClient.callForGetAsid(interactionId, FROM_ODS_CODE, X_CORRELATION_ID
-        ));
+        assertEquals(
+            "928942012545",
+            sdsClient.callForGetAsid(interactionId, FROM_ODS_CODE, X_CORRELATION_ID).block()
+        );
 
         wireMockServer.resetAll();
     }
