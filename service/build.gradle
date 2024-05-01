@@ -43,12 +43,6 @@ dependencies {
 	testImplementation "uk.org.webcompere:system-stubs-jupiter:1.2.0"
 	testImplementation "org.assertj:assertj-core:3.25.3"
 	testImplementation "org.testcontainers:testcontainers:1.19.7"
-
-	constraints {
-		implementation('org.bouncycastle:bcprov-jdk15on:1.68') {
-			because 'https://snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448'
-		}
-	}
 }
 
 dependencyManagement {
