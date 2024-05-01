@@ -45,7 +45,7 @@ dependencies {
 	testImplementation "org.testcontainers:testcontainers:1.19.7"
 
 	constraints {
-		implementation('org.bouncycastle:bcprov-jdk15on:1.68') {
+		implementation('org.bouncycastle:bcprov-jdk15on:1.70') {
 			because 'https://snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448'
 		}
 	}
