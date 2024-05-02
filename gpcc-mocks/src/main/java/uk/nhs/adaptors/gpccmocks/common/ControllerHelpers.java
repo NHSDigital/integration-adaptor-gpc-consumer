@@ -3,7 +3,7 @@ package uk.nhs.adaptors.gpccmocks.common;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpHeaders;
 
