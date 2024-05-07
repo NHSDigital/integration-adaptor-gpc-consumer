@@ -29,11 +29,13 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	implementation "org.springframework.cloud:spring-cloud-starter-gateway"
 
-	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:5.4.0"
+	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:7.0.2"
 
 	implementation "com.heroku.sdk:env-keystore:1.1.8"
 
 	implementation ("org.apache.commons:commons-lang3:3.14.0")
+
+	implementation 'org.jetbrains:annotations:24.1.0'
 
 	// Test
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
