@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2024-06-06
+
+### Fixed
+
+- Updated dependencies to keep adaptor secure.
+
 ## [1.0.0] - 2024-02-19
 
 **Breaking Change**: New environment variable `GPC_SUPPLIER_ODS_CODE` is required to be set.
