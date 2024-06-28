@@ -29,7 +29,7 @@ The adaptor does not perform a PDS lookup/trace. You must perform the PDS lookup
 
 ## Requirements
 
-* JDK 17
+* JDK 21
 * Docker
 
 ## Configuration
