@@ -189,11 +189,11 @@ The adaptor uses the following log format by default:
 YYYY-MM-DD HH:MM:SS.mmm Level={DEBUG/INFO/WARNING/ERROR} Logger={LoggerName} RequestId={RequestId} Ssp-TraceID={Ssp-TraceID} Thread="{ThreadName}" Message="{LogMessage}"
 ```
 
-LoggerName: name of the Java class which emitted the log
-RequestId: randomly generated identified for each request
-Ssp-TraceID: value of the Ssp-TraceID header, for distributed tracing
-ThreadName: name of the thread handling the request
-LogMessage: content of the log message
+- **LoggerName** name of the Java class which emitted the log
+- **RequestId** randomly generated identified for each request
+- **Ssp-TraceID** value of the Ssp-TraceID header, for distributed tracing
+- **ThreadName** name of the thread handling the request
+- **LogMessage** content of the log message
 
 The properties RequestId and Ssp-TraceID may only be populated if the log 
 is emitted by application code. These are blank for logs emitted by framework or 
