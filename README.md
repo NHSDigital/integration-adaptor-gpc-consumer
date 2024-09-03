@@ -91,9 +91,10 @@ Service URL scheme.
 | Environment Variable                        | Default                                                              | Description
 | --------------------------------------------|----------------------------------------------------------------------|-------------
 | GPC_CONSUMER_GPC_STRUCTURED_PATH            | /*/STU3/1/gpconnect/structured/fhir/Patient/$gpc.getstructuredrecord | Structured record path.
-| GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /\*/STU3/1/gpconnect/documents/fhir/Binary/**                        | Get Document record path.
+| GPC_CONSUMER_GPC_GET_DOCUMENT_PATH          | /*/STU3/1/gpconnect/documents/fhir/Binary/**                         | Get Document record path.
 | GPC_CONSUMER_GPC_GET_PATIENT_PATH	          | /*/STU3/1/gpconnect/documents/fhir/Patient                           | Patient record path.
-| GPC_CONSUMER_SEARCH_DOCUMENTS_PATH          | /\*/STU3/1/gpconnect/documents/fhir/Patient/**                       | Search for a Patient's Document path.
+| GPC_CONSUMER_SEARCH_DOCUMENTS_PATH          | /*/STU3/1/gpconnect/documents/fhir/Patient/**                        | Search for a Patient's Document path.
+| GPC_CONSUMER_GPC_MIGRATE_STRUCTURED_PATH    | /*/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord        | Migrate structured record path.
 
 ## How to run service:
 
