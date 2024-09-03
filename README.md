@@ -76,9 +76,11 @@ to use the adaptor in the integration and production environments.
 
 | Environment Variable    | Default | Description
 | ------------------------|---------|-------------
-| GPC_CONSUMER_SDS_URL    |         | URL of the SDS FHIR API
+| GPC_CONSUMER_SDS_URL    |         | [URL of the SDS FHIR API]
 | GPC_CONSUMER_SDS_APIKEY |         | Secret key used to authenticate with the API
 | GPC_SUPPLIER_ODS_CODE   |         | Supplier ODS code [see GP Connect Docs](https://developer.nhs.uk/apis/gpconnect-1-6-0/integration_spine_directory_service.html#looking-up-a-consumers-own-asid)
+
+[URL of the SDS FHIR API]: https://digital.nhs.uk/developer/api-catalogue/spine-directory-service-fhir#overview--environments-and-testing
 
 ### API Configuration Options
 
