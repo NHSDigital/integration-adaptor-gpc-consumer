@@ -33,7 +33,7 @@ dependencies {
 
 	implementation "com.heroku.sdk:env-keystore:1.1.9"
 
-	implementation ("org.apache.commons:commons-lang3:3.16.0")
+	implementation ("org.apache.commons:commons-lang3:3.17.0")
 
 	implementation 'org.jetbrains:annotations:24.1.0'
 
