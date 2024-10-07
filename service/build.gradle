@@ -29,7 +29,7 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	implementation "org.springframework.cloud:spring-cloud-starter-gateway"
 
-	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:7.4.0"
+	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:7.4.3"
 
 	implementation "com.heroku.sdk:env-keystore:1.1.9"
 
