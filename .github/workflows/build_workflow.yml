@@ -87,4 +87,114 @@ jobs:
       - name: Temporary Artifacts Cleanup
         run: rm -rf ./artifacts
 
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [ checkstyle, spotbugs ]
+    steps:
+      -   name: Checkout Repository
+          uses: actions/checkout@v4
+          with:
+            # Disabling shallow clone is recommended for improving relevancy of Sonar reporting
+            fetch-depth: 0
+      -   name: Setup Java 21 LTS
+          uses: actions/setup-java@v4
+          with:
+            java-version: 21
+            distribution: 'temurin'
+
+      -   name: Setup Gradle
+          uses: gradle/actions/setup-gradle@v4
+
+      -   name: Execute Unit Tests
+          run: ./gradlew test jacocoTestReport --parallel --build-cache
+          working-directory: ./service
+
+      -   name: Collect Artifacts
+          if: always()
+          run: |
+            mkdir -p artifacts
+            cp -r ./service/build/reports ./artifacts
+
+      -   name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          if: always()
+          with:
+            name: 'Unit Test Reports'
+            path: ./artifacts/**
+            compression-level: 9
+
+      -   name: Temporary Artifacts Cleanup
+          run: rm -rf ./artifacts
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [ checkstyle, spotbugs ]
+    steps:
+      -   name: Checkout Repository
+          uses: actions/checkout@v4
+
+      -   name: Setup Java 21 LTS
+          uses: actions/setup-java@v4
+          with:
+            java-version: 21
+            distribution: 'temurin'
+
+      -   name: Setup Gradle
+          uses: gradle/actions/setup-gradle@v4
+
+      -   name: Start Docker Dependencies
+          env:
+            GPC_CONSUMER_SERVER_PORT: "8090"
+            GPC_CONSUMER_SDS_URL: "http://wiremock:8080/spine-directory/"
+            GPC_CONSUMER_SDS_APIKEY: "anykey"
+            GPC_CONSUMER_LOGGING_LEVEL: DEBUG
+          run: |
+            docker network create commonforgpc
+            docker compose build
+            docker compose up gpc-consumer gpcc-mocks gpconnect-db gpconnect-api tkw gpcc-nginx --detach
+          working-directory: ./docker
+
+      -   name: Execute Integration Tests
+          run: ./gradlew integrationTest
+          working-directory: ./service
+
+      -   name: Dump Docker Logs
+          if: always()
+          run: |
+            chmod +x dump_docker_logs.sh
+            ./dump_docker_logs.sh
+          working-directory: ./scripts
+          shell: bash
+
+      -   name: Collect Artifacts
+          if: always()
+          run: |
+            mkdir -p artifacts
+            cp -r ./service/build/reports ./artifacts
+            cp -r ./scripts/logs ./artifacts
+
+      -   name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          if: always()
+          with:
+            name: 'Integration Test Reports & Docker Logs'
+            path: ./artifacts/**
+            compression-level: 9
+
+      -   name: Stop Docker Dependencies
+          if: always()
+          run: |
+            docker compose down --rmi=local --remove-orphans
+            docker compose rm
+            docker network rm commonforgpc
+          working-directory: ./docker
+
+      -   name: Temporary Artifacts Cleanup
+          run: rm -rf ./artifacts
+
+
+
+
 
