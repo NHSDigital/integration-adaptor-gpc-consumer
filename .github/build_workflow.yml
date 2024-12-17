@@ -1,0 +1,90 @@
+name: GPCC Build Workflow
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  checkstyle:
+    name: Checkstyle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 LTS
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Checkstyle
+        run: |
+          ./gradlew checkStyleMain --parallel
+          ./gradlew checkstyleTest --parallel
+        working-directory: ./service
+
+      - name: Collect Artifacts
+        if: always()
+        run: |
+          mkdir -p artifacts
+          cp -r ./service/build/reports ./artifacts
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 'Checkstyle Reports'
+          path: ./artifacts/**
+          compression-level: 9
+
+      - name: Temporary Artifacts Cleanup
+        run: rm -rf ./artifacts
+
+  spotbugs:
+    name: Spotbugs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 LTS
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Spotbugs
+        run: |
+          ./gradlew spotbugsMain --parallel
+          ./gradlew spotbugsTest --parallel
+        working-directory: ./service
+
+      - name: Collect Artifacts
+        if: always()
+        run: |
+          mkdir -p artifacts
+          cp -r ./service/build/reports ./artifacts
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 'Spotbugs Reports'
+          path: ./artifacts/**
+          compression-level: 9
+
+      - name: Temporary Artifacts Cleanup
+        run: rm -rf ./artifacts
+
+
