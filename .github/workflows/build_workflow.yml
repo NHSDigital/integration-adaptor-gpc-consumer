@@ -194,6 +194,26 @@ jobs:
       -   name: Temporary Artifacts Cleanup
           run: rm -rf ./artifacts
 
+  build-and-publish-docker-images:
+      name: Build & Publish Docker Images
+      runs-on: ubuntu-latest
+      needs: [unit-tests, integration-tests]
+      permissions:
+          id-token: write
+          contents: read
+      strategy:
+          matrix:
+              config:
+                  - directory: service
+                    repository: gpc-consumer
+                    build-context: .
+                  - directory: gpcc-mocks
+                    repository: gpc-consumer-gpcc-mocks
+                    build-context: .
+
+      steps:
+          - name: Checkout Repository
+            uses: actions/checkout@v4
 
 
 
