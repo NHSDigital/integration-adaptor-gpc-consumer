@@ -215,6 +215,53 @@ jobs:
           - name: Checkout Repository
             uses: actions/checkout@v4
 
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v4
+            with:
+              role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_TO_ASSUME }}
+              role-session-name: gpc_consumer_github_action_build_workflow
+              aws-region: ${{ secrets.AWS_REGION }}
+
+          - name: Generate Build ID
+            run: |
+              chmod +x ./create_build_id.sh
+              
+              if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                GIT_BRANCH=PR
+              elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+                GIT_BRANCH=main
+              fi
+              
+              BUILD_ID=$(./create_build_id.sh $GIT_BRANCH ${{ github.run_number }} ${{ github.sha }})
+              echo "Generated the build tag: $BUILD_ID"
+              echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
+            working-directory: ./scripts
+            shell: bash
+
+          - name: Build Docker Image
+            run: |
+              # Create Docker Tag
+              DOCKER_REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+              DOCKER_TAG="$DOCKER_REGISTRY/${{ matrix.config.repository }}:$BUILD_ID"
+              echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+              
+              # Build Image
+              docker build -f ./docker/${{ matrix.config.directory }}/Dockerfile -t $DOCKER_TAG ${{ matrix.config.build-context }}
+
+          - name: Login to AWS ECR
+            run: |
+              DOCKER_REGISTRY="https://${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+              aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+
+          - name: Publish image to ECR
+            run: docker push $DOCKER_TAG
+
+          - name: Logout of AWS ECR (Clean up Credentials)
+            if: always()
+            run: |
+              DOCKER_REGISTRY="https://${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+              docker logout $DOCKER_REGISTRY  
+
 
 
 
