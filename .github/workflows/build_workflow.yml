@@ -207,9 +207,6 @@ jobs:
                   - directory: service
                     repository: gpc-consumer
                     build-context: .
-                  - directory: gpcc-mocks
-                    repository: gpc-consumer-gpcc-mocks
-                    build-context: .
 
       steps:
           - name: Checkout Repository
