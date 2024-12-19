@@ -27,8 +27,7 @@ jobs:
 
       - name: Checkstyle
         run: |
-          ./gradlew checkStyleMain --parallel
-          ./gradlew checkstyleTest --parallel
+          ./gradlew checkStyleMain checkstyleTest --parallel
         working-directory: ./service
 
       - name: Collect Artifacts
@@ -66,8 +65,7 @@ jobs:
 
       - name: Spotbugs
         run: |
-          ./gradlew spotbugsMain --parallel
-          ./gradlew spotbugsTest --parallel
+          ./gradlew spotbugsMain spotbugsTest --parallel
         working-directory: ./service
 
       - name: Collect Artifacts
@@ -186,7 +184,7 @@ jobs:
       -   name: Stop Docker Dependencies
           if: always()
           run: |
-            docker compose down --rmi=local --remove-orphans
+            docker compose down --rmi=local --volumes --remove-orphans
             docker compose rm
             docker network rm commonforgpc
           working-directory: ./docker
