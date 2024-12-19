@@ -3,9 +3,12 @@ package uk.nhs.adaptors.gpc.consumer.utils;
 import java.net.URI;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.ObjectUtils;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UrlHelpers {
 
     public static String getUrlBase(URI uri, List<String> protocolHeader) {

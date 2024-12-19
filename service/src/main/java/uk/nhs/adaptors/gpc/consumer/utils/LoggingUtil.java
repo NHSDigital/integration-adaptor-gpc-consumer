@@ -2,11 +2,14 @@ package uk.nhs.adaptors.gpc.consumer.utils;
 
 import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LoggingUtil {
 
     private static final String MESSAGE_PREFIX = "RequestId=%s SspTraceId=%s ";
