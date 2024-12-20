@@ -1,0 +1,277 @@
+name: GPCC Build Workflow
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  checkstyle:
+    name: Checkstyle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 LTS
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: Checkstyle
+        run: |
+          ./gradlew checkStyleMain checkstyleTest checkstyleIntegrationTest --parallel
+        working-directory: ./service
+
+      - name: Collect Artifacts
+        if: always()
+        run: |
+          mkdir -p artifacts
+          cp -r ./service/build/reports ./artifacts
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 'Checkstyle Reports'
+          path: ./artifacts/**
+          compression-level: 9
+
+      - name: Temporary Artifacts Cleanup
+        run: rm -rf ./artifacts
+
+  spotbugs:
+    name: Spotbugs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 LTS
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: Spotbugs
+        run: |
+          ./gradlew spotbugsMain spotbugsTest spotbugsIntegrationTest --parallel
+        working-directory: ./service
+
+      - name: Collect Artifacts
+        if: always()
+        run: |
+          mkdir -p artifacts
+          cp -r ./service/build/reports ./artifacts
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 'Spotbugs Reports'
+          path: ./artifacts/**
+          compression-level: 9
+
+      - name: Temporary Artifacts Cleanup
+        run: rm -rf ./artifacts
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [ checkstyle, spotbugs ]
+    steps:
+      -   name: Checkout Repository
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+      -   name: Setup Java 21 LTS
+          uses: actions/setup-java@v4
+          with:
+            java-version: 21
+            distribution: 'temurin'
+
+      -   name: Execute Unit Tests
+          run: ./gradlew test jacocoTestReport --parallel --build-cache
+          working-directory: ./service
+
+      -   name: Collect Artifacts
+          if: always()
+          run: |
+            mkdir -p artifacts
+            cp -r ./service/build/reports ./artifacts
+
+      -   name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          if: always()
+          with:
+            name: 'Unit Test Reports'
+            path: ./artifacts/**
+            compression-level: 9
+
+      -   name: Temporary Artifacts Cleanup
+          run: rm -rf ./artifacts
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [ checkstyle, spotbugs ]
+    steps:
+      -   name: Checkout Repository
+          uses: actions/checkout@v4
+
+      -   name: Setup Java 21 LTS
+          uses: actions/setup-java@v4
+          with:
+            java-version: 21
+            distribution: 'temurin'
+
+      -   name: Start Docker Dependencies
+          env:
+            GPC_CONSUMER_SERVER_PORT: "8090"
+            GPC_CONSUMER_SDS_URL: "http://wiremock:8080/spine-directory/"
+            GPC_CONSUMER_SDS_APIKEY: "anykey"
+            GPC_CONSUMER_LOGGING_LEVEL: DEBUG
+          run: |
+            docker network create commonforgpc
+            docker compose build
+            docker compose up gpc-consumer gpcc-mocks gpconnect-db gpconnect-api tkw gpcc-nginx --detach
+          working-directory: ./docker
+
+      -   name: Execute Integration Tests
+          run: ./gradlew integrationTest
+          working-directory: ./service
+
+      -   name: Dump Docker Logs
+          if: always()
+          run: |
+            chmod +x dump_docker_logs.sh
+            ./dump_docker_logs.sh
+          working-directory: ./scripts
+          shell: bash
+
+      -   name: Collect Artifacts
+          if: always()
+          run: |
+            mkdir -p artifacts
+            cp -r ./service/build/reports ./artifacts
+            cp -r ./scripts/logs ./artifacts
+
+      -   name: Upload Artifacts
+          uses: actions/upload-artifact@v4
+          if: always()
+          with:
+            name: 'Integration Test Reports & Docker Logs'
+            path: ./artifacts/**
+            compression-level: 9
+
+      -   name: Stop Docker Dependencies
+          if: always()
+          run: |
+            docker compose down --rmi=local --volumes --remove-orphans
+            docker compose rm
+            docker network rm commonforgpc
+          working-directory: ./docker
+
+      -   name: Temporary Artifacts Cleanup
+          run: rm -rf ./artifacts
+
+  generate-build-id:
+      name: Generate Build ID
+      runs-on: ubuntu-latest
+      needs: [unit-tests, integration-tests]
+      outputs:
+          build-id: ${{ steps.generate.outputs.buildId }}
+      steps:
+          -   name: Checkout Repository
+              uses: actions/checkout@v4
+
+          -   id: generate
+              working-directory: ./scripts
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  chmod +x ./create_build_id.sh
+                  
+                  if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                    GIT_BRANCH=PR
+                  elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+                    GIT_BRANCH=main
+                  fi
+                  
+                  BUILD_ID=$(./create_build_id.sh $GIT_BRANCH ${{ github.run_number }} ${{ github.sha }})
+                  echo "Generated the build tag: $BUILD_ID"                  
+                  echo "buildId=$BUILD_ID" >> $GITHUB_OUTPUT
+
+  build-and-publish-docker-images:
+      name: Build & Publish Docker Images
+      runs-on: ubuntu-latest
+      needs: [unit-tests, integration-tests, generate-build-id]
+      permissions:
+          id-token: write
+          contents: read
+      strategy:
+          matrix:
+              config:
+                  - directory: service
+                    repository: gpc-consumer
+                    build-context: .
+
+      steps:
+          - name: Checkout Repository
+            uses: actions/checkout@v4
+
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v4
+            with:
+              role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_TO_ASSUME }}
+              role-session-name: gpc_consumer_github_action_build_workflow
+              aws-region: ${{ secrets.AWS_REGION }}
+
+          - name: Build Docker Image
+            run: |
+              # Create Docker Tag
+              DOCKER_REGISTRY="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+              DOCKER_TAG="$DOCKER_REGISTRY/${{ matrix.config.repository }}:${{ needs.generate-build-id.outputs.build-id }}"
+              echo "DOCKER_TAG=$DOCKER_TAG" >> $GITHUB_ENV
+              
+              # Build Image
+              docker build -f ./docker/${{ matrix.config.directory }}/Dockerfile -t $DOCKER_TAG ${{ matrix.config.build-context }}
+
+          - name: Login to AWS ECR
+            run: |
+              DOCKER_REGISTRY="https://${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+              aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+
+          - name: Publish image to ECR
+            run: docker push $DOCKER_TAG
+
+          - name: Logout of AWS ECR (Clean up Credentials)
+            if: always()
+            run: |
+              DOCKER_REGISTRY="https://${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+              docker logout $DOCKER_REGISTRY  
+
+  comment:
+      if: github.event_name == 'pull_request'
+      name: "Create Build ID Comment"
+      needs: [generate-build-id]
+      continue-on-error: true
+      permissions: write-all
+      runs-on: [ ubuntu-latest ]
+      steps:
+          - name: Check out code
+            uses: actions/checkout@v4
+          - name: Comment PR
+            uses: thollander/actions-comment-pull-request@v3
+            with:
+                message: |
+                    Images built and published to ECR using a Build Id of ${{ needs.generate-build-id.outputs.build-id }}
+                comment_tag: images-built
+                mode: upsert
+
+

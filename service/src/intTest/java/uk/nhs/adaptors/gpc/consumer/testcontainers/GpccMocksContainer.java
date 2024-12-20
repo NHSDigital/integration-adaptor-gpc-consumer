@@ -19,7 +19,7 @@ public final class GpccMocksContainer extends GenericContainer<GpccMocksContaine
     private String mockBaseUrl;
 
     private GpccMocksContainer() {
-        super("docker_gpcc-mocks");
+        super("docker-gpcc-mocks");
         withExposedPorts(CONTAINER_PORT);
     }
 
