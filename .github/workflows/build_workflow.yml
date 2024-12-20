@@ -206,7 +206,7 @@ jobs:
                   
                   BUILD_ID=$(./create_build_id.sh $GIT_BRANCH ${{ github.run_number }} ${{ github.sha }})
                   echo "Generated the build tag: $BUILD_ID"
-                  echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
+                  echo "buildId=$BUILD_ID" >> $GITHUB_ENV
 
   build-and-publish-docker-images:
       name: Build & Publish Docker Images
@@ -232,6 +232,10 @@ jobs:
               role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_TO_ASSUME }}
               role-session-name: gpc_consumer_github_action_build_workflow
               aws-region: ${{ secrets.AWS_REGION }}
+
+          -   name: Debug Build ID
+              run: |
+                echo "Generated Build ID: ${{ needs.generate-build-id.outputs.build-id }}"    
 
           - name: Build Docker Image
             run: |
