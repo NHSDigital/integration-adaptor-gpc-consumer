@@ -206,7 +206,8 @@ jobs:
                   
                   BUILD_ID=$(./create_build_id.sh $GIT_BRANCH ${{ github.run_number }} ${{ github.sha }})
                   echo "Generated the build tag: $BUILD_ID"
-                  echo "buildId=$BUILD_ID" >> $GITHUB_ENV
+                  echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
+                  echo "buildId=$BUILD_ID" >> $GITHUB_OUTPUT
 
   build-and-publish-docker-images:
       name: Build & Publish Docker Images
