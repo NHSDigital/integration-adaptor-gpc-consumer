@@ -24,7 +24,7 @@ jobs:
 
       - name: Checkstyle
         run: |
-          ./gradlew checkStyleMain checkstyleTest --parallel
+          ./gradlew checkStyleMain checkstyleTest checkstyleIntegrationTest --parallel
         working-directory: ./service
 
       - name: Collect Artifacts
@@ -59,7 +59,7 @@ jobs:
 
       - name: Spotbugs
         run: |
-          ./gradlew spotbugsMain spotbugsTest --parallel
+          ./gradlew spotbugsMain spotbugsTest spotbugsIntegrationTest --parallel
         working-directory: ./service
 
       - name: Collect Artifacts
