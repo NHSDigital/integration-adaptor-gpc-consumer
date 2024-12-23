@@ -220,6 +220,7 @@ jobs:
                   - directory: service
                     repository: gpc-consumer
                     build-context: .
+                    region: ${{ secrets.AWS_REGION }}
 
       steps:
           - name: Checkout Repository
@@ -233,7 +234,7 @@ jobs:
             with:
               role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_TO_ASSUME }}
               role-session-name: gpc_consumer_github_action_build_workflow
-              aws-region: eu-west-2
+              aws-region: ${{ matrix.config.region }}
 
           - name: Build Docker Image
             run: |
