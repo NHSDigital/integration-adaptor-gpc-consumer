@@ -221,6 +221,7 @@ jobs:
                     repository: gpc-consumer
                     build-context: .
 
+      if: github.actor != 'dependabot[bot]'
       steps:
           - name: Checkout Repository
             uses: actions/checkout@v4
