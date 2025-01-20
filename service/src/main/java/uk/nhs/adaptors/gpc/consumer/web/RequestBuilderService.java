@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import uk.nhs.adaptors.gpc.consumer.filters.SslContextBuilderWrapper;
-import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -18,12 +17,11 @@ public class RequestBuilderService {
 
     private static final int BYTE_COUNT = 150 * 1024 * 1024;
 
-    private final GpcConfiguration gpcConfiguration;
+    private final SslContextBuilderWrapper sslContextBuilderWrapper;
 
     @SneakyThrows
     public SslContext buildStandardSslContext() {
-        return new SslContextBuilderWrapper()
-            .buildStandardSslContext();
+        return sslContextBuilderWrapper.buildStandardSslContext();
     }
 
     public ExchangeStrategies buildExchangeStrategies() {

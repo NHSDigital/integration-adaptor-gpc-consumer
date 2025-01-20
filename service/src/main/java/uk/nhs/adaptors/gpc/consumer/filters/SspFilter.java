@@ -2,7 +2,6 @@ package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.net.URI;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -27,28 +26,16 @@ public class SspFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (isSspEnabled()) {
+        if (gpcConfiguration.isSspEnabled()) {
             URI uri = (URI) exchange.getAttributes()
                 .get(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
 
-            URI resolvedUri = uri.resolve(getSspUrlPrefix() + uri);
+            URI resolvedUri = uri.resolve(gpcConfiguration.getSspUrl() + uri);
 
             exchange.getAttributes()
                 .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, resolvedUri);
         }
         return chain.filter(exchange);
-    }
-
-    private String getSspUrlPrefix() {
-        var baseUrl = gpcConfiguration.getSspUrl();
-        if (!baseUrl.endsWith("/")) {
-            return baseUrl + "/";
-        }
-        return baseUrl;
-    }
-
-    private boolean isSspEnabled() {
-        return StringUtils.isNotBlank(gpcConfiguration.getSspUrl());
     }
 
     @Override

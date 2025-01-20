@@ -74,28 +74,33 @@ public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcCo
     private List<String> checkSslPropertiesAreValidPemFormat(GpcConfiguration config) {
         var invalidSslProperties = new ArrayList<String>();
 
-        if (isInvalidPemFormat(config.getClientCert())) {
+        config.setClientCert(tryGetPemFormatedProperty(config.getClientCert()));
+        config.setClientKey(tryGetPemFormatedProperty(config.getClientKey()));
+        config.setRootCA(tryGetPemFormatedProperty(config.getRootCA()));
+        config.setSubCA(tryGetPemFormatedProperty(config.getSubCA()));
+
+        if (config.getClientCert().isEmpty()) {
             invalidSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_CERT");
         }
-        if (isInvalidPemFormat(config.getClientKey())) {
+        if (config.getClientKey().isEmpty()) {
             invalidSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_KEY");
         }
-        if (isInvalidPemFormat(config.getRootCA())) {
+        if (config.getRootCA().isEmpty()) {
             invalidSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
         }
-        if (isInvalidPemFormat(config.getSubCA())) {
+        if (config.getSubCA().isEmpty()) {
             invalidSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
         }
 
         return invalidSslProperties;
     }
 
-    private boolean isInvalidPemFormat(String sslProperty) {
+    private String tryGetPemFormatedProperty(String sslProperty) {
         try {
-            PemFormatter.format(sslProperty);
-            return false;
+            return PemFormatter.format(sslProperty);
+
         } catch (Exception e) {
-            return true;
+            return "";
         }
     }
 
