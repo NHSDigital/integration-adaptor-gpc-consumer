@@ -135,15 +135,14 @@ public class GpcConfigurationValidationTest {
             )
             .run(context -> {
                 assertThat(context).hasFailed();
-
                 var startupFailure = context.getStartupFailure();
 
                 assertThat(startupFailure)
                     .rootCause()
+                    .hasMessageContaining("To enable mutual TLS you must provide GPC_CONSUMER_SPINE_CLIENT_CERT environment variable(s).")
                     .hasMessageContaining(
-                        "Either all or none of the GPC_CONSUMER_SPINE_ variables must be defined. "
-                            + "Missing variables: GPC_CONSUMER_SPINE_CLIENT_CERT"
-                    );
+                         "To disable mutual TLS you must remove GPC_CONSUMER_SPINE_CLIENT_KEY, GPC_CONSUMER_SPINE_ROOT_CA_CERT, "
+                             + "GPC_CONSUMER_SPINE_SUB_CA_CERT environment variable(s).");
             });
     }
 
@@ -164,8 +163,7 @@ public class GpcConfigurationValidationTest {
                 assertThat(startupFailure)
                     .rootCause()
                     .hasMessageContaining(
-                        "One or more of the GPC_CONSUMER_SPINE_ variables is in an invalid PEM format. "
-                            + "Invalid variables: GPC_CONSUMER_SPINE_CLIENT_CERT"
+                        "The environment variable(s) GPC_CONSUMER_SPINE_CLIENT_CERT are not in a valid PEM format"
                     );
             });
     }
@@ -187,8 +185,7 @@ public class GpcConfigurationValidationTest {
                 assertThat(startupFailure)
                     .rootCause()
                     .hasMessageContaining(
-                        "One or more of the GPC_CONSUMER_SPINE_ variables is in an invalid PEM format. "
-                            + "Invalid variables: GPC_CONSUMER_SPINE_CLIENT_KEY"
+                        "The environment variable(s) GPC_CONSUMER_SPINE_CLIENT_KEY are not in a valid PEM format"
                     );
             });
     }

@@ -4,39 +4,79 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.Ordered;
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Slf4j
 public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcConfiguration, GpcConfiguration> {
 
-    private static final String INVALID_FORMAT_VIOLATION_MESSAGE =
-        "One or more of the GPC_CONSUMER_SPINE_ variables is in an invalid PEM format. Invalid variables: %s";
-    private static final String MISSING_SSL_PROPERTIES_VIOLATION_MESSAGE =
-        "Either all or none of the GPC_CONSUMER_SPINE_ variables must be defined. Missing variables: %s";
+    private static final String PEM_FORMAT_VIOLATION_MESSAGE =
+        "The environment variable(s) %s are not in a valid PEM format";
+    private static final String SSL_PROPERTIES_VIOLATION_MESSAGE =
+        """
+            You must either use mutual TLS or decide to disable it.
+            To enable mutual TLS you must provide %s environment variable(s).
+            To disable mutual TLS you must remove %s environment variable(s).""";
+
     private static final int NUMBER_OF_SSL_PROPERTIES = 4;
 
     @Override
     public boolean isValid(GpcConfiguration config, ConstraintValidatorContext context) {
-
         validateSspUrl(config);
 
-        var missingSslProperties = checkForMissingSslProperties(config);
+        TreeMap<String, String> environmentVariables = new TreeMap<>();
+        environmentVariables.put("GPC_CONSUMER_SPINE_CLIENT_CERT", config.getClientCert());
+        environmentVariables.put("GPC_CONSUMER_SPINE_CLIENT_KEY", config.getClientKey());
+        environmentVariables.put("GPC_CONSUMER_SPINE_ROOT_CA_CERT", config.getRootCA());
+        environmentVariables.put("GPC_CONSUMER_SPINE_SUB_CA_CERT", config.getSubCA());
+
+        List<String> missingSslProperties = new ArrayList<>();
+        List<String> invalidSslProperties = new ArrayList<>();
+
+        for (var variable : environmentVariables.entrySet()) {
+            if (StringUtils.isBlank(variable.getValue())) {
+                missingSslProperties.add(variable.getKey());
+                invalidSslProperties.add(variable.getKey());
+            } else if (isInvalidPemFormat(variable.getValue())) {
+                invalidSslProperties.add(variable.getKey());
+            }
+        }
+
+        var orderedMissingSslProperties = missingSslProperties.stream()
+            .sorted().toList();
+
+        var presentSslProperties = environmentVariables.keySet().stream()
+            .filter(key -> !orderedMissingSslProperties.contains(key))
+            .sorted().toList();
+
         if (missingSslProperties.size() == NUMBER_OF_SSL_PROPERTIES) {
             config.setSslEnabled(false);
             return true;
         }
+
         if (!missingSslProperties.isEmpty()) {
-            setConstraintViolation(context, MISSING_SSL_PROPERTIES_VIOLATION_MESSAGE, missingSslProperties);
-            return false;
+            var message = String.format(
+                SSL_PROPERTIES_VIOLATION_MESSAGE,
+                String.join(", ", missingSslProperties),
+                String.join(", ", presentSslProperties));
+
+            setConstraintViolation(context, message);
         }
 
-        var invalidSslProperties = checkSslPropertiesAreValidPemFormat(config);
         if (!invalidSslProperties.isEmpty()) {
-            setConstraintViolation(context, INVALID_FORMAT_VIOLATION_MESSAGE, invalidSslProperties);
+            var message = String.format(PEM_FORMAT_VIOLATION_MESSAGE, String.join(", ", invalidSslProperties));
+            setConstraintViolation(context, message);
+        }
+
+        if(!missingSslProperties.isEmpty() || !invalidSslProperties.isEmpty()) {
+            config.setSslEnabled(false);
             return false;
         }
 
@@ -44,50 +84,10 @@ public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcCo
         return true;
     }
 
-    private static void setConstraintViolation(ConstraintValidatorContext context, String message, List<String> violations) {
-        String violationMessage = String.format(message, String.join(", ", violations));
-
-        LOGGER.error(violationMessage);
+    private static void setConstraintViolation(ConstraintValidatorContext context, String message) {
+        LOGGER.error(message);
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(violationMessage).addConstraintViolation();
-    }
-
-    private List<String> checkForMissingSslProperties(GpcConfiguration config) {
-        var missingSslProperty = new ArrayList<String>();
-
-        if (StringUtils.isBlank(config.getClientCert())) {
-            missingSslProperty.add("GPC_CONSUMER_SPINE_CLIENT_CERT");
-        }
-        if (StringUtils.isBlank(config.getClientKey())) {
-            missingSslProperty.add("GPC_CONSUMER_SPINE_CLIENT_KEY");
-        }
-        if (StringUtils.isBlank(config.getRootCA())) {
-            missingSslProperty.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
-        }
-        if (StringUtils.isBlank(config.getSubCA())) {
-            missingSslProperty.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
-        }
-
-        return missingSslProperty;
-    }
-
-    private List<String> checkSslPropertiesAreValidPemFormat(GpcConfiguration config) {
-        var invalidSslProperties = new ArrayList<String>();
-
-        if (isInvalidPemFormat(config.getClientCert())) {
-            invalidSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_CERT");
-        }
-        if (isInvalidPemFormat(config.getClientKey())) {
-            invalidSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_KEY");
-        }
-        if (isInvalidPemFormat(config.getRootCA())) {
-            invalidSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
-        }
-        if (isInvalidPemFormat(config.getSubCA())) {
-            invalidSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
-        }
-
-        return invalidSslProperties;
+        context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
     }
 
     private boolean isInvalidPemFormat(String sslProperty) {
