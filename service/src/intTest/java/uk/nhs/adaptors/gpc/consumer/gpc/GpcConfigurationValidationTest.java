@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @SpringBootTest
 public class GpcConfigurationValidationTest {
 
-    public static final String VALID_CERTIFICATE =
+    private static final String VALID_CERTIFICATE =
         """
             -----BEGIN CERTIFICATE-----
             MIIDhzCCAm+gAwIBAgIESK+5NTANBgkqhkiG9w0BAQsFADBbMScwJQYDVQQDDB5SZWdlcnkgU2Vs
@@ -35,7 +35,7 @@ public class GpcConfigurationValidationTest {
             WjDDOYAag96BLBMAgvjZqFl67tL+/CNO9o4YEPZ7pg0FvI3/Xp9L3edXvvzLREbaHxCnjQ==
             -----END CERTIFICATE-----""";
 
-    public static final String VALID_RSA_PRIVATE_KEY =
+    private static final String VALID_RSA_PRIVATE_KEY =
         """
             -----BEGIN RSA PRIVATE KEY-----
             MIIEowIBAAKCAQEAoE3SC+yxGkwW0IgM4hqHAYBjVwRx2OX/EY4reBUvpddlUf0P
@@ -65,12 +65,12 @@ public class GpcConfigurationValidationTest {
             frOEfuS/2Ie8Rj8PZhhFoekjQHgtzba4w4oqfo1YeBFYc6QH/QKb
             -----END RSA PRIVATE KEY-----""";
 
-    public static final String INVALID_CERTIFICATE = "------BEGIN CERTIFICATE----- invalid value -----END CERTIFICATE-----";
-    public static final String INVALID_RSA_PRIVATE_KEY = "------BEGIN RSA PRIVATE KEY ----- invalid value -----END RSA PRIVATE KEY-----";
-    public static final String CLIENT_CERT = "clientCert";
-    public static final String CLIENT_KEY = "clientKey";
-    public static final String ROOT_CA = "rootCA";
-    public static final String SUB_CA = "subCA";
+    private static final String INVALID_CERTIFICATE = "------BEGIN CERTIFICATE----- invalid value -----END CERTIFICATE-----";
+    private static final String INVALID_RSA_PRIVATE_KEY = "------BEGIN RSA PRIVATE KEY ----- invalid value -----END RSA PRIVATE KEY-----";
+    private static final String CLIENT_CERT = "clientCert";
+    private static final String CLIENT_KEY = "clientKey";
+    private static final String ROOT_CA = "rootCA";
+    private static final String SUB_CA = "subCA";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(TestGpcConfiguration.class);
