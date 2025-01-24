@@ -67,6 +67,10 @@ public class GpcConfigurationValidationTest {
 
     public static final String INVALID_CERTIFICATE = "------BEGIN CERTIFICATE----- invalid value -----END CERTIFICATE-----";
     public static final String INVALID_RSA_PRIVATE_KEY = "------BEGIN RSA PRIVATE KEY ----- invalid value -----END RSA PRIVATE KEY-----";
+    public static final String CLIENT_CERT = "clientCert";
+    public static final String CLIENT_KEY = "clientKey";
+    public static final String ROOT_CA = "rootCA";
+    public static final String SUB_CA = "subCA";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(TestGpcConfiguration.class);
@@ -75,10 +79,10 @@ public class GpcConfigurationValidationTest {
     void When_GpcConfigurationContainsAllSslProperties_Expect_IsContextIsCreatedAndShouldUseSslIsTrue() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue("clientCert", VALID_CERTIFICATE),
-                buildPropertyValue("clientKey", VALID_RSA_PRIVATE_KEY),
-                buildPropertyValue("rootCA", VALID_CERTIFICATE),
-                buildPropertyValue("subCA", VALID_CERTIFICATE)
+                buildPropertyValue(CLIENT_CERT, VALID_CERTIFICATE),
+                buildPropertyValue(CLIENT_KEY, VALID_RSA_PRIVATE_KEY),
+                buildPropertyValue(ROOT_CA, VALID_CERTIFICATE),
+                buildPropertyValue(SUB_CA, VALID_CERTIFICATE)
             )
             .run(context -> {
                 assertThat(context)
@@ -101,10 +105,10 @@ public class GpcConfigurationValidationTest {
     void When_GpcConfigurationNoSslProperties_Expect_IsContextIsCreatedAndShouldUseSslIsFalse() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue("clientCert", ""),
-                buildPropertyValue("clientKey", ""),
-                buildPropertyValue("rootCA", ""),
-                buildPropertyValue("subCA", "")
+                buildPropertyValue(CLIENT_CERT, ""),
+                buildPropertyValue(CLIENT_KEY, ""),
+                buildPropertyValue(ROOT_CA, ""),
+                buildPropertyValue(SUB_CA, "")
             )
             .run(context -> {
                 assertThat(context)
@@ -128,10 +132,10 @@ public class GpcConfigurationValidationTest {
     ) {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue("clientCert", ""),
-                buildPropertyValue("clientKey", VALID_RSA_PRIVATE_KEY),
-                buildPropertyValue("rootCA", VALID_CERTIFICATE),
-                buildPropertyValue("subCA", VALID_CERTIFICATE)
+                buildPropertyValue(CLIENT_CERT, ""),
+                buildPropertyValue(CLIENT_KEY, VALID_RSA_PRIVATE_KEY),
+                buildPropertyValue(ROOT_CA, VALID_CERTIFICATE),
+                buildPropertyValue(SUB_CA, VALID_CERTIFICATE)
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -150,10 +154,10 @@ public class GpcConfigurationValidationTest {
     void When_GpcConfigurationHasAnInvalidCertificate_Expect_ContextIsNotCreated() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue("clientCert", INVALID_CERTIFICATE),
-                buildPropertyValue("clientKey", VALID_RSA_PRIVATE_KEY),
-                buildPropertyValue("rootCA", VALID_CERTIFICATE),
-                buildPropertyValue("subCA", VALID_CERTIFICATE)
+                buildPropertyValue(CLIENT_CERT, INVALID_CERTIFICATE),
+                buildPropertyValue(CLIENT_KEY, VALID_RSA_PRIVATE_KEY),
+                buildPropertyValue(ROOT_CA, VALID_CERTIFICATE),
+                buildPropertyValue(SUB_CA, VALID_CERTIFICATE)
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -172,10 +176,10 @@ public class GpcConfigurationValidationTest {
     void When_GpcConfigurationHasAnInvalidClientKey_Expect_ContextIsNotCreated() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue("clientCert", VALID_CERTIFICATE),
-                buildPropertyValue("clientKey", INVALID_RSA_PRIVATE_KEY),
-                buildPropertyValue("rootCA", VALID_CERTIFICATE),
-                buildPropertyValue("subCA", VALID_CERTIFICATE)
+                buildPropertyValue(CLIENT_CERT, VALID_CERTIFICATE),
+                buildPropertyValue(CLIENT_KEY, INVALID_RSA_PRIVATE_KEY),
+                buildPropertyValue(ROOT_CA, VALID_CERTIFICATE),
+                buildPropertyValue(SUB_CA, VALID_CERTIFICATE)
             )
             .run(context -> {
                 assertThat(context).hasFailed();
