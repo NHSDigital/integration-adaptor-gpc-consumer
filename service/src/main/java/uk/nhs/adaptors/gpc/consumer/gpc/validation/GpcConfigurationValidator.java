@@ -4,14 +4,11 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.Ordered;
 import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 @Slf4j
@@ -25,20 +22,17 @@ public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcCo
             To enable mutual TLS you must provide %s environment variable(s).
             To disable mutual TLS you must remove %s environment variable(s).""";
 
-    private static final int NUMBER_OF_SSL_PROPERTIES = 4;
-
     @Override
     public boolean isValid(GpcConfiguration config, ConstraintValidatorContext context) {
-        validateSspUrl(config);
-
         TreeMap<String, String> environmentVariables = new TreeMap<>();
         environmentVariables.put("GPC_CONSUMER_SPINE_CLIENT_CERT", config.getClientCert());
         environmentVariables.put("GPC_CONSUMER_SPINE_CLIENT_KEY", config.getClientKey());
         environmentVariables.put("GPC_CONSUMER_SPINE_ROOT_CA_CERT", config.getRootCA());
         environmentVariables.put("GPC_CONSUMER_SPINE_SUB_CA_CERT", config.getSubCA());
-
         List<String> missingSslProperties = new ArrayList<>();
         List<String> invalidSslProperties = new ArrayList<>();
+
+        validateSspUrl(config);
 
         for (var variable : environmentVariables.entrySet()) {
             if (StringUtils.isBlank(variable.getValue())) {
@@ -49,14 +43,11 @@ public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcCo
             }
         }
 
-        var orderedMissingSslProperties = missingSslProperties.stream()
-            .sorted().toList();
-
         var presentSslProperties = environmentVariables.keySet().stream()
-            .filter(key -> !orderedMissingSslProperties.contains(key))
+            .filter(key -> !missingSslProperties.contains(key))
             .sorted().toList();
 
-        if (missingSslProperties.size() == NUMBER_OF_SSL_PROPERTIES) {
+        if (presentSslProperties.isEmpty()) {
             config.setSslEnabled(false);
             return true;
         }
@@ -75,7 +66,7 @@ public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcCo
             setConstraintViolation(context, message);
         }
 
-        if(!missingSslProperties.isEmpty() || !invalidSslProperties.isEmpty()) {
+        if (!missingSslProperties.isEmpty() || !invalidSslProperties.isEmpty()) {
             config.setSslEnabled(false);
             return false;
         }
