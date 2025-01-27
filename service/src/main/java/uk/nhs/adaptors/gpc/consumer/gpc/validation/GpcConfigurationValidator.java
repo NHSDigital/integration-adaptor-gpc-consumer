@@ -18,8 +18,8 @@ public class GpcConfigurationValidator implements ConstraintValidator<ValidGpcCo
         "The environment variable(s) %s are not in a valid PEM format";
     private static final String SSL_PROPERTIES_VIOLATION_MESSAGE =
         """
-            You must either use mutual TLS or decide to disable it.
-            To enable mutual TLS you must provide %s environment variable(s).
+            You must either use mutual TLS or decide to disable it.%n\
+            To enable mutual TLS you must provide %s environment variable(s).%n\
             To disable mutual TLS you must remove %s environment variable(s).""";
 
     @Override
