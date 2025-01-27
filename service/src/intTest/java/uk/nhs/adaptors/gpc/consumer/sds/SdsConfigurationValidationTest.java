@@ -20,7 +20,6 @@ public class SdsConfigurationValidationTest {
     private static final String SUPPLIER_ODS_CODE = "supplierOdsCode";
     private static final String SUPPLIER_ODS_CODE_VALUE = "A00001";
 
-
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(TestSdsConfiguration.class);
 
@@ -31,6 +30,7 @@ public class SdsConfigurationValidationTest {
                 buildPropertyValue(URL, URL_VALUE),
                 buildPropertyValue(API_KEY, API_KEY_VALUE),
                 buildPropertyValue(SUPPLIER_ODS_CODE, SUPPLIER_ODS_CODE_VALUE)
+
             )
             .run(context -> {
                 assertThat(context)
@@ -120,7 +120,6 @@ public class SdsConfigurationValidationTest {
             });
     }
 
-
     @Test
     void When_SdsConfigurationDoesNotHaveAnyValuesPopulated_Expect_ContextIsNotCreated() {
         contextRunner
@@ -146,5 +145,3 @@ public class SdsConfigurationValidationTest {
     static class TestSdsConfiguration {
     }
 }
-
-
