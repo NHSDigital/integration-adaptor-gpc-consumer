@@ -13,19 +13,20 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 public class SdsConfigurationValidationTest {
 
-
     private static final String URL = "url";
     private static final String API_KEY = "apiKey";
+    private static final String SUPPLIER_ODS_CODE = "supplierOdsCode";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(TestSdsConfiguration.class);
 
     @Test
-    void When_SdsHasUrlAndApiKeyPopulated_Expect_ContextIsCreatedAndValuesAreSet() {
+    void When_SdsConfigurationHasAllValuesPopulated_Expect_ContextIsCreatedAndValuesAreSet() {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue(URL, "https://example.com"),
-                buildPropertyValue(API_KEY, "api-key")
+                buildPropertyValue(API_KEY, "api-key"),
+                buildPropertyValue(SUPPLIER_ODS_CODE, "A00001")
             )
             .run(context -> {
                 assertThat(context)
@@ -46,7 +47,8 @@ public class SdsConfigurationValidationTest {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue(URL, ""),
-                buildPropertyValue(API_KEY, "api-key")
+                buildPropertyValue(API_KEY, "api-key"),
+                buildPropertyValue(SUPPLIER_ODS_CODE, "A00001")
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -64,7 +66,8 @@ public class SdsConfigurationValidationTest {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue(URL, "https://example.com"),
-                buildPropertyValue(API_KEY, "")
+                buildPropertyValue(API_KEY, ""),
+                buildPropertyValue(SUPPLIER_ODS_CODE, "A00001")
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -74,6 +77,24 @@ public class SdsConfigurationValidationTest {
                 assertThat(startupFailure)
                     .rootCause()
                     .hasMessageContaining("The environment variable(s) GPC_CONSUMER_SDS_APIKEY must be provided.");
+            });
+    }
+
+    @Test
+    void When_SdsDoesNotHaveOdsCodePopulated_Expect_ContextIsNotCreated() {
+        contextRunner
+            .withPropertyValues(
+                buildPropertyValue(URL, "https://example.com"),
+                buildPropertyValue(API_KEY, "test-api-key")
+            )
+            .run(context -> {
+                assertThat(context).hasFailed();
+
+                var startupFailure = context.getStartupFailure();
+
+                assertThat(startupFailure)
+                    .rootCause()
+                    .hasMessageContaining("The environment variable(s) GPC_SUPPLIER_ODS_CODE must be provided.");
             });
     }
 

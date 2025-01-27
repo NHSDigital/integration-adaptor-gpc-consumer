@@ -15,4 +15,5 @@ import uk.nhs.adaptors.gpc.consumer.sds.validation.ValidSdsConfiguration;
 public class SdsConfiguration {
     private String url;
     private String apiKey;
+    private String supplierOdsCode;
 }

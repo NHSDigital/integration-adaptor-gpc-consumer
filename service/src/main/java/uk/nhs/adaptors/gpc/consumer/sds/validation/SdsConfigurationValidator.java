@@ -27,6 +27,10 @@ public class SdsConfigurationValidator implements ConstraintValidator<ValidSdsCo
             missingSdsProperties.add("GPC_CONSUMER_SDS_APIKEY");
         }
 
+        if (StringUtils.isEmpty(config.getSupplierOdsCode())) {
+            missingSdsProperties.add("GPC_SUPPLIER_ODS_CODE");
+        }
+
         if (missingSdsProperties.isEmpty()) {
             return true;
         }
