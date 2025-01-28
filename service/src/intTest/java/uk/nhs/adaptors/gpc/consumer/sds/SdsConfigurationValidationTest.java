@@ -14,8 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 public class SdsConfigurationValidationTest {
 
     private static final String URL = "url";
+    private static final String URL_VALUE = "https://example.com";
     private static final String API_KEY = "apiKey";
+    private static final String API_KEY_VALUE = "api-key";
     private static final String SUPPLIER_ODS_CODE = "supplierOdsCode";
+    private static final String SUPPLIER_ODS_CODE_VALUE = "A00001";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(TestSdsConfiguration.class);
@@ -24,9 +27,10 @@ public class SdsConfigurationValidationTest {
     void When_SdsConfigurationHasAllValuesPopulated_Expect_ContextIsCreatedAndValuesAreSet() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue(URL, "https://example.com"),
-                buildPropertyValue(API_KEY, "api-key"),
-                buildPropertyValue(SUPPLIER_ODS_CODE, "A00001")
+                buildPropertyValue(URL, URL_VALUE),
+                buildPropertyValue(API_KEY, API_KEY_VALUE),
+                buildPropertyValue(SUPPLIER_ODS_CODE, SUPPLIER_ODS_CODE_VALUE)
+
             )
             .run(context -> {
                 assertThat(context)
@@ -36,19 +40,20 @@ public class SdsConfigurationValidationTest {
                 var sdsConfiguration = context.getBean(SdsConfiguration.class);
 
                 assertAll(
-                    () -> assertThat(sdsConfiguration.getUrl()).isNotEmpty(),
-                    () -> assertThat(sdsConfiguration.getApiKey()).isNotEmpty()
+                    () -> assertThat(sdsConfiguration.getUrl()).isEqualTo(URL_VALUE),
+                    () -> assertThat(sdsConfiguration.getApiKey()).isEqualTo(API_KEY_VALUE),
+                    () -> assertThat(sdsConfiguration.getSupplierOdsCode()).isEqualTo(SUPPLIER_ODS_CODE_VALUE)
                 );
             });
     }
 
     @Test
-    void When_SdsDoesNotHaveUrlPopulated_Expect_ContextIsNotCreated() {
+    void When_SdsConfigurationDoesNotHaveUrlPopulated_Expect_ContextIsNotCreated() {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue(URL, ""),
-                buildPropertyValue(API_KEY, "api-key"),
-                buildPropertyValue(SUPPLIER_ODS_CODE, "A00001")
+                buildPropertyValue(API_KEY, API_KEY_VALUE),
+                buildPropertyValue(SUPPLIER_ODS_CODE, SUPPLIER_ODS_CODE_VALUE)
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -62,12 +67,12 @@ public class SdsConfigurationValidationTest {
     }
 
     @Test
-    void When_SdsDoesNotHaveApiKeyPopulated_Expect_ContextIsNotCreated() {
+    void When_SdsConfigurationDoesNotHaveApiKeyPopulated_Expect_ContextIsNotCreated() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue(URL, "https://example.com"),
+                buildPropertyValue(URL, URL_VALUE),
                 buildPropertyValue(API_KEY, ""),
-                buildPropertyValue(SUPPLIER_ODS_CODE, "A00001")
+                buildPropertyValue(SUPPLIER_ODS_CODE, SUPPLIER_ODS_CODE_VALUE)
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -81,11 +86,11 @@ public class SdsConfigurationValidationTest {
     }
 
     @Test
-    void When_SdsDoesNotHaveOdsCodePopulated_Expect_ContextIsNotCreated() {
+    void When_SdsConfigurationDoesNotHaveOdsCodePopulated_Expect_ContextIsNotCreated() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue(URL, "https://example.com"),
-                buildPropertyValue(API_KEY, "test-api-key")
+                buildPropertyValue(URL, URL_VALUE),
+                buildPropertyValue(API_KEY, API_KEY_VALUE)
             )
             .run(context -> {
                 assertThat(context).hasFailed();
@@ -95,6 +100,39 @@ public class SdsConfigurationValidationTest {
                 assertThat(startupFailure)
                     .rootCause()
                     .hasMessageContaining("The environment variable(s) GPC_SUPPLIER_ODS_CODE must be provided.");
+            });
+    }
+
+    @Test
+    void When_SdsConfigurationHasMultipleValuesNotPopulated_Expect_ContextIsNotCreated() {
+        contextRunner
+            .withPropertyValues(
+                buildPropertyValue(URL, URL_VALUE)
+            )
+            .run(context -> {
+                assertThat(context).hasFailed();
+
+                var startupFailure = context.getStartupFailure();
+
+                assertThat(startupFailure)
+                    .rootCause()
+                    .hasMessageContaining("The environment variable(s) GPC_CONSUMER_SDS_APIKEY, GPC_SUPPLIER_ODS_CODE must be provided.");
+            });
+    }
+
+    @Test
+    void When_SdsConfigurationDoesNotHaveAnyValuesPopulated_Expect_ContextIsNotCreated() {
+        contextRunner
+            .run(context -> {
+                assertThat(context).hasFailed();
+
+                var startupFailure = context.getStartupFailure();
+
+                assertThat(startupFailure)
+                    .rootCause()
+                    .hasMessageContaining(
+                        "The environment variable(s) GPC_CONSUMER_SDS_URL, GPC_CONSUMER_SDS_APIKEY, GPC_SUPPLIER_ODS_CODE must be provided."
+                    );
             });
     }
 
@@ -108,5 +146,3 @@ public class SdsConfigurationValidationTest {
     static class TestSdsConfiguration {
     }
 }
-
-
