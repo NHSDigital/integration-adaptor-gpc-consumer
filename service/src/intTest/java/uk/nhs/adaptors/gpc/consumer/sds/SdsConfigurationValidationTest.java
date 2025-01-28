@@ -131,7 +131,8 @@ public class SdsConfigurationValidationTest {
                 assertThat(startupFailure)
                     .rootCause()
                     .hasMessageContaining(
-                        "The environment variable(s) GPC_CONSUMER_SDS_URL, GPC_CONSUMER_SDS_APIKEY, GPC_SUPPLIER_ODS_CODE must be provided.");
+                        "The environment variable(s) GPC_CONSUMER_SDS_URL, GPC_CONSUMER_SDS_APIKEY, GPC_SUPPLIER_ODS_CODE must be provided."
+                    );
             });
     }
 
