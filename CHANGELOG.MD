@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Introduced configuration validation on `SDS` environment variables at application startup.
+
+  If any of the values for the following environment variables are not provided then the application will error at
+  startup and provided details of the missing fields: `GPC_CONSUMER_SDS_URL`, `GPC_CONSUMER_SDS_APIKEY`, 
+  `GPC_SUPPLIER_ODS_CODE`.
+
 ## [1.0.1] - 2024-06-06
 
 ### Fixed
