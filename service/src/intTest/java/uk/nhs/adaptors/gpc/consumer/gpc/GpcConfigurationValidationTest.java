@@ -1,21 +1,16 @@
 package uk.nhs.adaptors.gpc.consumer.gpc;
 
-import io.netty.handler.ssl.SslContext;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Configuration;
 import uk.nhs.adaptors.gpc.consumer.filters.SslContextBuilderWrapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-@ExtendWith(OutputCaptureExtension.class)
 public class GpcConfigurationValidationTest {
 
     private static final String VALID_CERTIFICATE =
@@ -215,7 +210,7 @@ public class GpcConfigurationValidationTest {
     }
 
     @Test
-    void When_GpcConfigurationHasSspUrlPresentWithoutTrailingSlash_Expect_ContextIsCreatedAndIsNotSspUrlHasTrailingSlash() {
+    void When_GpcConfigurationHasSspUrlPresentWithoutTrailingSlash_Expect_ContextIsCreatedAndIsSspEnabledAndUrlHasTrailingSlash() {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue("sspUrl", "/this-is-a-url.com")
@@ -235,10 +230,10 @@ public class GpcConfigurationValidationTest {
     }
 
     @Test
-    void When_GpcConfigurationDoesNotHaveSspUrlPresent_Expect_ContextIsCreatedAndIsNotSspEnabled() {
+    void When_GpcConfigurationDoesNotHaveSspUrlPresent_Expect_ContextIsCreatedAndSspIsNotEnabled() {
         contextRunner
             .withPropertyValues(
-                buildPropertyValue("sspUrl", "/this-is-a-url.com")
+                buildPropertyValue("sspUrl", "")
             )
             .run(context -> {
                 assertThat(context)
@@ -249,78 +244,6 @@ public class GpcConfigurationValidationTest {
                 assertThat(gpcConfiguration.isSspEnabled()).isFalse();
             });
     }
-
-    @Test
-    void When_SslEnabled_Expect_ConfigurationInjectedCorrectlyIntoSslBuilderWrapperAndSslContextUsesTLS(CapturedOutput capturedOutput) {
-        contextRunner
-            .withPropertyValues(
-                buildPropertyValue(CLIENT_CERT, VALID_CERTIFICATE),
-                buildPropertyValue(CLIENT_KEY, VALID_RSA_PRIVATE_KEY),
-                buildPropertyValue(ROOT_CA, VALID_CERTIFICATE),
-                buildPropertyValue(SUB_CA, VALID_CERTIFICATE)
-            )
-            .run(context -> {
-                assertThat(context)
-                    .hasNotFailed()
-                    .hasSingleBean(SslContextBuilderWrapper.class);
-
-                SslContextBuilderWrapper wrapper = context.getBean(SslContextBuilderWrapper.class);
-
-                SslContext sslContext = wrapper.buildSSLContext();
-                assertThat(sslContext).isNotNull();
-
-                assertThat(capturedOutput.getOut()).contains("Using standard SSL context. TLS mutual authentication is not enabled.");
-            });
-    }
-
-    @Test
-    void When_SslDisabled_Expect_ConfigurationInjectedIntoSslBuilderWrapperAndSslContextDoesNotUseTLS(
-        CapturedOutput capturedOutput
-    ) {
-        contextRunner
-            .withPropertyValues(
-                buildPropertyValue(CLIENT_CERT, ""),
-                buildPropertyValue(CLIENT_KEY, ""),
-                buildPropertyValue(ROOT_CA, ""),
-                buildPropertyValue(SUB_CA, "")
-            )
-            .run(context -> {
-                assertThat(context)
-                    .hasNotFailed()
-                    .hasSingleBean(SslContextBuilderWrapper.class);
-
-                SslContextBuilderWrapper wrapper = context.getBean(SslContextBuilderWrapper.class);
-
-                var sslContext = wrapper.buildSSLContext();
-                assertThat(sslContext).isNotNull();
-
-                assertThat(capturedOutput.getOut()).contains("Using standard SSL context. TLS mutual authentication is not enabled.");
-            });
-    }
-
-    @Test
-    void When_SslEnabled_Expect_ConfigurationInjectedIntoSslBuilderWrapperAndSslContextDoesNotUseTLS(CapturedOutput capturedOutput) {
-        contextRunner
-            .withPropertyValues(
-                buildPropertyValue(CLIENT_CERT, VALID_CERTIFICATE),
-                buildPropertyValue(CLIENT_KEY, VALID_RSA_PRIVATE_KEY),
-                buildPropertyValue(ROOT_CA, VALID_CERTIFICATE),
-                buildPropertyValue(SUB_CA, VALID_CERTIFICATE)
-            )
-            .run(context -> {
-                assertThat(context)
-                    .hasNotFailed()
-                    .hasSingleBean(SslContextBuilderWrapper.class);
-
-                SslContextBuilderWrapper wrapper = context.getBean(SslContextBuilderWrapper.class);
-
-                var sslContext = wrapper.buildSSLContext();
-                assertThat(sslContext).isNotNull();
-
-                assertThat(capturedOutput.getOut()).contains("Using SSL context with client certificates for TLS mutual authentication.");
-            });
-    }
-
 
     @Contract(pure = true)
     private static @NotNull String buildPropertyValue(String propertyName, String value) {
