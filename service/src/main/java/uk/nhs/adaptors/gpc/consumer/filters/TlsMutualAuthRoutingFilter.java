@@ -16,16 +16,20 @@ import reactor.netty.http.client.HttpClient;
 @Component
 public class TlsMutualAuthRoutingFilter extends NettyRoutingFilter {
 
+    private final SslContextBuilderWrapper sslContextBuilderWrapper;
+
     public TlsMutualAuthRoutingFilter(
         HttpClient httpClient,
         ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
-        HttpClientProperties properties) {
+        HttpClientProperties properties,
+        SslContextBuilderWrapper sslContextBuilderWrapper) {
         super(httpClient, headersFiltersProvider, properties);
+        this.sslContextBuilderWrapper = sslContextBuilderWrapper;
     }
 
     @Override
     protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
-        SslContext sslContext = new SslContextBuilderWrapper().buildSSLContext();
+        SslContext sslContext = sslContextBuilderWrapper.buildSSLContext();
         return HttpClient.create().secure(t -> t.sslContext(sslContext));
     }
 }

@@ -9,28 +9,25 @@ import javax.net.ssl.TrustManagerFactory;
 import com.heroku.sdk.EnvKeyStore;
 
 import io.netty.handler.ssl.SslContext;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
 
 @Slf4j
+@Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SslContextBuilderWrapper {
-    @Value("${gpc-consumer.gpc.clientKey}")
-    private String clientKey;
-    @Value("${gpc-consumer.gpc.clientCert}")
-    private String clientCert;
-    @Value("${gpc-consumer.gpc.rootCA}")
-    private String rootCA;
-    @Value("${gpc-consumer.gpc.subCA}")
-    private String subCA;
-    @Value("${gpc-consumer.gpc.sslEnabled}")
-    private boolean sslEnabled;
+
+    private final GpcConfiguration config;
 
     @SneakyThrows
     public SslContext buildSSLContext() {
-        if (sslEnabled) {
+        if (config.isSslEnabled()) {
             LOGGER.info("Using SSL context with client certificates for TLS mutual authentication.");
             return buildSSLContextWithClientCertificates();
         }
@@ -45,13 +42,13 @@ public class SslContextBuilderWrapper {
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-        var caCertChain = toPem(subCA) + toPem(rootCA);
+        var caCertChain = toPem(config.getSubCA()) + toPem(config.getRootCA());
 
         var randomPassword = UUID.randomUUID().toString();
 
         KeyStore ks = EnvKeyStore.createFromPEMStrings(
-            toPem(clientKey),
-            toPem(clientCert),
+            toPem(config.getClientKey()),
+            toPem(config.getClientCert()),
             randomPassword
         ).keyStore();
 
