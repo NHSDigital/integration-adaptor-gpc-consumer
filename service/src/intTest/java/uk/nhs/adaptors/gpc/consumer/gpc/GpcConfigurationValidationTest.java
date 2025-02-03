@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
-import uk.nhs.adaptors.gpc.consumer.filters.SslContextBuilderWrapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -72,7 +71,7 @@ public class GpcConfigurationValidationTest {
     private static final String SUB_CA = "subCA";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-        .withUserConfiguration(TestGpcConfiguration.class, SslContextBuilderWrapper.class);
+        .withUserConfiguration(TestGpcConfiguration.class);
 
     @Test
     void When_GpcConfigurationContainsAllSslProperties_Expect_IsContextIsCreatedAndShouldUseSslIsTrue() {
