@@ -36,8 +36,9 @@ public class SslContextBuilderWrapper {
     }
     @SneakyThrows
     public SslContext buildStandardSslContext() {
-        LOGGER.info("Using standard SSL context.");
-        return io.netty.handler.ssl.SslContextBuilder.forClient().build();
+        var sslContext = io.netty.handler.ssl.SslContextBuilder.forClient().build();
+        LOGGER.info("Built standard SSL context.");
+        return sslContext;
     }
 
     @SneakyThrows
@@ -62,11 +63,14 @@ public class SslContextBuilderWrapper {
             TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(ts);
 
-        return io.netty.handler.ssl.SslContextBuilder
+        var sslContext =  io.netty.handler.ssl.SslContextBuilder
             .forClient()
             .keyManager(keyManagerFactory)
             .trustManager(trustManagerFactory)
             .build();
+
+        LOGGER.info("Built SSL context for TLS.");
+        return sslContext;
     }
 
     private String toPem(String cert) {
