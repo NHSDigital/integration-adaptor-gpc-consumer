@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Introduced configuration validation on `GPC_CONSUMER` environment variables at application startup.
+
+  To use TLS Mutual Authentication, then *all* the following environment variables must be provided and in a valid PEM 
+  format: `GPC_CONSUMER_SPINE_CLIENT_CERT`, `GPC_CONSUMER_SPINE_CLIENT_KEY`, `GPC_CONSUMER_SPINE_ROOT_CA_CERT`, 
+  `GPC_CONSUMER_SPINE_SUB_CA_CERT`. 
+
+  To disable TLS Mutual Authentication, then *none* of the above-listed environment variables should be provided.
+
+  In the event that only some of the environment variables are provided, the application will fail to start and an error
+  will be presented detailing which environment variables to add or remove.  If any of the above-listed environment
+  variables are provided but are not in a valid PEM format, then the application will report the affected environment 
+  variables and fail to start.
+
 ## [1.0.1] - 2024-06-06
 
 ### Fixed

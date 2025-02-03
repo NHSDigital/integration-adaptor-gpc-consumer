@@ -209,7 +209,7 @@ public class GpcConfigurationValidationTest {
     }
 
     @Test
-    void When_GpcConfigurationHasSspUrlPresentWithoutTrailingSlash_Expect_ContextIsCreatedAndIsNotSspUrlHasTrailingSlash() {
+    void When_GpcConfigurationHasSspUrlPresentWithoutTrailingSlash_Expect_ContextIsCreatedAndIsSspEnabledAndUrlHasTrailingSlash() {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue("sspUrl", "/this-is-a-url.com")
@@ -229,7 +229,7 @@ public class GpcConfigurationValidationTest {
     }
 
     @Test
-    void When_GpcConfigurationDoesNotHaveSspUrlPresent_Expect_ContextIsCreatedAndIsNotSspEnabled() {
+    void When_GpcConfigurationDoesNotHaveSspUrlPresent_Expect_ContextIsCreatedAndSspIsNotEnabled() {
         contextRunner
             .withPropertyValues(
                 buildPropertyValue("sspUrl", "")

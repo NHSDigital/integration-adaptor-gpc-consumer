@@ -1,52 +1,33 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.heroku.sdk.EnvKeyStore;
 
 import io.netty.handler.ssl.SslContext;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import uk.nhs.adaptors.gpc.consumer.gpc.GpcConfiguration;
 import uk.nhs.adaptors.gpc.consumer.utils.PemFormatter;
 
+
 @Slf4j
+@Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class SslContextBuilderWrapper {
-    private String clientKey;
-    private String clientCert;
-    private String rootCert;
-    private String subCert;
 
-    public SslContextBuilderWrapper clientKey(String clientKey) {
-        this.clientKey = toPem(clientKey);
-        return this;
-    }
-
-    public SslContextBuilderWrapper clientCert(String clientCert) {
-        this.clientCert = toPem(clientCert);
-        return this;
-    }
-
-    public SslContextBuilderWrapper rootCert(String rootCert) {
-        this.rootCert = toPem(rootCert);
-        return this;
-    }
-
-    public SslContextBuilderWrapper subCert(String subCert) {
-        this.subCert = toPem(subCert);
-        return this;
-    }
+    private final GpcConfiguration config;
 
     @SneakyThrows
     public SslContext buildSSLContext() {
-        if (shouldBuildSslContext()) {
+        if (config.isSslEnabled()) {
             LOGGER.info("Using SSL context with client certificates for TLS mutual authentication.");
             return buildSSLContextWithClientCertificates();
         }
@@ -55,48 +36,22 @@ public class SslContextBuilderWrapper {
     }
     @SneakyThrows
     public SslContext buildStandardSslContext() {
-        LOGGER.info("Using standard SSL context.");
-        return io.netty.handler.ssl.SslContextBuilder.forClient().build();
-    }
-
-    private boolean shouldBuildSslContext() {
-        final int allSslProperties = 4;
-
-        var missingSslProperties = new ArrayList<String>();
-        if (StringUtils.isBlank(clientKey)) {
-            missingSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_KEY");
-        }
-        if (StringUtils.isBlank(clientCert)) {
-            missingSslProperties.add("GPC_CONSUMER_SPINE_CLIENT_CERT");
-        }
-        if (StringUtils.isBlank(rootCert)) {
-            missingSslProperties.add("GPC_CONSUMER_SPINE_ROOT_CA_CERT");
-        }
-        if (StringUtils.isBlank(subCert)) {
-            missingSslProperties.add("GPC_CONSUMER_SPINE_SUB_CA_CERT");
-        }
-
-        if (missingSslProperties.size() == allSslProperties) {
-            LOGGER.debug("No TLS MA properties were provided. Not configuring an SSL context.");
-            return false;
-        } else if (missingSslProperties.isEmpty()) {
-            LOGGER.debug("All TLS MA properties were provided. Configuration an SSL context.");
-            return true;
-        } else {
-            throw new GpConnectException("All or none of the GPC_CONSUMER_SPINE_ variables must be defined. Missing variables: "
-                + String.join(",", missingSslProperties));
-        }
+        var sslContext = io.netty.handler.ssl.SslContextBuilder.forClient().build();
+        LOGGER.info("Built standard SSL context.");
+        return sslContext;
     }
 
     @SneakyThrows
     private SslContext buildSSLContextWithClientCertificates() {
-        var caCertChain = subCert + rootCert;
+        var caCertChain = toPem(config.getSubCA()) + toPem(config.getRootCA());
 
         var randomPassword = UUID.randomUUID().toString();
 
         KeyStore ks = EnvKeyStore.createFromPEMStrings(
-            clientKey, clientCert,
-            randomPassword).keyStore();
+            toPem(config.getClientKey()),
+            toPem(config.getClientCert()),
+            randomPassword
+        ).keyStore();
 
         KeyStore ts = EnvKeyStore.createFromPEMStrings(caCertChain, randomPassword).keyStore();
 
@@ -108,14 +63,17 @@ public class SslContextBuilderWrapper {
             TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(ts);
 
-        return io.netty.handler.ssl.SslContextBuilder
+        var sslContext =  io.netty.handler.ssl.SslContextBuilder
             .forClient()
             .keyManager(keyManagerFactory)
             .trustManager(trustManagerFactory)
             .build();
+
+        LOGGER.info("Built SSL context for TLS.");
+        return sslContext;
     }
 
     private String toPem(String cert) {
-        return StringUtils.isNotBlank(cert) ? PemFormatter.format(cert) : StringUtils.EMPTY;
+        return PemFormatter.format(cert);
     }
 }
