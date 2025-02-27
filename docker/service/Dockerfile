@@ -20,4 +20,4 @@ COPY --from=package /home/gradle/service/build/libs/gpc-consumer.jar /app/gpc-co
 
 USER 65534
 
-ENTRYPOINT ["java","-Dreactor.netty.http.server.accessLogEnabled=true", "-jar", "/app/gpc-consumer.jar"]
+ENTRYPOINT ["java", "-Dreactor.netty.http.server.accessLogEnabled=true", "-XX:MaxRAMPercentage=50.0", "-jar", "/app/gpc-consumer.jar"]
