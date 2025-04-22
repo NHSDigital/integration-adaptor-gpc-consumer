@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Updated Dockerfile to set -XX:MaxRAMPercentage=75.0, optimizing JVM memory allocation for better performance
+  and efficiency in containerized environments
+
 ## [1.1.1] - 2025-03-03
 
 ### Added
