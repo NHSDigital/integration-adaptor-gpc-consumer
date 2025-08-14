@@ -70,7 +70,7 @@ public class QueryParamsEncoderTest {
 
     @ParameterizedTest
     @MethodSource("uriParams")
-    public void When_EncodingUri_Expect_UriWithProperlyEncodedParams(String inputUri,
+    void When_EncodingUri_Expect_UriWithProperlyEncodedParams(String inputUri,
             MultiValueMap<String, String> queryParams,
             String outputUri) {
 

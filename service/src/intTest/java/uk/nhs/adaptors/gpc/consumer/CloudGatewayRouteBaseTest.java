@@ -28,6 +28,8 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_TIMEOUT = 10;
     private static final String LOCALHOST_URI = "http://localhost:";
     private static final int MAX_IN_MEMORY_BYTES = 100 * 1024 * 1024;
+    public static final String ANYTOKEN = "anytoken";
+
     @LocalServerPort
     private int port;
     @Getter
@@ -55,7 +57,7 @@ public class CloudGatewayRouteBaseTest {
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, interactionId)
             .header(SSP_TRACE_ID_HEADER, SSP_TRACEID_VALUE)
-            .header(HttpHeaders.AUTHORIZATION, "anytoken");
+            .header(HttpHeaders.AUTHORIZATION, ANYTOKEN);
     }
 
     protected void When_GetRequestProducesSdsError_Expect_OperationOutcomeErrorResponse(String requestUri, String interactionId) {
@@ -65,7 +67,7 @@ public class CloudGatewayRouteBaseTest {
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, interactionId)
             .header(SSP_TRACE_ID_HEADER, "NotUUID")
-            .header(HttpHeaders.AUTHORIZATION, "anytoken")
+            .header(HttpHeaders.AUTHORIZATION, ANYTOKEN)
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -79,7 +81,7 @@ public class CloudGatewayRouteBaseTest {
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, interactionId)
             .header(SSP_TRACE_ID_HEADER, SSP_TRACEID_VALUE)
-            .header(HttpHeaders.AUTHORIZATION, "anytoken");
+            .header(HttpHeaders.AUTHORIZATION, ANYTOKEN);
     }
 
 }

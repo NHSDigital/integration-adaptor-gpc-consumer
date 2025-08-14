@@ -80,6 +80,8 @@ public class SdsClientComponentTest {
                 = "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1";
     public static final String ENDPOINT = "/Endpoint";
     public static final String DEVICE = "/Device";
+    public static final String FHIR_ODS_CODE_URL = "https://fhir.nhs.uk/Id/ods-organization-code|";
+    public static final String CONTENT_TYPE = "Content-Type";
 
     @Autowired
     private WireMockServer wireMockServer;
@@ -143,12 +145,12 @@ public class SdsClientComponentTest {
                               + "?organization=https://fhir.nhs.uk/Id/ods-organization-code%7C" + FROM_ODS_CODE
                               + "&identifier=https://fhir.nhs.uk/Id/nhsServiceInteractionId%7C" + interaction))
 
-            .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + FROM_ODS_CODE))
+            .withQueryParam("organization", equalTo(FHIR_ODS_CODE_URL + FROM_ODS_CODE))
             .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId|" + interaction))
             .withHeader("apikey", matching(".*"))
             .withHeader("X-Correlation-Id", matching("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"))
             .willReturn(aResponse()
-                .withHeader("Content-Type", "application/fhir+json")
+                .withHeader(CONTENT_TYPE, "application/fhir+json")
                 .withBody(response)));
     }
 
@@ -158,14 +160,13 @@ public class SdsClientComponentTest {
                                    + "&identifier=" + "https://fhir.nhs.uk/Id/nhsServiceInteractionId%7C" + interaction
                                    + "&manufacturing-organization=" + "https://fhir.nhs.uk/Id/ods-organization-code%7C" + SUPPLIER_ODS_CODE))
 
-                    .withQueryParam("organization", equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + FROM_ODS_CODE))
+                    .withQueryParam("organization", equalTo(FHIR_ODS_CODE_URL + FROM_ODS_CODE))
                     .withQueryParam("identifier", equalTo("https://fhir.nhs.uk/Id/nhsServiceInteractionId|" + interaction))
-                    .withQueryParam("manufacturing-organization",
-                                                    equalTo("https://fhir.nhs.uk/Id/ods-organization-code|" + SUPPLIER_ODS_CODE))
+                    .withQueryParam("manufacturing-organization", equalTo(FHIR_ODS_CODE_URL + SUPPLIER_ODS_CODE))
                     .withHeader("apikey", matching(".*"))
                     .withHeader("X-Correlation-Id", matching("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"))
                     .willReturn(aResponse()
-                                    .withHeader("Content-Type", "application/fhir+json")
+                                    .withHeader(CONTENT_TYPE, "application/fhir+json")
                                     .withBody(response)));
     }
 
@@ -173,7 +174,7 @@ public class SdsClientComponentTest {
         stubFor(get(urlPathEqualTo(path))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.UNAUTHORIZED.value())
-                .withHeader("Content-Type", "application/fhir+json")
+                .withHeader(CONTENT_TYPE, "application/fhir+json")
                 .withBody(ResourceReader.asString(sdsErrorResponse))));
     }
 
