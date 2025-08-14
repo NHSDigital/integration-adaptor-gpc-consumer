@@ -40,6 +40,10 @@ import uk.nhs.adaptors.gpccmocks.common.TemplateUtils;
 @RequestMapping("/{odsCode}/STU3/1/gpconnect")
 public class GpcController {
 
+    public static final String SSP_TRACE_ID_HEADER_MUST_BE_A_UUID = "Ssp-TraceID header must be a UUID";
+    public static final String HTTP_PREFIX = "http://";
+    public static final String NOT_FOUND = " not found";
+
     @PostMapping(value = "/structured/fhir/Patient/$gpc.getstructuredrecord")
     @ResponseStatus(value = ACCEPTED)
     public ResponseEntity<String> accessStructuredRecord(
@@ -61,7 +65,7 @@ public class GpcController {
         log.debug("Request body for 'Access Structured Record'\n{}", requestBody);
 
         if (!isUuid(sspTraceId)) {
-            return badRequest("Ssp-TraceID header must be a UUID");
+            return badRequest(SSP_TRACE_ID_HEADER_MUST_BE_A_UUID);
         }
 
         var result = (List<?>) JsonPath.read(requestBody, "$.parameter[:1].valueIdentifier.value");
@@ -71,7 +75,7 @@ public class GpcController {
         var nhsNumber = (String) result.get(0);
 
         GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
-            .baseUrl("http://" + host)
+            .baseUrl(HTTP_PREFIX + host)
             .odsCode(odsCode);
 
         switch (nhsNumber) {
@@ -80,7 +84,7 @@ public class GpcController {
                 gpcModelBuilder.nhsNumber(nhsNumber);
                 break;
             default:
-                return patientNotFound("Patient " + nhsNumber + " not found");
+                return patientNotFound("Patient " + nhsNumber + NOT_FOUND);
         }
 
         var body = TemplateUtils.fillTemplate("gpc/accessRecordStructured", gpcModelBuilder.build());
@@ -106,11 +110,11 @@ public class GpcController {
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
         if (!isUuid(sspTraceId)) {
-            return badRequest("Ssp-TraceID header must be a UUID");
+            return badRequest(SSP_TRACE_ID_HEADER_MUST_BE_A_UUID);
         }
 
         GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
-            .baseUrl("http://" + host)
+            .baseUrl(HTTP_PREFIX + host)
             .odsCode(odsCode)
             .patientId(patientId);
 
@@ -124,7 +128,7 @@ public class GpcController {
                     .nhsNumber("9690937286");
                 break;
             default:
-                return patientNotFound("Patient/" + patientId + " not found");
+                return patientNotFound("Patient/" + patientId + NOT_FOUND);
         }
 
         var body = TemplateUtils.fillTemplate("gpc/searchForAPatientsDocuments", gpcModelBuilder.build());
@@ -150,7 +154,7 @@ public class GpcController {
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId, host);
 
         if (!isUuid(sspTraceId)) {
-            return badRequest("Ssp-TraceID header must be a UUID");
+            return badRequest(SSP_TRACE_ID_HEADER_MUST_BE_A_UUID);
         }
 
         var nhsNumber = identifier.split("\\|")[1];
@@ -159,7 +163,7 @@ public class GpcController {
         }
 
         GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
-            .baseUrl("http://" + host)
+            .baseUrl(HTTP_PREFIX + host)
             .odsCode(odsCode)
             .nhsNumber(nhsNumber);
 
@@ -194,11 +198,11 @@ public class GpcController {
             odsCode, sspTraceId, sspFrom, sspTo, sspInteractionId);
 
         if (!isUuid(sspTraceId)) {
-            return badRequest("Ssp-TraceID header must be a UUID");
+            return badRequest(SSP_TRACE_ID_HEADER_MUST_BE_A_UUID);
         }
 
         if (!"07a6483f-732b-461e-86b6-edb665c45510".equals(documentId)) {
-            return referenceNotFound("Binary/" + documentId + " not found");
+            return referenceNotFound("Binary/" + documentId + NOT_FOUND);
         }
 
         var gpcModel = GpcModel.builder()
@@ -230,7 +234,7 @@ public class GpcController {
         log.debug("Request body for 'Migrate Structured Record'\n{}", requestBody);
 
         if (!isUuid(sspTraceId)) {
-            return badRequest("Ssp-TraceID header must be a UUID");
+            return badRequest(SSP_TRACE_ID_HEADER_MUST_BE_A_UUID);
         }
 
         var result = (List<?>) JsonPath.read(requestBody, "$.parameter[:1].valueIdentifier.value");
@@ -240,7 +244,7 @@ public class GpcController {
         var nhsNumber = (String) result.get(0);
 
         GpcModel.GpcModelBuilder gpcModelBuilder = GpcModel.builder()
-            .baseUrl("http://" + host)
+            .baseUrl(HTTP_PREFIX + host)
             .odsCode(odsCode);
 
         switch (nhsNumber) {
@@ -249,7 +253,7 @@ public class GpcController {
                 gpcModelBuilder.nhsNumber(nhsNumber);
                 break;
             default:
-                return patientNotFound("Patient " + nhsNumber + " not found");
+                return patientNotFound("Patient " + nhsNumber + NOT_FOUND);
         }
 
         var body = TemplateUtils.fillTemplate("gpc/migrateStructuredPatient", gpcModelBuilder.build());
