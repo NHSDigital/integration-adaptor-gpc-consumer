@@ -30,7 +30,8 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_IN_MEMORY_BYTES = 100 * 1024 * 1024;
     public static final String ANYTOKEN = "anytoken";
 
-    private int port = 8090;
+    @LocalServerPort
+    private int port;
     @Getter
     private WebTestClient webTestClient;
     @Getter
