@@ -31,7 +31,7 @@ dependencies {
 
 	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:7.6.1"
 
-	implementation "com.heroku.sdk:env-keystore:1.1.11"
+	implementation "com.heroku.sdk:env-keystore:1.1.12"
 
 	implementation ("org.apache.commons:commons-lang3:3.17.0")
 
