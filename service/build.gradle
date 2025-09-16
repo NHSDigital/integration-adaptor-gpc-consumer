@@ -19,8 +19,12 @@ apply plugin: "checkstyle"
 apply plugin: "com.github.spotbugs"
 
 group = "uk.nhs.adaptors"
-sourceCompatibility = "21"
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 repositories {
 	mavenCentral()
 }
@@ -35,7 +39,7 @@ dependencies {
 	implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:8.4.0"
 	implementation "com.heroku.sdk:env-keystore:1.1.12"
 
-	implementation "org.apache.commons:commons-lang3:3.17.0"
+	implementation "org.apache.commons:commons-lang3:3.18.0"
 	implementation 'org.jetbrains:annotations:26.0.2'
 	implementation ("org.apache.commons:commons-lang3:3.18.0")
 	implementation 'org.jetbrains:annotations:26.0.2-1'
@@ -49,6 +53,8 @@ dependencies {
 	testImplementation "com.github.tomakehurst:wiremock-standalone:3.0.1"
 	testImplementation "org.assertj:assertj-core:3.27.4"
 	testImplementation "org.testcontainers:testcontainers:1.21.3"
+    testImplementation "org.apache.commons:commons-compress:1.28.0"
+    testImplementation "org.springframework.cloud:spring-cloud-gateway-server:4.3.1"
 }
 
 dependencyManagement {
@@ -89,21 +95,21 @@ configurations {
 	integrationTestAnnotationProcessor.extendsFrom testAnnotationProcessor
 }
 
-task integrationTest(type: Test) {
-	useJUnitPlatform() {
-		description = "Runs integration tests."
-		group = "verification"
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform() {
+        description = "Runs integration tests."
+        group = "verification"
 
-		testClassesDirs = sourceSets.integrationTest.output.classesDirs
-		classpath = sourceSets.integrationTest.runtimeClasspath
-		shouldRunAfter test
-	}
+        testClassesDirs = sourceSets.integrationTest.output.classesDirs
+        classpath = sourceSets.integrationTest.runtimeClasspath
+    }
+    shouldRunAfter test
 }
 
-tasks.withType(Test) {
-	testLogging {
-		events "passed", "skipped", "failed"
-	}
+tasks.withType(Test).configureEach {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 check.dependsOn integrationTest
@@ -112,7 +118,11 @@ spotbugsTest.enabled = false
 spotbugsIntegrationTest.enabled = false
 spotbugsMain {
 	reports {
-		html.enabled = true
-		xml.enabled = true
+		html {
+            enabled(true)
+        }
+        xml {
+            enabled(true)
+        }
     }
 }
