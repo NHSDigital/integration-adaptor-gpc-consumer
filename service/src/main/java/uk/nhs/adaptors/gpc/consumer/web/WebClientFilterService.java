@@ -33,11 +33,22 @@ public class WebClientFilterService {
         return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
             clientResponse.statusCode();
             if (clientResponse.statusCode().equals(httpStatus)) {
-                LOGGER.info(requestType + " request successful, status code: {}", clientResponse.statusCode());
+                LOGGER.info("{} request successful, status code: {}", requestType, clientResponse.statusCode());
                 return Mono.just(clientResponse);
-            } else {
-                return getResponseError(clientResponse, requestType);
             }
+
+            if (requestType == RequestType.SDS) {
+                LOGGER.warn("SDS returned {}, forwarding response unchanged", clientResponse.statusCode());
+                return Mono.just(clientResponse);
+            }
+
+            if (requestType == RequestType.GPC) {
+                LOGGER.warn("GPC returned {}, forwarding response unchanged", clientResponse.statusCode());
+                return Mono.just(clientResponse);
+            }
+
+            return getResponseError(clientResponse, requestType);
+
         });
     }
 

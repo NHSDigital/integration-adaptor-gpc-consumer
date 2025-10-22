@@ -59,8 +59,13 @@ public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest
             .header(SSP_TRACE_ID_HEADER, "NotUUID")
             .header(HttpHeaders.AUTHORIZATION, "anytoken")
             .exchange()
-            .expectStatus()
-            .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        // TODO: NIAD-1165 GPCC should use the SDS API OperationOutcome here instead of a Spring default error response body
+            .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST)
+            .expectHeader().contentTypeCompatibleWith("application/json+fhir")
+            .expectBody()
+            .jsonPath("$.resourceType").isEqualTo("OperationOutcome")
+            .jsonPath("$.issue[0].code").isEqualTo("structure")
+            .jsonPath("$.issue[0].details.coding[0].code").isEqualTo("BAD_REQUEST")
+            .jsonPath("$.issue[0].details.coding[0].display").isEqualTo("BAD_REQUEST")
+            .jsonPath("$.issue[0].diagnostics").isEqualTo("X-Correlation-Id header must be a UUID");
     }
 }
