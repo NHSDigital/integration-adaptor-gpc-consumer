@@ -62,16 +62,15 @@ public class CloudGatewayRouteBaseTest {
 
     protected void When_GetRequestProducesSdsError_Expect_OperationOutcomeErrorResponse(String requestUri, String interactionId) {
         // Using Ssp-TraceID not a UUID to force an error from the SDS mock
-        webTestClient.get().uri(requestUri)
+        var responseSpec = webTestClient.get().uri(requestUri)
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, interactionId)
             .header(SSP_TRACE_ID_HEADER, "NotUUID")
             .header(HttpHeaders.AUTHORIZATION, ANYTOKEN)
-            .exchange()
-            .expectStatus()
-            .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        // TODO: NIAD-1165 GPCC should use the SDS API OperationOutcome here instead of a Spring default error response body
+            .exchange();
+
+        assertOperationOutcomeBadRequest(responseSpec);
     }
 
     protected WebTestClient.RequestHeadersSpec<?> getWebTestClientForStandardGet(String requestUri, String interactionId) {
@@ -84,4 +83,15 @@ public class CloudGatewayRouteBaseTest {
             .header(HttpHeaders.AUTHORIZATION, ANYTOKEN);
     }
 
+    protected void assertOperationOutcomeBadRequest( WebTestClient.ResponseSpec responseSpec) {
+        responseSpec
+            .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST)
+            .expectHeader().contentTypeCompatibleWith("application/json+fhir")
+            .expectBody()
+            .jsonPath("$.resourceType").isEqualTo("OperationOutcome")
+            .jsonPath("$.issue[0].code").isEqualTo("structure")
+            .jsonPath("$.issue[0].details.coding[0].code").isEqualTo("BAD_REQUEST")
+            .jsonPath("$.issue[0].details.coding[0].display").isEqualTo("BAD_REQUEST")
+            .jsonPath("$.issue[0].diagnostics").isEqualTo("X-Correlation-Id header must be a UUID");
+    }
 }

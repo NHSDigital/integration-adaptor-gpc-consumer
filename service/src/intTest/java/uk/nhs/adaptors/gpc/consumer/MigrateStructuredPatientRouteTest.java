@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 
 public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest {
     static final String REQUEST_URI_TEMPLATE = "/%s/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord";
@@ -51,21 +50,15 @@ public class MigrateStructuredPatientRouteTest extends CloudGatewayRouteBaseTest
         var requestBody = String.format(REQUEST_BODY_TEMPLATE, nhsNumber);
 
         // Using Ssp-TraceID not a UUID to force an error from the SDS mock
-        getWebTestClient().post().uri(requestUri)
+        var responseSpec = getWebTestClient().post().uri(requestUri)
             .bodyValue(requestBody)
             .header(SSP_FROM_HEADER, ANY_STRING)
             .header(SSP_TO_HEADER, ANY_STRING)
             .header(SSP_INTERACTION_ID_HEADER, MIGRATE_STRUCTURED_INTERACTION_ID)
             .header(SSP_TRACE_ID_HEADER, "NotUUID")
             .header(HttpHeaders.AUTHORIZATION, "anytoken")
-            .exchange()
-            .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST)
-            .expectHeader().contentTypeCompatibleWith("application/json+fhir")
-            .expectBody()
-            .jsonPath("$.resourceType").isEqualTo("OperationOutcome")
-            .jsonPath("$.issue[0].code").isEqualTo("structure")
-            .jsonPath("$.issue[0].details.coding[0].code").isEqualTo("BAD_REQUEST")
-            .jsonPath("$.issue[0].details.coding[0].display").isEqualTo("BAD_REQUEST")
-            .jsonPath("$.issue[0].diagnostics").isEqualTo("X-Correlation-Id header must be a UUID");
+            .exchange();
+
+        assertOperationOutcomeBadRequest(responseSpec);
     }
 }
