@@ -10,7 +10,6 @@ public class SdsPassthroughExceptionHandler {
 
     @ExceptionHandler(SdsPassthroughException.class)
     public ResponseEntity<String> handleSds(SdsPassthroughException ex) {
-
         return ex.toResponseEntity();
     }
 }
