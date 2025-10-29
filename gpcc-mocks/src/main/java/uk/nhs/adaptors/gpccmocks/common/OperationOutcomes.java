@@ -14,7 +14,7 @@ public class OperationOutcomes {
             .message(message)
             .build();
         var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), HttpStatus.BAD_REQUEST);
     }
 
     public static ResponseEntity<String> invalidNhsNumber(String message) {
@@ -24,7 +24,7 @@ public class OperationOutcomes {
             .message(message)
             .build();
         var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), HttpStatus.BAD_REQUEST);
     }
 
     public static ResponseEntity<String> patientNotFound(String message) {
@@ -34,7 +34,7 @@ public class OperationOutcomes {
             .message(message)
             .build();
         var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), HttpStatus.NOT_FOUND);
     }
 
     public static ResponseEntity<String> referenceNotFound(String message) {
@@ -44,6 +44,6 @@ public class OperationOutcomes {
             .message(message)
             .build();
         var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(body, ControllerHelpers.getResponseHeaders(), HttpStatus.NOT_FOUND);
     }
 }
