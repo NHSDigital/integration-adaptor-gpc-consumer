@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add functionality to ensure a failed SDS call results in the Operation Outcome being forwarded as the response, rather
+  than a spring framework internal server error being returned.
+
 ## [1.1.2] - 2025-04-23
 
 - Updated Dockerfile to set -XX:MaxRAMPercentage=75.0, optimizing JVM memory allocation for better performance
