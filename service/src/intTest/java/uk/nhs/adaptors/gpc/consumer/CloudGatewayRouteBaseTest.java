@@ -83,7 +83,7 @@ public class CloudGatewayRouteBaseTest {
             .header(HttpHeaders.AUTHORIZATION, ANYTOKEN);
     }
 
-    protected void assertOperationOutcomeBadRequest( WebTestClient.ResponseSpec responseSpec) {
+    protected void assertOperationOutcomeBadRequest(WebTestClient.ResponseSpec responseSpec) {
         responseSpec
             .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST)
             .expectHeader().contentTypeCompatibleWith("application/json+fhir")
