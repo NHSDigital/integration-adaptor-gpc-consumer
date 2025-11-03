@@ -20,7 +20,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.github.spullara.mustache.java:compiler:0.9.14'
-	implementation 'com.jayway.jsonpath:json-path:2.9.0'
+	implementation 'com.jayway.jsonpath:json-path:2.10.0'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
