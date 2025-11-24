@@ -40,9 +40,9 @@ dependencies {
 	implementation "com.heroku.sdk:env-keystore:1.1.12"
 
 	implementation "org.apache.commons:commons-lang3:3.19.0"
-	implementation 'org.jetbrains:annotations:26.0.2'
+	implementation 'org.jetbrains:annotations:26.0.2-1-1'
 	implementation ("org.apache.commons:commons-lang3:3.19.0")
-	implementation 'org.jetbrains:annotations:26.0.2-1'
+	implementation 'org.jetbrains:annotations:26.0.2-1-1'
 
   spotbugs 'com.github.spotbugs:spotbugs:4.9.8'
   spotbugs 'com.github.spotbugs:spotbugs-annotations:4.9.8'
