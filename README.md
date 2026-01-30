@@ -108,12 +108,7 @@ We provide several example configurations:
 
 * `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](Docker image - https://developer.nhs.uk/apis/gpconnect-1-6-0/overview_release_notes_1_6_0.html) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
 
-```bash
-cd docker/
-cp vars.opentest.sh vars.sh
-```
-
-Edit `vars.sh` to add any missing values e.g. Spine certificates.
+Edit `vars.local.sh` / `vars.public.sh` to add any missing values e.g. Spine certificates.
 
 ### Using the helper script for Docker Compose
 
