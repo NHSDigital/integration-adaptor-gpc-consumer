@@ -7,6 +7,7 @@ import org.hl7.fhir.dstu3.model.Endpoint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 
@@ -17,6 +18,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import uk.nhs.adaptors.gpc.consumer.common.OperationOutcomes;
 import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
 
 @Component
@@ -149,6 +151,18 @@ public class SdsClient {
         return request.retrieve()
             .bodyToMono(String.class);
     }
+
+//    public ResponseEntity<String> callForMigrateStructuredRecordWithOutcome(String fromOdsCode, String correlationId) {
+//        try {
+//            var sdsDeviceRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
+//            var sdsEndpointRequest = sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(fromOdsCode, correlationId);
+//
+//            var data = retrieveData(sdsDeviceRequest, sdsEndpointRequest).block();
+//            return ResponseEntity.ok("Success"); // placeholder
+//        } catch (Exception ex) {
+//            return OperationOutcomes.internalServerError("Internal error: " + ex.getMessage());
+//        }
+//    }
 
     @Builder
     @Getter
