@@ -7,6 +7,8 @@ import org.hl7.fhir.dstu3.model.Endpoint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 
@@ -146,8 +148,22 @@ public class SdsClient {
     }
 
     private Mono<String> performRequest(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
-        return request.retrieve()
-            .bodyToMono(String.class);
+        return request.exchangeToMono(clientResponse -> {
+            if (clientResponse.statusCode().is2xxSuccessful()) {
+                return clientResponse.bodyToMono(String.class);
+            }
+
+            // Capture the status, headers and body, and allow to bubble up as a SdsPassthroughException
+            HttpStatus status = (HttpStatus) clientResponse.statusCode();
+            HttpHeaders headers = clientResponse.headers().asHttpHeaders();
+
+            return clientResponse.bodyToMono(String.class)
+                .defaultIfEmpty("")
+                .flatMap(body -> {
+                    LOGGER.warn("SDS returned error status: {}. Forwarding OperationOutcome.", status);
+                    return Mono.error(new SdsPassthroughException(status, headers, body));
+                });
+        });
     }
 
     @Builder

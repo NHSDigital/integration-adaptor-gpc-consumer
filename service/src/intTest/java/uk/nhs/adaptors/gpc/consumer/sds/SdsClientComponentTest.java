@@ -49,7 +49,6 @@ import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.common.ResourceReader;
 import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
-import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.testcontainers.WiremockExtension;
 
 @ExtendWith({SpringExtension.class, WiremockExtension.class})
@@ -281,7 +280,7 @@ public class SdsClientComponentTest {
             stubSdsError(ENDPOINT);
             stubSdsError(DEVICE);
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).blockOptional())
-                .isInstanceOf(SdsException.class);
+                .isInstanceOf(SdsPassthroughException.class);
             wireMockServer.resetAll();
         });
     }
@@ -293,7 +292,7 @@ public class SdsClientComponentTest {
             stubSdsError(ENDPOINT);
             stubSdsError(DEVICE);
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, null).blockOptional())
-                .isInstanceOf(SdsException.class);
+                .isInstanceOf(SdsPassthroughException.class);
             wireMockServer.resetAll();
         });
     }
@@ -305,8 +304,9 @@ public class SdsClientComponentTest {
             stubSdsError(ENDPOINT);
             stubSdsError(DEVICE);
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, "not-UUID").blockOptional())
-                .isInstanceOf(SdsException.class);
+                .isInstanceOf(SdsPassthroughException.class);
             wireMockServer.resetAll();
         });
     }
 }
+
