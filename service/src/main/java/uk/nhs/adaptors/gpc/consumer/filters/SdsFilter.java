@@ -2,7 +2,6 @@ package uk.nhs.adaptors.gpc.consumer.filters;
 
 import uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomeModel;
 import uk.nhs.adaptors.gpc.consumer.utils.TemplateUtils;
-import static uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomes.internalServerError;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_SEARCH_ID;
@@ -72,6 +71,11 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final String BAD_REQUEST = "BAD_REQUEST";
     public static final String PATIENT_NOT_FOUND = "PATIENT_NOT_FOUND";
     public static final String NO_ENDPOINT_AVAILABLE = "NO_ENDPOINT_AVAILABLE";
+    public static final int FOUR_ZERO_FOUR = 404;
+    public static final int FOUR_HUNDRED = 400;
+    public static final int FIVE_HUNDRED_AND_TWO = 502;
+    public static final int FOUR_ZERO_ONE = 401;
+    public static final int FOUR_ZERO_THREE = 403;
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
@@ -82,7 +86,8 @@ public class SdsFilter implements GlobalFilter, Ordered {
                 if (gpcProviderEndpointDetails != null) {
                     return getGpcConsumerAsid(exchange)
                         .flatMap(gpcConsumerAsid -> {
-                            var mutatedExchange = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
+                            var mutatedExchange
+                                = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
                             mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
                             return chain.filter(mutatedExchange);
                         });
@@ -100,7 +105,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(errorResponse.getStatusCode());
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        String body = errorResponse.getBody() != null ? errorResponse.getBody() : "";
+        String body = Objects.requireNonNullElse(errorResponse.getBody(), "");
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = response.bufferFactory().wrap(bytes);
         return response.writeWith(Mono.just(buffer));
@@ -117,12 +122,14 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private static String resolveSpineCode(Exception e) {
-        if (e instanceof WebClientRequestException) return INTERNAL_SERVER_ERROR;
+        if (e instanceof WebClientRequestException) {
+            return INTERNAL_SERVER_ERROR;
+        }
         if (e instanceof WebClientResponseException ex) {
             return switch (ex.getStatusCode().value()) {
-                case 404 -> PATIENT_NOT_FOUND;
-                case 400 -> BAD_REQUEST;
-                case 502 -> BAD_GATEWAY;
+                case FOUR_ZERO_FOUR -> PATIENT_NOT_FOUND;
+                case FOUR_HUNDRED -> BAD_REQUEST;
+                case FIVE_HUNDRED_AND_TWO -> BAD_GATEWAY;
                 default -> INTERNAL_SERVER_ERROR;
             };
         }
@@ -149,9 +156,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
         }
         if (e instanceof WebClientResponseException webClientResponseEx) {
             return switch (webClientResponseEx.getStatusCode().value()) {
-                case 404 -> HttpStatus.NOT_FOUND;
-                case 400 -> HttpStatus.BAD_REQUEST;
-                case 401, 403 -> HttpStatus.UNAUTHORIZED;
+                case FOUR_ZERO_FOUR -> HttpStatus.NOT_FOUND;
+                case FOUR_HUNDRED -> HttpStatus.BAD_REQUEST;
+                case FOUR_ZERO_ONE, FOUR_ZERO_THREE -> HttpStatus.UNAUTHORIZED;
                 default -> HttpStatus.INTERNAL_SERVER_ERROR;
             };
         }
