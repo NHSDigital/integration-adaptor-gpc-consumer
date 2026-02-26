@@ -152,17 +152,17 @@ public class SdsClient {
             .bodyToMono(String.class);
     }
 
-//    public ResponseEntity<String> callForMigrateStructuredRecordWithOutcome(String fromOdsCode, String correlationId) {
-//        try {
-//            var sdsDeviceRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
-//            var sdsEndpointRequest = sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(fromOdsCode, correlationId);
-//
-//            var data = retrieveData(sdsDeviceRequest, sdsEndpointRequest).block();
-//            return ResponseEntity.ok("Success"); // placeholder
-//        } catch (Exception ex) {
-//            return OperationOutcomes.internalServerError("Internal error: " + ex.getMessage());
-//        }
-//    }
+    public ResponseEntity<String> callForMigrateStructuredRecordWithOutcome(String fromOdsCode, String correlationId) {
+        try {
+            var sdsDeviceRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
+            var sdsEndpointRequest = sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(fromOdsCode, correlationId);
+
+            var data = retrieveData(sdsDeviceRequest, sdsEndpointRequest).block();
+            return ResponseEntity.ok("Success");
+        } catch (Exception ex) {
+            return OperationOutcomes.internalServerError("Internal error: " + ex.getMessage());
+        }
+    }
 
     @Builder
     @Getter
