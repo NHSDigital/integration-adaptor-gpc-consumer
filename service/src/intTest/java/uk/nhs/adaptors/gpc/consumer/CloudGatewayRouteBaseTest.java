@@ -1,18 +1,13 @@
 package uk.nhs.adaptors.gpc.consumer;
 
 import java.time.Duration;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import lombok.Getter;
 import uk.nhs.adaptors.gpc.consumer.testcontainers.GpccMockExtension;
 
@@ -32,7 +27,8 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_IN_MEMORY_BYTES = 100 * 1024 * 1024;
     public static final String ANYTOKEN = "anytoken";
 
-    private int port = 8090;
+    @LocalServerPort
+    private int port;
     @Getter
     private WebTestClient webTestClient;
     @Getter
