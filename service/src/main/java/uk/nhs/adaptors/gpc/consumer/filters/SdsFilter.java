@@ -1,5 +1,8 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomeModel;
+import uk.nhs.adaptors.gpc.consumer.utils.TemplateUtils;
+import static uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomes.internalServerError;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_SEARCH_ID;
@@ -8,9 +11,12 @@ import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.PATIENT_SEARCH_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
 import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
 
+import java.net.ConnectException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -24,12 +30,19 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -50,23 +63,99 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
     public static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
+    public static final String OPERATION_OUTCOME = "operationOutcome";
+    public static final String INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
+    public static final String EXCEPTION = "exception";
+    public static final String STRUCTURE = "structure";
+    public static final String NOT_FOUND = "not-found";
+    public static final String BAD_GATEWAY = "BAD_GATEWAY";
+    public static final String BAD_REQUEST = "BAD_REQUEST";
+    public static final String PATIENT_NOT_FOUND = "PATIENT_NOT_FOUND";
+    public static final String NO_ENDPOINT_AVAILABLE = "NO_ENDPOINT_AVAILABLE";
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        return getGpcProviderEndpointDetails(exchange).flatMap(gpcProviderEndpointDetails -> {
-            if (gpcProviderEndpointDetails != null) {
-                return getGpcConsumerAsid(exchange).flatMap(gpcConsumerAsid -> {
-                    var mutatedExchange = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
-                    mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
+        return getGpcProviderEndpointDetails(exchange)
+            .flatMap(gpcProviderEndpointDetails -> {
+                if (gpcProviderEndpointDetails != null) {
+                    return getGpcConsumerAsid(exchange)
+                        .flatMap(gpcConsumerAsid -> {
+                            var mutatedExchange = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
+                            mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
+                            return chain.filter(mutatedExchange);
+                        });
+                }
+                return chain.filter(exchange);
+            })
+            .onErrorResume(Exception.class, e -> errorResponse(exchange, e));
+    }
 
-                    return chain.filter(mutatedExchange);
-                });
+    private static @NotNull Mono<Void> errorResponse(ServerWebExchange exchange, Exception e) {
+        HttpStatus status = resolveHttpStatus(e);
+        String spineCode = resolveSpineCode(e);
+        String fhirCode = resolveFhirCode(spineCode);
+        ResponseEntity<String> errorResponse = buildErrorResponse(status, spineCode, fhirCode, e.getMessage());
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(errorResponse.getStatusCode());
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        String body = errorResponse.getBody() != null ? errorResponse.getBody() : "";
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = response.bufferFactory().wrap(bytes);
+        return response.writeWith(Mono.just(buffer));
+    }
+
+    private static ResponseEntity<String> buildErrorResponse(HttpStatus status, String spineCode, String fhirCode, String message) {
+        var model = OperationOutcomeModel.builder()
+            .fhirCode(fhirCode)
+            .spineCode(spineCode)
+            .message(message)
+            .build();
+        var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
+        return new ResponseEntity<>(body, status);
+    }
+
+    private static String resolveSpineCode(Exception e) {
+        if (e instanceof WebClientRequestException) return INTERNAL_SERVER_ERROR;
+        if (e instanceof WebClientResponseException ex) {
+            return switch (ex.getStatusCode().value()) {
+                case 404 -> PATIENT_NOT_FOUND;
+                case 400 -> BAD_REQUEST;
+                case 502 -> BAD_GATEWAY;
+                default -> INTERNAL_SERVER_ERROR;
+            };
+        }
+        return INTERNAL_SERVER_ERROR;
+    }
+
+    private static String resolveFhirCode(String spineCode) {
+        return switch (spineCode) {
+            case BAD_REQUEST -> STRUCTURE;
+            case BAD_GATEWAY -> EXCEPTION;
+            case PATIENT_NOT_FOUND -> NOT_FOUND;
+            case NO_ENDPOINT_AVAILABLE -> EXCEPTION;
+            default -> EXCEPTION;
+        };
+    }
+
+    private static HttpStatus resolveHttpStatus(Exception e) {
+        if (e instanceof WebClientRequestException webClientEx) {
+            Throwable cause = webClientEx.getCause();
+            if (cause instanceof ConnectException) {
+                return HttpStatus.BAD_GATEWAY;
             }
-
-            return chain.filter(exchange);
-        });
+            return HttpStatus.BAD_GATEWAY;
+        }
+        if (e instanceof WebClientResponseException webClientResponseEx) {
+            return switch (webClientResponseEx.getStatusCode().value()) {
+                case 404 -> HttpStatus.NOT_FOUND;
+                case 400 -> HttpStatus.BAD_REQUEST;
+                case 401, 403 -> HttpStatus.UNAUTHORIZED;
+                default -> HttpStatus.INTERNAL_SERVER_ERROR;
+            };
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     private Mono<String> getGpcConsumerAsid(ServerWebExchange exchange) {

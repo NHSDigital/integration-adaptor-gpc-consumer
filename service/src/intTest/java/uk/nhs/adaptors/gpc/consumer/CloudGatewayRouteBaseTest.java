@@ -3,6 +3,7 @@ package uk.nhs.adaptors.gpc.consumer;
 import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import lombok.Getter;
 import uk.nhs.adaptors.gpc.consumer.testcontainers.GpccMockExtension;
@@ -30,8 +32,7 @@ public class CloudGatewayRouteBaseTest {
     private static final int MAX_IN_MEMORY_BYTES = 100 * 1024 * 1024;
     public static final String ANYTOKEN = "anytoken";
 
-    @LocalServerPort
-    private int port;
+    private int port = 8090;
     @Getter
     private WebTestClient webTestClient;
     @Getter
@@ -69,8 +70,11 @@ public class CloudGatewayRouteBaseTest {
             .header(SSP_TRACE_ID_HEADER, "NotUUID")
             .header(HttpHeaders.AUTHORIZATION, ANYTOKEN)
             .exchange()
-            .expectStatus()
-            .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            .expectBody()
+            .jsonPath("$.resourceType").isEqualTo("OperationOutcome")
+            .jsonPath("$.issue[0].code").isEqualTo("exception")
+            .jsonPath("$.issue[0].details.coding[0].code").isEqualTo("INTERNAL_SERVER_ERROR");
+            //.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         // TODO: NIAD-1165 GPCC should use the SDS API OperationOutcome here instead of a Spring default error response body
     }
 
