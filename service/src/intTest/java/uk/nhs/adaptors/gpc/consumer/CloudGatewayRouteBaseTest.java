@@ -70,8 +70,6 @@ public class CloudGatewayRouteBaseTest {
             .jsonPath("$.resourceType").isEqualTo("OperationOutcome")
             .jsonPath("$.issue[0].code").isEqualTo("exception")
             .jsonPath("$.issue[0].details.coding[0].code").isEqualTo("INTERNAL_SERVER_ERROR");
-            //.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        // TODO: NIAD-1165 GPCC should use the SDS API OperationOutcome here instead of a Spring default error response body
     }
 
     protected WebTestClient.RequestHeadersSpec<?> getWebTestClientForStandardGet(String requestUri, String interactionId) {
