@@ -10,7 +10,6 @@ import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.PATIENT_SEARCH_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
 import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
 
-import java.net.ConnectException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -74,8 +73,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final int FOUR_ZERO_FOUR = 404;
     public static final int FOUR_HUNDRED = 400;
     public static final int FIVE_HUNDRED_AND_TWO = 502;
-    public static final int FOUR_ZERO_ONE = 401;
-    public static final int FOUR_ZERO_THREE = 403;
+
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
 
@@ -147,20 +145,11 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private static HttpStatus resolveHttpStatus(Exception e) {
-        if (e instanceof WebClientRequestException webClientEx) {
-            Throwable cause = webClientEx.getCause();
-            if (cause instanceof ConnectException) {
-                return HttpStatus.BAD_GATEWAY;
-            }
+        if (e instanceof WebClientRequestException) {
             return HttpStatus.BAD_GATEWAY;
         }
         if (e instanceof WebClientResponseException webClientResponseEx) {
-            return switch (webClientResponseEx.getStatusCode().value()) {
-                case FOUR_ZERO_FOUR -> HttpStatus.NOT_FOUND;
-                case FOUR_HUNDRED -> HttpStatus.BAD_REQUEST;
-                case FOUR_ZERO_ONE, FOUR_ZERO_THREE -> HttpStatus.UNAUTHORIZED;
-                default -> HttpStatus.INTERNAL_SERVER_ERROR;
-            };
+            return HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
         }
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
