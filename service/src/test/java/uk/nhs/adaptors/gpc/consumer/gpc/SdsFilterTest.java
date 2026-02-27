@@ -44,9 +44,6 @@ public class SdsFilterTest {
     private static final String TEST_TRACE_ID = "trace-id-123";
     private static final String TEST_URL = "/A12345/Patient/1";
 
-    public static final int FOUR_ZERO_FOUR = 404;
-    public static final int FOUR_HUNDRED = 400;
-    public static final int FIVE_HUNDRED_AND_TWO = 502;
 
     private MockServerWebExchange exchange;
 
@@ -124,7 +121,7 @@ public class SdsFilterTest {
     @Test
     void shouldReturn404AndOperationOutcomeWhenPatientNotFound() {
         var exception = WebClientResponseException.create(
-            FOUR_ZERO_FOUR, "Not Found", HttpHeaders.EMPTY, new byte[0], null);
+            HttpStatus.NOT_FOUND.value(), "Not Found", HttpHeaders.EMPTY, new byte[0], null);
         when(sdsClient.callForGetStructuredRecord(TEST_ODS_CODE, TEST_TRACE_ID))
             .thenReturn(Mono.error(exception));
 
@@ -137,7 +134,7 @@ public class SdsFilterTest {
     @Test
     void shouldReturn400AndOperationOutcomeWhenBadRequest() {
         var exception = WebClientResponseException.create(
-            FOUR_HUNDRED, "Bad Request", HttpHeaders.EMPTY, new byte[0], null);
+            HttpStatus.BAD_REQUEST.value(), "Bad Request", HttpHeaders.EMPTY, new byte[0], null);
 
         when(sdsClient.callForGetStructuredRecord(TEST_ODS_CODE, TEST_TRACE_ID))
             .thenReturn(Mono.error(exception));
@@ -151,7 +148,7 @@ public class SdsFilterTest {
     @Test
     void shouldReturn502AndOperationOutcomeWhenUpstreamBadGateway() {
         var exception = WebClientResponseException.create(
-            FIVE_HUNDRED_AND_TWO, "Bad Gateway", HttpHeaders.EMPTY, new byte[0], null);
+            HttpStatus.BAD_GATEWAY.value(), "Bad Gateway", HttpHeaders.EMPTY, new byte[0], null);
 
         when(sdsClient.callForGetStructuredRecord(TEST_ODS_CODE, TEST_TRACE_ID))
             .thenReturn(Mono.error(exception));

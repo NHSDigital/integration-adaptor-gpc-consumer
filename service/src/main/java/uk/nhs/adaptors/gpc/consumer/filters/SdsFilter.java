@@ -1,5 +1,9 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomeModel;
 import uk.nhs.adaptors.gpc.consumer.utils.TemplateUtils;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
@@ -29,10 +33,6 @@ import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -70,9 +70,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final String BAD_REQUEST = "BAD_REQUEST";
     public static final String PATIENT_NOT_FOUND = "PATIENT_NOT_FOUND";
     public static final String NO_ENDPOINT_AVAILABLE = "NO_ENDPOINT_AVAILABLE";
-    public static final int FOUR_ZERO_FOUR = 404;
-    public static final int FOUR_HUNDRED = 400;
-    public static final int FIVE_HUNDRED_AND_TWO = 502;
 
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
@@ -124,10 +121,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
             return INTERNAL_SERVER_ERROR;
         }
         if (e instanceof WebClientResponseException ex) {
-            return switch (ex.getStatusCode().value()) {
-                case FOUR_ZERO_FOUR -> PATIENT_NOT_FOUND;
-                case FOUR_HUNDRED -> BAD_REQUEST;
-                case FIVE_HUNDRED_AND_TWO -> BAD_GATEWAY;
+            return switch (ex.getStatusCode()) {
+                case HttpStatus.NOT_FOUND -> PATIENT_NOT_FOUND;
+                case HttpStatus.BAD_REQUEST -> BAD_REQUEST;
+                case HttpStatus.BAD_GATEWAY -> BAD_GATEWAY;
                 default -> INTERNAL_SERVER_ERROR;
             };
         }
