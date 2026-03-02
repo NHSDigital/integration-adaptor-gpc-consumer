@@ -4,8 +4,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomeModel;
-import uk.nhs.adaptors.gpc.consumer.utils.TemplateUtils;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_SEARCH_ID;
@@ -13,6 +11,7 @@ import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.MIGRATE_STRUCTURED
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.PATIENT_SEARCH_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
 import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
+import static uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomes.buildErrorResponse;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -104,16 +103,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = response.bufferFactory().wrap(bytes);
         return response.writeWith(Mono.just(buffer));
-    }
-
-    private static ResponseEntity<String> buildErrorResponse(HttpStatus status, String spineCode, String fhirCode, String message) {
-        var model = OperationOutcomeModel.builder()
-            .fhirCode(fhirCode)
-            .spineCode(spineCode)
-            .message(message)
-            .build();
-        var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
-        return new ResponseEntity<>(body, status);
     }
 
     private static String resolveSpineCode(Exception e) {

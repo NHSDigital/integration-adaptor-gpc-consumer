@@ -7,13 +7,14 @@ public class OperationOutcomes {
 
     public static final String OPERATION_OUTCOME = "operationOutcome";
 
-    public static ResponseEntity<String> internalServerError(String message) {
+    public static ResponseEntity<String> buildErrorResponse(HttpStatus status, String spineCode, String fhirCode, String message) {
         var model = OperationOutcomeModel.builder()
-            .fhirCode("exception")
-            .spineCode("INTERNAL_SERVER_ERROR")
+            .fhirCode(fhirCode)
+            .spineCode(spineCode)
             .message(message)
             .build();
         var body = TemplateUtils.fillTemplate(OPERATION_OUTCOME, model);
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, status);
     }
+
 }
