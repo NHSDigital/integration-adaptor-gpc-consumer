@@ -78,7 +78,7 @@ to use the adaptor in the integration and production environments.
 | ------------------------|---------|-------------
 | GPC_CONSUMER_SDS_URL    |         | [URL of the SDS FHIR API]
 | GPC_CONSUMER_SDS_APIKEY |         | Secret key used to authenticate with the API
-| GPC_SUPPLIER_ODS_CODE   |         | Supplier ODS code [see GP Connect Docs](https://developer.nhs.uk/apis/gpconnect-1-6-0/integration_spine_directory_service.html#looking-up-a-consumers-own-asid)
+| GPC_SUPPLIER_ODS_CODE   |         | Supplier ODS code [see GP Connect Docs](https://digital.nhs.uk/services/gp-connect/develop-gp-connect-services/integrate-with-spine/spine-directory-service#looking-up-a-consumer-s-own-asid)
 
 [URL of the SDS FHIR API]: https://digital.nhs.uk/developer/api-catalogue/spine-directory-service-fhir#overview--environments-and-testing
 
@@ -172,7 +172,7 @@ tests use the same variables as the application.
 
 The stateless GP Connect Consumer Adaptor does not use a database or a message queue.
 
-The adaptor requires an [HSCN](https://digital.nhs.uk/services/health-and-social-care-network) network connection to use the [Spine Secure Proxy](https://developer.nhs.uk/apis/spine-core-1-0/ssp_overview.html).
+The adaptor requires an [HSCN](https://digital.nhs.uk/services/health-and-social-care-network) network connection to use the [Spine Secure Proxy](https://digital.nhs.uk/services/gp-connect/develop-gp-connect-services/integrate-with-spine/spine-secure-proxy).
 
 The adaptor can access the [SDS FHIR API](https://digital.nhs.uk/developer/api-catalogue/spine-directory-service-fhir) over either the HSCN network or the public internet.
 
