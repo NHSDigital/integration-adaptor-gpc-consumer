@@ -12,10 +12,10 @@ The GP Connect Consumer Adaptor adheres to the GP Connect API specifications.
 
 We only support the two endpoints required for the GP2GP use case:
 
-* Capability: [Migrate Structured Record](https://gpc-structured-1-5-0.netlify.app/accessrecord_structured.html) 
-  * Endpoint: [Migrate a patient's structured record](https://developer.nhs.uk/apis/gpconnect-1-6-0/accessrecord_structured_development_migrate_patient_record.html)
-* Capability: [Access Document](https://gpc-structured-1-5-0.netlify.app/access_documents.html)
-  * Endpoint: [Retrieve a document](https://gpc-structured-1-5-0.netlify.app/access_documents_development_retrieve_patient_documents.html)
+* Capability: [Migrate Structured Record](https://gpc-structured-1-6-0.netlify.app/accessrecord_structured.html) 
+  * Endpoint: [Migrate a patient's structured record](https://gpc-structured-1-6-0.netlify.app/accessrecord_structured_development_migrate_patient_record.html)
+* Capability: [Access Document](https://gpc-structured-1-6-0.netlify.app/access_documents.html)
+  * Endpoint: [Retrieve a document](https://gpc-structured-1-6-0.netlify.app/access_documents_development_retrieve_patient_documents.html)
 
 ### Service Root URL
 
@@ -106,7 +106,7 @@ adequate infrastructure and connections to external APIs.
 
 We provide several example configurations:
 
-* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](Docker image - https://developer.nhs.uk/apis/gpconnect-1-6-0/overview_release_notes_1_6_0.html) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
+* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](Docker image - https://developer.nhs.uk/apis/gpconnect-1-6-0/overview_release_notes_1_6_0.htmlh) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
 
 Edit `vars.local.sh` / `vars.public.sh` to add any missing values e.g. Spine certificates.
 
