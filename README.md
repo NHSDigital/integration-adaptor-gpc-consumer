@@ -106,7 +106,7 @@ adequate infrastructure and connections to external APIs.
 
 We provide several example configurations:
 
-* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](Docker image - https://developer.nhs.uk/apis/gpconnect-1-6-0/overview_release_notes_1_6_0.htmlh) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
+* `vars.public.sh` runs the adaptor with the [GP Connect public demonstrator](https://github.com/nhsconnect/gpconnect-demonstrator) and the [SDS FHIR API sandbox](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing)
 
 Edit `vars.local.sh` / `vars.public.sh` to add any missing values e.g. Spine certificates.
 
