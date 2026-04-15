@@ -66,7 +66,7 @@ The adaptor uses the GP Connect API to fetch patient records and documents.
 | GPC_CONSUMER_SPINE_CLIENT_KEY               |         | The content of the PEM-formatted client private key
 | GPC_CONSUMER_SPINE_ROOT_CA_CERT             |         | The content of the PEM-formatted certificate of the issuing Root CA.
 | GPC_CONSUMER_SPINE_SUB_CA_CERT              |         | The content of the PEM-formatted certificate of the issuing Sub CA.
-| GPC_CONSUMER_SSP_URL                        |         | The URL of Spine Secure Proxy including a trailing slash e.g. https://testspineproxy.nhs.uk
+| GPC_CONSUMER_SSP_URL                        |         | The URL of Spine Secure Proxy including a trailing slash e.g. https://testspineproxy.nhs.uk/
 
 ### SDS API Configuration Options
 
