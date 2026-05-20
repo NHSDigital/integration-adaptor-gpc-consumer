@@ -32,6 +32,13 @@ The adaptor does not perform a PDS lookup/trace. You must perform the PDS lookup
 * JDK 21
 * Docker
 
+## Directory Conventions
+
+- Run service build/test commands from `service/`
+- Run mock service build/test commands from `gpcc-mocks/`
+- Run Docker helper scripts from `docker/`
+- Use the repo Gradle Wrapper (`./gradlew` or `.\\gradlew.bat`) instead of a locally installed `gradle`.
+
 ## Configuration
 
 The adaptor reads its configuration from environment variables. The following sections describe the environment variables
@@ -114,22 +121,22 @@ Edit `vars.local.sh` / `vars.public.sh` to add any missing values e.g. Spine cer
 
 For local environment to run against mocks:
 ```bash
+cd docker
 ./start-local-environment-mocks.sh
 ```
 
 For local environment to run against GP Demonstrator 1.6.0:
 ```bash
+cd docker
 ./start-local-environment-public.sh
 ```
 
-You can also run the docker-compose commands directly.
+You can also run the Docker Compose commands directly.
 
 ## How to Run Tests
 
-**Warning**: Gradle uses a [Build Cache](https://docs.gradle.org/current/userguide/build_cache.html) to re-use compile and
-test outputs for faster builds. To re-run passing tests without making any code changes you must first run 
-`./gradlew clean` to clear the build cache. Otherwise, gradle uses the cached outputs from a previous test execution to 
-pass the build.
+Gradle can re-use previous task outputs. To force a full re-run of tests without changing source files, use
+`--rerun-tasks` (or run `clean` before the test command).
 
 You must run all Gradle commands from the `service/` directory.
 
@@ -147,7 +154,7 @@ tests and after making any changes to the mocks project. The JUnit tests use
 
 ```shell script
 cd docker/
-docker-compose build gpcc-mocks
+docker compose build gpcc-mocks
 ```
 
 Then run the integration tests from within the IDE or using Gradle:

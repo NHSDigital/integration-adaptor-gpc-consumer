@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checkstyle:
     name: Checkstyle
@@ -21,6 +25,7 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
+          cache: gradle
 
       - name: Checkstyle
         run: |
@@ -56,6 +61,7 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
+          cache: gradle
 
       - name: Spotbugs
         run: |
@@ -93,6 +99,7 @@ jobs:
           with:
             java-version: 21
             distribution: 'temurin'
+            cache: gradle
 
       -   name: Execute Unit Tests
           run: ./gradlew test jacocoTestReport --parallel --build-cache
@@ -128,6 +135,7 @@ jobs:
           with:
             java-version: 21
             distribution: 'temurin'
+            cache: gradle
 
       -   name: Start Docker Dependencies
           env:
