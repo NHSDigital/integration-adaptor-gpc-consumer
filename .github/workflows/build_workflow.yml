@@ -106,6 +106,8 @@ jobs:
             java-version: 21
             distribution: 'temurin'
             cache: gradle
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v4
 
       -   name: Execute Unit Tests
           run: ./gradlew test jacocoTestReport --parallel --build-cache
