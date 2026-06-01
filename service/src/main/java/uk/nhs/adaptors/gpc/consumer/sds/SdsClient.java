@@ -26,6 +26,9 @@ public class SdsClient {
 
     private static final String NHS_MHS_ID = "https://fhir.nhs.uk/Id/nhsMHSId";
     private static final String NHS_SPINE_ASID = "https://fhir.nhs.uk/Id/nhsSpineASID";
+    private static final String LOOKUP_CONTEXT_PROVIDER_DEVICE_ASID = "provider-device-asid";
+    private static final String LOOKUP_CONTEXT_PROVIDER_ENDPOINT = "provider-endpoint";
+    private static final String LOOKUP_CONTEXT_CONSUMER_ASID = "consumer-asid";
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
@@ -34,7 +37,7 @@ public class SdsClient {
 
     public Mono<String> callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
         var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
-        return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest);
+        return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_CONSUMER_ASID);
     }
 
     public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId) {
@@ -77,11 +80,11 @@ public class SdsClient {
         RequestHeadersSpec<? extends RequestHeadersSpec<?>> sdsEndpointRequest) {
         LOGGER.info("Using SDS Endpoint endpoint to retrieve GPC provider endpoint details");
 
-        return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest)
+        return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_PROVIDER_DEVICE_ASID)
                 .flatMap(nhsSpineAsid -> performRequest(sdsEndpointRequest)
                     .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
                     .map(bundle -> {
-                        doBundleEntryCheck(bundle);
+                        doBundleEntryCheck(bundle, LOOKUP_CONTEXT_PROVIDER_ENDPOINT);
                         var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
 
                         return SdsResponseData.builder()
@@ -93,14 +96,17 @@ public class SdsClient {
                 );
     }
 
-    private Mono<String> retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
+    private Mono<String> retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request,
+        String lookupContext) {
 
-        LOGGER.info("Using SDS Device endpoint to retrieve Spine ASID");
+        LOGGER.info("Using SDS Device endpoint to retrieve Spine ASID for {} lookup", lookupContext);
 
         return performRequest(request)
+            .doOnNext(bodyString -> LOGGER.info("Received SDS Device response for {} lookup (payloadLength={})",
+                lookupContext, bodyString.length()))
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {
-                doBundleEntryCheck(bundle);
+                doBundleEntryCheck(bundle, lookupContext);
                 var device = (Device) bundle.getEntryFirstRep().getResource();
                 return getNhsSpineAsid(device);
             });
@@ -124,15 +130,23 @@ public class SdsClient {
             .orElseThrow(() -> new RuntimeException(String.format("Identifier of system %s not found", NHS_MHS_ID)));
     }
 
-    private void doBundleEntryCheck(Bundle bundle) {
-        LOGGER.info("Attempting to parse the bundle response from SDS");
+    private void doBundleEntryCheck(Bundle bundle, String lookupContext) {
+        LOGGER.info("Attempting to parse the bundle response from SDS ({})", getBundleSummary(bundle, lookupContext));
         if (!bundle.hasEntry()) {
-            throw new RuntimeException("SDS returned no result");
+            throw new RuntimeException(String.format("SDS returned no result (%s)", getBundleSummary(bundle, lookupContext)));
         }
 
         if (bundle.getEntry().size() > 1) {
-            LOGGER.warn("SDS returned more than 1 result. Taking the first one");
+            LOGGER.warn("SDS returned more than 1 result. Taking the first one ({})", getBundleSummary(bundle, lookupContext));
         }
+    }
+
+    private String getBundleSummary(Bundle bundle, String lookupContext) {
+        return String.format("lookupContext=%s, bundleType=%s, bundleTotal=%d, entryCount=%d",
+            lookupContext,
+            bundle.getType(),
+            bundle.getTotal(),
+            bundle.getEntry().size());
     }
 
     @NotNull
