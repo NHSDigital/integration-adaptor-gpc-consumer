@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import lombok.Getter;
 import uk.nhs.adaptors.gpc.consumer.testcontainers.GpccMockExtension;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = ConsumerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(GpccMockExtension.class)
 public class CloudGatewayRouteBaseTest {
 
