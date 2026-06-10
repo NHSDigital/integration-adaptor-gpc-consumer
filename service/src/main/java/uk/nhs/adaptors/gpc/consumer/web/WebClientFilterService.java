@@ -43,14 +43,22 @@ public class WebClientFilterService {
 
     public ExchangeFilterFunction logRequest() {
         return (clientRequest, next) -> {
+            LOGGER.info("Outbound request: {} {}", clientRequest.method(), clientRequest.url());
             if (LOGGER.isDebugEnabled()) {
                 var headers = clientRequest.headers().entrySet().stream()
                     .map(e -> e.getKey() + ": " + e.getValue())
                     .collect(Collectors.joining(System.lineSeparator()));
-                LOGGER.debug("Request: {} {} \n{}", clientRequest.method(), clientRequest.url(), headers);
+                LOGGER.debug("Outbound request headers for {} {}:\n{}", clientRequest.method(), clientRequest.url(), headers);
             }
             return next.exchange(clientRequest);
         };
+    }
+
+    public ExchangeFilterFunction logResponse() {
+        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
+            LOGGER.info("Outbound response status: {}", clientResponse.statusCode());
+            return Mono.just(clientResponse);
+        });
     }
 
     private Mono<ClientResponse> getResponseError(ClientResponse clientResponse, RequestType requestType) {

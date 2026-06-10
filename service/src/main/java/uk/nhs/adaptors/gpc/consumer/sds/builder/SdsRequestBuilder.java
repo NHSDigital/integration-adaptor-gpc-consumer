@@ -171,7 +171,8 @@ public class SdsRequestBuilder {
     }
 
     private void addWebClientFilters(List<ExchangeFilterFunction> filters) {
-        filters.add(webClientFilterService.errorHandlingFilter(WebClientFilterService.RequestType.SDS, HttpStatus.OK));
         filters.add(webClientFilterService.logRequest());
+        filters.add(webClientFilterService.errorHandlingFilter(WebClientFilterService.RequestType.SDS, HttpStatus.OK));
+        filters.add(webClientFilterService.logResponse());
     }
 }
