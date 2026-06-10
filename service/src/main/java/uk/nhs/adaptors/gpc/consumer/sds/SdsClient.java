@@ -162,7 +162,7 @@ public class SdsClient {
     private Mono<String> performRequest(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
         return request.retrieve()
             .bodyToMono(String.class)
-            .doOnError(e -> LOGGER.error("SDS request failed: {}", e.getMessage()));
+            .doOnError(e -> LOGGER.error("SDS request failed: {}", e));
     }
 
     @Builder
