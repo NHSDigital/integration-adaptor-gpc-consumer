@@ -93,7 +93,8 @@ public class SdsClient {
                                 .nhsSpineAsid(nhsSpineAsid)
                                 .build();
                     })
-                );
+                )
+                .doOnError(error -> LOGGER.error("Failed to retrieve SDS provider endpoint details", error));
     }
 
     private Mono<String> retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request,
@@ -109,7 +110,8 @@ public class SdsClient {
                 doBundleEntryCheck(bundle, lookupContext);
                 var device = (Device) bundle.getEntryFirstRep().getResource();
                 return getNhsSpineAsid(device);
-            });
+            })
+            .doOnError(error -> LOGGER.error("Failed to retrieve SDS Spine ASID for {} lookup", lookupContext, error));
     }
 
     private String getNhsSpineAsid(Device endpoint) {
@@ -118,7 +120,10 @@ public class SdsClient {
             .filter(id -> NHS_SPINE_ASID.equals(id.getSystem()))
             .map(id -> id.getValue())
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(String.format("Identifier of system %s not found", NHS_SPINE_ASID)));
+            .orElseThrow(() -> {
+                LOGGER.error("SDS Device response is missing identifier system {}", NHS_SPINE_ASID);
+                return new RuntimeException(String.format("Identifier of system %s not found", NHS_SPINE_ASID));
+            });
     }
 
     private String getNhsMhsId(Endpoint endpoint) {
@@ -127,12 +132,16 @@ public class SdsClient {
             .filter(id -> NHS_MHS_ID.equals(id.getSystem()))
             .map(id -> id.getValue())
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(String.format("Identifier of system %s not found", NHS_MHS_ID)));
+            .orElseThrow(() -> {
+                LOGGER.error("SDS Endpoint response is missing identifier system {}", NHS_MHS_ID);
+                return new RuntimeException(String.format("Identifier of system %s not found", NHS_MHS_ID));
+            });
     }
 
     private void doBundleEntryCheck(Bundle bundle, String lookupContext) {
         LOGGER.info("Attempting to parse the bundle response from SDS ({})", getBundleSummary(bundle, lookupContext));
         if (!bundle.hasEntry()) {
+            LOGGER.error("SDS returned no entries ({})", getBundleSummary(bundle, lookupContext));
             throw new RuntimeException(String.format("SDS returned no result (%s)", getBundleSummary(bundle, lookupContext)));
         }
 
@@ -153,6 +162,7 @@ public class SdsClient {
     private String getAddressFromEndpoint(Endpoint endpoint) {
         var address = endpoint.getAddress();
         if (StringUtils.isBlank(address)) {
+            LOGGER.error("SDS Endpoint response contained an empty address");
             throw new RuntimeException("SDS returned a result but with an empty address");
         }
         LOGGER.info("Found GPC provider endpoint in SDS: {}", address);
