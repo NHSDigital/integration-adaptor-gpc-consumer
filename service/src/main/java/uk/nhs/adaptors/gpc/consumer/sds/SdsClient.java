@@ -101,8 +101,8 @@ public class SdsClient {
                             nhsMhsId, nhsSpineAsid, address);
 
                         return SdsResponseData.builder()
-                                .address(address)
-                                .nhsMhsId(nhsMhsId)
+                                .address(getAddressFromEndpoint(endpoint))
+                                .nhsMhsId(getNhsMhsId(endpoint))
                                 .nhsSpineAsid(nhsSpineAsid)
                                 .build();
                     })
