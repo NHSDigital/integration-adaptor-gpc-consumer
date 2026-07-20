@@ -1,6 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer.sds.builder;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -67,20 +66,20 @@ class SdsRequestBuilderTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void buildAsDeviceAsidRequest_shouldThrowGpConnectException_whenSupplierOdsCodeIsBlank(String blankSupplierOdsCode) {
+    void When_SupplierOdsCodeIsBlank_Expect_GpConnectException(String blankSupplierOdsCode) {
         assertThatThrownBy(() -> sdsRequestBuilder.buildAsDeviceAsidRequest(ODS_CODE, blankSupplierOdsCode, INTERACTION_ID, CORRELATION_ID))
             .isInstanceOf(GpConnectException.class)
             .hasMessageContaining("Supplier ODS code variable must be defined");
     }
 
     @Test
-    void buildAsDeviceAsidRequest_shouldReturnRequest_whenSupplierOdsCodeIsPresent() {
+    void When_SupplierOdsCodeIsPresent_Expect_BuildAsDeviceAsidRequestReturnsRequest() {
         var result = sdsRequestBuilder.buildAsDeviceAsidRequest(ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID);
         assertNotNull(result);
     }
 
     @Test
-    void buildGetStructuredRecordAsDeviceRequest_shouldReturnRequest() {
+    void When_Called_Expect_BuildGetStructuredRecordAsDeviceRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(ODS_CODE, CORRELATION_ID));
     }
 }
