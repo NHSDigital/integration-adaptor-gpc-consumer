@@ -104,4 +104,39 @@ class SdsRequestBuilderTest {
     void When_Called_Expect_BuildPatientSearchAccessDocumentAsDeviceRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
     }
+
+    @Test
+    void When_Called_Expect_BuildPatientSearchAccessDocumentEndpointRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildPatientSearchAccessDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void When_Called_Expect_BuildSearchForDocumentAsDeviceRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void When_Called_Expect_BuildSearchForDocumentEndpointRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildSearchForDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void When_Called_Expect_BuildRetrieveDocumentAsDeviceRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void When_Called_Expect_BuildRetrieveDocumentEndpointRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildRetrieveDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void When_Called_Expect_BuildMigrateDocumentAsDeviceRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void When_Called_Expect_BuildMigrateDocumentEndpointRequestReturnsRequest() {
+        assertNotNull(sdsRequestBuilder.buildMigrateDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
+    }
 }
