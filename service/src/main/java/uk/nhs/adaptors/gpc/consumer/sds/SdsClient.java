@@ -36,41 +36,49 @@ public class SdsClient {
     private String supplierOdsCode;
 
     public Mono<String> callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for consumer ASID (fromOdsCode={}, interactionId={}, correlationId={})",
+            fromOdsCode, interactionId, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
         return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_CONSUMER_ASID);
     }
 
     public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for GetStructuredRecord (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
         var sdsEndpointRequest = sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(fromOdsCode, correlationId);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForMigrateStructuredRecord(String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for MigrateStructuredRecord (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
         var sdsEndpointRequest = sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(fromOdsCode, correlationId);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for PatientSearchAccessDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(fromOdsCode, correlationId);
         var sdsEndpointRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentEndpointRequest(fromOdsCode, correlationId);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for SearchForDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(fromOdsCode, correlationId);
         var sdsEndpointRequest = sdsRequestBuilder.buildSearchForDocumentEndpointRequest(fromOdsCode, correlationId);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for RetrieveDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(fromOdsCode, correlationId);
         var sdsEndpointRequest = sdsRequestBuilder.buildRetrieveDocumentEndpointRequest(fromOdsCode, correlationId);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForMigrateDocumentRecord(String fromOdsCode, String correlationId) {
+        LOGGER.info("SDS lookup for MigrateDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(fromOdsCode, correlationId);
         var sdsEndpointRequest = sdsRequestBuilder.buildMigrateDocumentEndpointRequest(fromOdsCode, correlationId);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
@@ -86,6 +94,11 @@ public class SdsClient {
                     .map(bundle -> {
                         doBundleEntryCheck(bundle, LOOKUP_CONTEXT_PROVIDER_ENDPOINT);
                         var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
+                        var nhsMhsId = getNhsMhsId(endpoint);
+                        var address = getAddressFromEndpoint(endpoint);
+
+                        LOGGER.info("SDS provider details retrieved (nhsMhsId={}, nhsSpineAsid={}, address={})",
+                            nhsMhsId, nhsSpineAsid, address);
 
                         return SdsResponseData.builder()
                                 .address(getAddressFromEndpoint(endpoint))
@@ -165,14 +178,13 @@ public class SdsClient {
             LOGGER.error("SDS Endpoint response contained an empty address");
             throw new RuntimeException("SDS returned a result but with an empty address");
         }
-        LOGGER.info("Found GPC provider endpoint in SDS: {}", address);
         return address;
     }
 
     private Mono<String> performRequest(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request) {
         return request.retrieve()
             .bodyToMono(String.class)
-            .doOnError(e -> LOGGER.error("SDS request failed: {}", e));
+            .doOnError(e -> LOGGER.error("SDS request failed", e));
     }
 
     @Builder
