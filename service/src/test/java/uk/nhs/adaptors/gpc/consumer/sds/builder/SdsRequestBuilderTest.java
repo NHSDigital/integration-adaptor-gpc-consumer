@@ -86,22 +86,22 @@ class SdsRequestBuilderTest {
     }
 
     @Test
-    void buildGetStructuredRecordEndpointRequest_shouldReturnRequest() {
+    void When_Called_Expect_BuildGetStructuredRecordEndpointRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(ODS_CODE, CORRELATION_ID));
     }
 
     @Test
-    void buildMigrateStructuredRecordAsDeviceRequest_shouldReturnRequest() {
+    void When_Called_Expect_BuildMigrateStructuredRecordAsDeviceRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(ODS_CODE, CORRELATION_ID));
     }
 
     @Test
-    void buildMigrateStructuredRecordEndpointRequest_shouldReturnRequest() {
+    void When_Called_Expect_BuildMigrateStructuredRecordEndpointRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(ODS_CODE, CORRELATION_ID));
     }
 
     @Test
-    void buildPatientSearchAccessDocumentAsDeviceRequest_shouldReturnRequest() {
+    void When_Called_Expect_BuildPatientSearchAccessDocumentAsDeviceRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
     }
 }
