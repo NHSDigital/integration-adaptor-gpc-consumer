@@ -74,12 +74,34 @@ class SdsRequestBuilderTest {
 
     @Test
     void When_SupplierOdsCodeIsPresent_Expect_BuildAsDeviceAsidRequestReturnsRequest() {
+
         var result = sdsRequestBuilder.buildAsDeviceAsidRequest(ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID);
+
         assertNotNull(result);
     }
 
     @Test
     void When_Called_Expect_BuildGetStructuredRecordAsDeviceRequestReturnsRequest() {
         assertNotNull(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void buildGetStructuredRecordEndpointRequest_shouldReturnRequest() {
+        assertNotNull(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void buildMigrateStructuredRecordAsDeviceRequest_shouldReturnRequest() {
+        assertNotNull(sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void buildMigrateStructuredRecordEndpointRequest_shouldReturnRequest() {
+        assertNotNull(sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(ODS_CODE, CORRELATION_ID));
+    }
+
+    @Test
+    void buildPatientSearchAccessDocumentAsDeviceRequest_shouldReturnRequest() {
+        assertNotNull(sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
     }
 }
