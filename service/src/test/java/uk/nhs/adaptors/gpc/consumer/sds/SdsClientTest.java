@@ -21,6 +21,7 @@ import ca.uhn.fhir.parser.IParser;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
+import static org.junit.Assert.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class SdsClientTest {
