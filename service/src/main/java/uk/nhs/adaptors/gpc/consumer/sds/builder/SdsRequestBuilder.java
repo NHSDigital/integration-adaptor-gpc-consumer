@@ -24,6 +24,7 @@ import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class SdsRequestBuilder {
+
     private static final String PIPE = "|";
     private static final String ORG_CODE_PARAMETER = "organization";
     private static final String ORG_CODE_IDENTIFIER = "https://fhir.nhs.uk/Id/ods-organization-code";
@@ -121,8 +122,12 @@ public class SdsRequestBuilder {
                                                                                    String interaction, String correlationId) {
 
         if (StringUtils.isEmpty(supplierOdsCode)) {
+            LOGGER.error("Supplier ODS code is not configured — cannot build ASID lookup request");
             throw new GpConnectException("Supplier ODS code variable must be defined");
         }
+
+        LOGGER.debug("Building ASID Device request (consumerOdsCode={}, supplierOdsCode={}, interaction={})",
+            consumerOrgOdsCode, supplierOdsCode, interaction);
 
         var httpClient = getHttpClient();
 
@@ -141,6 +146,7 @@ public class SdsRequestBuilder {
     @NotNull
     private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildClientFor(String odsCode, String interaction,
                                                                                String correlationId, String path) {
+        LOGGER.debug("Building SDS request (odsCode={}, interaction={}, path={})", odsCode, interaction, path);
         var httpClient = getHttpClient();
 
         return buildWebClient(httpClient)
@@ -171,7 +177,8 @@ public class SdsRequestBuilder {
     }
 
     private void addWebClientFilters(List<ExchangeFilterFunction> filters) {
-        filters.add(webClientFilterService.errorHandlingFilter(WebClientFilterService.RequestType.SDS, HttpStatus.OK));
         filters.add(webClientFilterService.logRequest());
+        filters.add(webClientFilterService.errorHandlingFilter(WebClientFilterService.RequestType.SDS, HttpStatus.OK));
+        filters.add(webClientFilterService.logResponse());
     }
 }
