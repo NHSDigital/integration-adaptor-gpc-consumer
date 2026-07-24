@@ -12,7 +12,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(classes = ConsumerApplication.class, webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class HealthCheckTest {
     private static final String HEALTHCHECK_ENDPOINT = "/healthcheck";

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed 
+
+- The adaptor no longer return an internal server error when an exception occurs but rather return a relevant 
+OperationOutcome.
+
 ## [1.1.2] - 2025-04-23
 
 - Updated Dockerfile to set -XX:MaxRAMPercentage=75.0, optimizing JVM memory allocation for better performance

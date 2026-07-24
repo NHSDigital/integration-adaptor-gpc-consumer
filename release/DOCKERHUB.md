@@ -1,24 +1,26 @@
-# Quick reference
-- Maintained by: NHS Digital
-- Where to get help: https://github.com/nhsconnect/integration-adaptor-gpc-consumer
-- Where to file issues: https://github.com/nhsconnect/integration-adaptor-gpc-consumer/issues
+# Quick Reference
 
-# What is the GPC Consumer?
-The GPC Consumer adaptor proxies requests to GP Connect provider endpoints. The adaptor simplifies your GP Connect integration by performing service discovery via Spine Directory Service and routing over Spine Security Proxy. We only support the interactions required for GP2GP over GP Connect and the [GP2GP Adaptor](https://github.com/nhsconnect/integration-adaptor-gp2gp).
+- **Maintained by:** NHS Digital
+- **Where to get help:** https://github.com/nhsconnect/integration-adaptor-gpc-consumer
+- **Where to file issues:** https://github.com/nhsconnect/integration-adaptor-gpc-consumer/issues
 
-# How to use this image
+# What is the GPC Consumer Adaptor?
 
-To help you begin using the GPC Consumer we provide shell scripts and Docker Compose configurations.
+The GPC Consumer Adaptor proxies requests to GP Connect provider endpoints. The adaptor simplifies your GP Connect integration by performing service discovery via the Spine Directory Service and routing over the Spine Secure Proxy. We only support the interactions required for GP2GP over GP Connect and the [GP2GP Adaptor](https://github.com/nhsconnect/integration-adaptor-gp2gp).
 
-## Clone the repository
+# How to Use This Image
+
+To help you begin using the GPC Consumer Adaptor, we provide shell scripts and Docker Compose configurations.
+
+## Clone the Repository
 
 ```bash
 git clone https://github.com/nhsconnect/integration-adaptor-gpc-consumer.git
 ```
 
-## Pull the latest changes and checkout the release tag
+## Pull the Latest Changes and Checkout the Release Tag
 
-Every tagged container on Docker hub has a corresponding tag in the git repository. Checkout the tag of the release
+Every tagged container on Docker Hub has a corresponding tag in the git repository. Checkout the tag of the release
 you are testing to ensure compatibility with configurations and scripts.
 
 ```bash
@@ -26,39 +28,39 @@ git pull
 git checkout 0.3.3
 ```
 
-## Find the docker directory
+## Find the Docker Directory
 
 ```bash
 cd integration-adaptor-gpc-consumer/docker
 ```
 
-## Configure the application
+## Configure the Application
 
-[Copy a configuration example](https://github.com/nhsconnect/integration-adaptor-gpc-consumer/blob/0.0.5/README.md#copy-a-configuration-example)
- to `docker/vars.sh` and make any required changes to the `vars.sh` file.
+[Copy a configuration example](https://github.com/nhsconnect/integration-adaptor-gpc-consumer#copy-a-configuration-example)
+to `docker/vars.sh` and make any required changes to the `vars.sh` file.
 
-## Find the release directory
+## Find the Release Directory
 
 ```bash
 cd ../release
 ```
 
-## Start the adaptor
+## Start the Adaptor
 
-The script pulls the released GPC Consumer adaptor container image from Docker Hub. It builds containers for its dependencies
+The script pulls the released GPC Consumer Adaptor container image from Docker Hub. It builds containers for its dependencies
 from the Dockerfiles in the repository.
 
 ```bash
 ./run.sh
 ```
 
-## Monitor the logs
+## Monitor the Logs
 
 ```bash
 ./logs.sh
 ```
 
-## Run the tests
+## Run the Tests
 
 We provide a shell script to help you determine if the adaptor is running.
 
@@ -78,7 +80,8 @@ Modify the values for the environment "Public GP Connect Reference Implementatio
 * providerURL_1_5_x_structured: `http://localhost:8090/B82617/STU3/1/gpconnect/structured/fhir`
 * providerURL_1_5_x_documents: `http://localhost:8090/B82617/STU3/1/gpconnect/documents/fhir`
 
-## Stopping the adaptor
+## Stopping the Adaptor
+
 ```bash
 cd ../docker
 docker-compose down

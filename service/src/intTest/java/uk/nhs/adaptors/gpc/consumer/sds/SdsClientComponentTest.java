@@ -242,7 +242,10 @@ public class SdsClientComponentTest {
             stubSdsOperation(pair.getKey(), DEVICE, ResourceReader.asString(sdsDeviceResponse));
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("SDS returned no result");
+                .hasMessageContaining("SDS returned no result")
+                .hasMessageContaining("lookupContext=provider-endpoint")
+                .hasMessageContaining("bundleTotal=0")
+                .hasMessageContaining("entryCount=0");
             wireMockServer.resetAll();
         });
     }
@@ -269,9 +272,29 @@ public class SdsClientComponentTest {
             stubSdsOperation(pair.getKey(), DEVICE, ResourceReader.asString(sdsNoResultResponse));
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("SDS returned no result");
+                .hasMessageContaining("SDS returned no result")
+                .hasMessageContaining("lookupContext=provider-device-asid")
+                .hasMessageContaining("bundleTotal=0")
+                .hasMessageContaining("entryCount=0");
             wireMockServer.resetAll();
         });
+    }
+
+    @Test
+    public void When_SdsConsumerAsidLookupReturnsNoResult_Expect_EmptyResultIsReturned() {
+        wireMockServer.resetAll();
+
+        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", SUPPLIER_ODS_CODE);
+        stubSdsAsidOperation(GET_STRUCTURED_INTERACTION, DEVICE, ResourceReader.asString(sdsNoResultResponse));
+
+        assertThatThrownBy(() -> sdsClient.callForGetAsid(GET_STRUCTURED_INTERACTION, FROM_ODS_CODE, X_CORRELATION_ID).block())
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("SDS returned no result")
+            .hasMessageContaining("lookupContext=consumer-asid")
+            .hasMessageContaining("bundleTotal=0")
+            .hasMessageContaining("entryCount=0");
+
+        wireMockServer.resetAll();
     }
 
     @Test
