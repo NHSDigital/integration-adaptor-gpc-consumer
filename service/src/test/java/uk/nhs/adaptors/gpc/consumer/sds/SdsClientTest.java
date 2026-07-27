@@ -116,7 +116,7 @@ class SdsClientTest {
             })
             .verifyComplete();
     }
-
+  
     @Test
     void When_DeviceBundleHasNoEntries_Expect_CallForGetStructuredRecordErrors() {
         when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
