@@ -31,6 +31,6 @@ gpc-consumer:
     migrateStructuredPath: ${GPC_CONSUMER_GPC_MIGRATE_STRUCTURED_PATH:/*/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord}
     sspUrl: ${GPC_CONSUMER_SSP_URL:}
   sds:
-    url: ${GPC_CONSUMER_SDS_URL:}
-    apiKey: ${GPC_CONSUMER_SDS_APIKEY:}
+    url: ${GPC_CONSUMER_SDS_URL:https://sds.api/url}
+    apiKey: ${GPC_CONSUMER_SDS_APIKEY:"SomeApiKey"}
     supplierOdsCode: ${GPC_SUPPLIER_ODS_CODE:XYZ222}
