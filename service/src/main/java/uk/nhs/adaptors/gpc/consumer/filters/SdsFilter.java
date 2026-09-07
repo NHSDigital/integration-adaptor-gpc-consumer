@@ -76,25 +76,50 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         return getGpcProviderEndpointDetails(exchange)
-            .flatMap(gpcProviderEndpointDetails -> {
-                if (gpcProviderEndpointDetails != null) {
-                    return getGpcConsumerAsid(exchange)
-                        .flatMap(gpcConsumerAsid -> {
-                            var mutatedExchange
-                                = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), "Ssp-To");
-                            mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
-                            return chain.filter(mutatedExchange);
-                        });
-                }
-                return chain.filter(exchange);
-            })
+            .flatMap(gpcProviderEndpointDetails -> appendSspHeadersToExchangeIfRequired(
+                    exchange,
+                    chain,
+                    gpcProviderEndpointDetails)
+            )
             .onErrorResume(Exception.class, e -> errorResponse(exchange, e));
     }
 
+    private Mono<Void> appendSspHeadersToExchangeIfRequired(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            SdsClient.SdsResponseData gpcProviderEndpointDetails
+    ) {
+        return gpcProviderEndpointDetails == null
+                ? chain.filter(exchange)
+                : getGpcConsumerAsid(exchange)
+                    .flatMap(gpcConsumerAsid -> addMissingSspHeaders(
+                            gpcConsumerAsid,
+                            exchange,
+                            chain,
+                            gpcProviderEndpointDetails
+                    ));
+    }
+
+    private Mono<? extends Void> addMissingSspHeaders(
+            String gpcConsumerAsid,
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            SdsClient.SdsResponseData gpcProviderEndpointDetails
+    ) {
+        var mutatedExchange = appendSspHeaderWhenAbsent(
+                exchange,
+                gpcProviderEndpointDetails.getNhsSpineAsid(),
+                "Ssp-To"
+        );
+        mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
+        return chain.filter(mutatedExchange);
+    }
+
     private static @NotNull Mono<Void> errorResponse(ServerWebExchange exchange, Exception e) {
-        HttpStatus status = resolveHttpStatus(e);
-        String spineCode = resolveSpineCode(e);
-        String fhirCode = resolveFhirCode(spineCode);
+        HttpStatus status = mapExceptionToHttpStatus(e);
+        String spineCode = mapWebClientExceptionToSpineCode(e);
+        String fhirCode = mapSpineCodeToFhirCode(spineCode);
+
         ResponseEntity<String> errorResponse = buildErrorResponse(status, spineCode, fhirCode, e.getMessage());
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(errorResponse.getStatusCode());
@@ -105,10 +130,17 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return response.writeWith(Mono.just(buffer));
     }
 
-    private static String resolveSpineCode(Exception e) {
+    private static HttpStatus mapExceptionToHttpStatus(Exception e) {
         if (e instanceof WebClientRequestException) {
-            return INTERNAL_SERVER_ERROR;
+            return HttpStatus.BAD_GATEWAY;
         }
+        if (e instanceof WebClientResponseException webClientResponseEx) {
+            return HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+
+    private static String mapWebClientExceptionToSpineCode(Exception e) {
         if (e instanceof WebClientResponseException ex) {
             return switch (ex.getStatusCode()) {
                 case HttpStatus.NOT_FOUND -> PATIENT_NOT_FOUND;
@@ -120,24 +152,12 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return INTERNAL_SERVER_ERROR;
     }
 
-    private static String resolveFhirCode(String spineCode) {
+    private static String mapSpineCodeToFhirCode(String spineCode) {
         return switch (spineCode) {
             case BAD_REQUEST -> STRUCTURE;
-            case BAD_GATEWAY -> EXCEPTION;
             case PATIENT_NOT_FOUND -> NOT_FOUND;
-            case NO_ENDPOINT_AVAILABLE -> EXCEPTION;
             default -> EXCEPTION;
         };
-    }
-
-    private static HttpStatus resolveHttpStatus(Exception e) {
-        if (e instanceof WebClientRequestException) {
-            return HttpStatus.BAD_GATEWAY;
-        }
-        if (e instanceof WebClientResponseException webClientResponseEx) {
-            return HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
-        }
-        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     private Mono<String> getGpcConsumerAsid(ServerWebExchange exchange) {
