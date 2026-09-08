@@ -1,29 +1,8 @@
 package uk.nhs.adaptors.gpc.consumer.filters;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_SEARCH_ID;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.MIGRATE_STRUCTURED_ID;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.PATIENT_SEARCH_ID;
-import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
-import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
-import static uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomes.buildErrorResponse;
-
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
 import jakarta.annotation.PostConstruct;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -32,6 +11,10 @@ import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -42,15 +25,31 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.filters.exception.SdsFilterException;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
+import uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomes;
 import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
+
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
+
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_SEARCH_ID;
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.MIGRATE_STRUCTURED_ID;
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.PATIENT_SEARCH_ID;
+import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_FROM;
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_INTERACTION_ID;
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TO;
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
 
 @Component
 @Slf4j
@@ -58,9 +57,7 @@ import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
 public class SdsFilter implements GlobalFilter, Ordered {
 
     public static final int SDS_FILTER_ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
-    public static final String SSP_INTERACTION_ID = "Ssp-InteractionID";
     private static final String DOCUMENT_REFERENCE_SUFFIX = "/DocumentReference";
-    public static final String OPERATION_OUTCOME = "operationOutcome";
     public static final String INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";
     public static final String EXCEPTION = "exception";
     public static final String STRUCTURE = "structure";
@@ -68,7 +65,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final String BAD_GATEWAY = "BAD_GATEWAY";
     public static final String BAD_REQUEST = "BAD_REQUEST";
     public static final String PATIENT_NOT_FOUND = "PATIENT_NOT_FOUND";
-    public static final String NO_ENDPOINT_AVAILABLE = "NO_ENDPOINT_AVAILABLE";
     public static final String MISSING_HEADER_EXCEPTION_MESSAGE = "Missing or empty %s Header Value for SDS Request";
 
     private final SdsClient sdsClient;
@@ -77,12 +73,12 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         return getGpcProviderEndpointDetails(exchange)
-            .flatMap(gpcProviderEndpointDetails -> appendSspHeadersToExchangeIfRequired(
-                    exchange,
-                    chain,
-                    gpcProviderEndpointDetails)
-            )
-            .onErrorResume(Exception.class, e -> errorResponse(exchange, e));
+                .flatMap(gpcProviderEndpointDetails -> appendSspHeadersToExchangeIfRequired(
+                        exchange,
+                        chain,
+                        gpcProviderEndpointDetails)
+                )
+                .onErrorResume(Exception.class, e -> buildErrorResponse(exchange, e));
     }
 
     private Mono<SdsClient.SdsResponseData> getGpcProviderEndpointDetails(ServerWebExchange exchange) {
@@ -138,10 +134,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
                 ? chain.filter(exchange)
                 : getGpcConsumerAsid(exchange)
                     .flatMap(gpcConsumerAsid -> addMissingSspHeaders(
-                            gpcConsumerAsid,
-                            exchange,
-                            chain,
-                            gpcProviderEndpointDetails
+                        gpcConsumerAsid,
+                        exchange,
+                        chain,
+                        gpcProviderEndpointDetails
                     ));
     }
 
@@ -151,21 +147,17 @@ public class SdsFilter implements GlobalFilter, Ordered {
             GatewayFilterChain chain,
             SdsClient.SdsResponseData gpcProviderEndpointDetails
     ) {
-        var mutatedExchange = appendSspHeaderWhenAbsent(
-                exchange,
-                gpcProviderEndpointDetails.getNhsSpineAsid(),
-                "Ssp-To"
-        );
-        mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, "Ssp-From");
+        var mutatedExchange = appendSspHeaderWhenAbsent(exchange, gpcProviderEndpointDetails.getNhsSpineAsid(), SSP_TO);
+        mutatedExchange = appendSspHeaderWhenAbsent(mutatedExchange, gpcConsumerAsid, SSP_FROM);
         return chain.filter(mutatedExchange);
     }
 
-    private static @NotNull Mono<Void> errorResponse(ServerWebExchange exchange, Exception e) {
+    private static @NotNull Mono<Void> buildErrorResponse(ServerWebExchange exchange, Exception e) {
         HttpStatus status = mapExceptionToHttpStatus(e);
         String spineCode = mapWebClientExceptionToSpineCode(e);
         String fhirCode = mapSpineCodeToFhirCode(spineCode);
 
-        ResponseEntity<String> errorResponse = buildErrorResponse(status, spineCode, fhirCode, e.getMessage());
+        ResponseEntity<String> errorResponse = OperationOutcomes.buildErrorResponse(status, spineCode, fhirCode, e.getMessage());
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(errorResponse.getStatusCode());
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -176,13 +168,12 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private static HttpStatus mapExceptionToHttpStatus(Exception e) {
-        if (e instanceof WebClientRequestException) {
-            return HttpStatus.BAD_GATEWAY;
-        }
-        if (e instanceof WebClientResponseException webClientResponseEx) {
-            return HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
-        }
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+        return switch (e) {
+            case WebClientRequestException ignored -> HttpStatus.BAD_GATEWAY;
+            case WebClientResponseException webClientResponseEx ->
+                    HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
 
     private static String mapWebClientExceptionToSpineCode(Exception e) {
@@ -216,32 +207,20 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private String extractOdsCode(RequestPath requestPath) {
-        Optional<PathContainer.Element> odsCodeElement = requestPath.elements()
-                .stream()
+        return requestPath.elements().stream()
                 .skip(1)
-                .findFirst();
-
-        if (odsCodeElement.isPresent()) {
-            return odsCodeElement.get().value();
-        }
-
-        throw new IllegalArgumentException("URL does not contain ODS code in its second element");
+                .findFirst()
+                .map(PathContainer.Element::value)
+                .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
     }
 
     @NotNull
     private ServerWebExchange appendSspHeaderWhenAbsent(ServerWebExchange exchange, String asid, String sspHeader) {
+        String ssp = Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(sspHeader))
+                .filter(StringUtils::hasText)
+                .orElse(asid);
 
-        List<String> incomingSspHeaderValue = exchange.getRequest().getHeaders().get(sspHeader);
-        String ssp = asid;
-
-        if (incomingSspHeaderValue != null) {
-            ssp = incomingSspHeaderValue.stream().findFirst().orElse(asid);
-        }
-
-        ServerHttpRequest mutateRequest = exchange.getRequest()
-            .mutate()
-            .header(sspHeader, ssp)
-            .build();
+        ServerHttpRequest mutateRequest = exchange.getRequest().mutate().header(sspHeader, ssp).build();
 
         return exchange.mutate().request(mutateRequest).build();
     }
@@ -256,22 +235,26 @@ public class SdsFilter implements GlobalFilter, Ordered {
     @SuppressWarnings("unused")
     public void initializeSdsRequestFunctions() {
         sdsRequestFunctions = Map.of(
-            STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
-            PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
-            DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
-            DOCUMENT_READ_ID, sdsClient::callForRetrieveDocumentRecord,
-            DOCUMENT_MIGRATE_ID, sdsClient::callForMigrateDocumentRecord,
-            MIGRATE_STRUCTURED_ID, sdsClient::callForMigrateStructuredRecord
+                STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
+                PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
+                DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
+                DOCUMENT_READ_ID, sdsClient::callForRetrieveDocumentRecord,
+                DOCUMENT_MIGRATE_ID, sdsClient::callForMigrateDocumentRecord,
+                MIGRATE_STRUCTURED_ID, sdsClient::callForMigrateStructuredRecord
         );
     }
 
-    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,
-        String organisation, String sspTraceId, ServerWebExchange exchange) {
+    private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(
+            String interactionId,
+            String organisation,
+            String sspTraceId,
+            ServerWebExchange exchange
+    ) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
             LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
-                organisation, interactionId);
+                    organisation, interactionId);
             return sdsRequestFunctions.get(interactionId)
-                .apply(organisation, sspTraceId);
+                    .apply(organisation, sspTraceId);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
@@ -279,8 +262,8 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private Optional<URI> prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
         var originalRequestPath = originalRequest.getPath();
         var originalRequestPathValues = originalRequestPath.elements().stream()
-            .map(PathContainer.Element::value)
-            .collect(Collectors.toList());
+                .map(PathContainer.Element::value)
+                .toList();
         int indexOfPatientInFhirPath = originalRequestPathValues.lastIndexOf("Patient");
         int indexOfBinaryInFhirPath = originalRequestPathValues.lastIndexOf("Binary");
         int indexOfStartOfFhirPath = Math.max(indexOfPatientInFhirPath, indexOfBinaryInFhirPath);
@@ -288,12 +271,12 @@ public class SdsFilter implements GlobalFilter, Ordered {
             throw new SdsFilterException("Unable to detect a supported FHIR path in the original request");
         }
         String fhirRequestPathPart = originalRequest.getPath().subPath(indexOfStartOfFhirPath - 1)
-            .toString();
+                .toString();
         String uriWithoutQueryParameters = serviceRootUrl + fhirRequestPathPart;
         URI constructedUri = UriComponentsBuilder.fromUriString(uriWithoutQueryParameters)
-            .queryParams(originalRequest.getQueryParams())
-            .build()
-            .toUri();
+                .queryParams(originalRequest.getQueryParams())
+                .build()
+                .toUri();
         return Optional.of(constructedUri);
     }
 }
