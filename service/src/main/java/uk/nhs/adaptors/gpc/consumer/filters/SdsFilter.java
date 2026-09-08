@@ -37,7 +37,7 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.server.ServerWebExchange;
@@ -69,6 +69,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final String BAD_REQUEST = "BAD_REQUEST";
     public static final String PATIENT_NOT_FOUND = "PATIENT_NOT_FOUND";
     public static final String NO_ENDPOINT_AVAILABLE = "NO_ENDPOINT_AVAILABLE";
+    public static final String MISSING_HEADER_EXCEPTION_MESSAGE = "Missing or empty %s Header Value for SDS Request";
 
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
@@ -82,6 +83,50 @@ public class SdsFilter implements GlobalFilter, Ordered {
                     gpcProviderEndpointDetails)
             )
             .onErrorResume(Exception.class, e -> errorResponse(exchange, e));
+    }
+
+    private Mono<SdsClient.SdsResponseData> getGpcProviderEndpointDetails(ServerWebExchange exchange) {
+
+        return performGpcProviderSdsLookup(exchange)
+                .doOnNext(v -> {
+                    if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+                        QueryParamsEncoder.encodeQueryParams(exchange);
+                    }
+                });
+    }
+
+    @NotNull
+    private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange) {
+
+        LoggingUtil.info(LOGGER, exchange, "Using SDS API for GP connect provider service lookup");
+
+        var id = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
+        return performGpcProviderSdsLookup(exchange, id);
+    }
+
+    private String extractHeaderValueOrThrowSdsException(HttpHeaders httpHeaders, String headerName) {
+        return Optional.ofNullable(httpHeaders.getFirst(headerName))
+                .filter(StringUtils::hasText)
+                .orElseThrow(() -> new SdsException(MISSING_HEADER_EXCEPTION_MESSAGE.formatted(headerName)));
+    }
+
+    private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange, String interactionId) {
+
+        ServerHttpRequest serverHttpRequest = exchange.getRequest();
+        String organisation = extractOdsCode(serverHttpRequest.getPath());
+        var sspTraceId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
+
+        return performRequestAccordingToInteractionId(interactionId, organisation, sspTraceId, exchange)
+                .switchIfEmpty(Mono.error(new SdsException(
+                        String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
+                                interactionId,
+                                organisation)))
+                ).doOnNext(response -> {
+                    LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
+                    prepareLookupUri(response.getAddress(), serverHttpRequest)
+                            .ifPresent(uri -> exchange.getAttributes()
+                                    .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+                });
     }
 
     private Mono<Void> appendSspHeadersToExchangeIfRequired(
@@ -163,11 +208,24 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private Mono<String> getGpcConsumerAsid(ServerWebExchange exchange) {
         LoggingUtil.info(LOGGER, exchange, "Using SDS API to fetch GPC consumer ASID value");
 
-        var odsCode = extractOrganisation(exchange.getRequest().getPath());
-        var correlationId = extractSspTraceId(exchange.getRequest().getHeaders());
-        var interactionId = extractInteractionId(exchange.getRequest().getHeaders());
+        var odsCode = extractOdsCode(exchange.getRequest().getPath());
+        var correlationId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
+        var interactionId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
 
-        return sdsClient.callForGetAsid(interactionId.get(), odsCode, correlationId);
+        return sdsClient.callForGetAsid(interactionId, odsCode, correlationId);
+    }
+
+    private String extractOdsCode(RequestPath requestPath) {
+        Optional<PathContainer.Element> odsCodeElement = requestPath.elements()
+                .stream()
+                .skip(1)
+                .findFirst();
+
+        if (odsCodeElement.isPresent()) {
+            return odsCodeElement.get().value();
+        }
+
+        throw new IllegalArgumentException("URL does not contain ODS code in its second element");
     }
 
     @NotNull
@@ -188,24 +246,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return exchange.mutate().request(mutateRequest).build();
     }
 
-    private Mono<SdsClient.SdsResponseData> getGpcProviderEndpointDetails(ServerWebExchange exchange) {
-
-        return performGpcProviderSdsLookup(exchange)
-            .doOnNext(v -> {
-                if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
-                    QueryParamsEncoder.encodeQueryParams(exchange);
-                }
-            });
-    }
-
-    @NotNull
-    private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange) {
-
-        LoggingUtil.info(LOGGER, exchange, "Using SDS API for GP connect provider service lookup");
-
-        var id = extractInteractionId(exchange.getRequest().getHeaders());
-        return performGpcProviderSdsLookup(exchange, id.get());
-    }
 
     @Override
     public int getOrder() {
@@ -223,56 +263,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
             DOCUMENT_MIGRATE_ID, sdsClient::callForMigrateDocumentRecord,
             MIGRATE_STRUCTURED_ID, sdsClient::callForMigrateStructuredRecord
         );
-    }
-
-    private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
-        if (httpHeaders.containsKey(SSP_INTERACTION_ID)) {
-            List<String> interactionIds = httpHeaders.get(SSP_INTERACTION_ID);
-
-            if (!CollectionUtils.isEmpty(interactionIds)) {
-                return Optional.of(interactionIds.get(0));
-            }
-        }
-        return Optional.empty();
-    }
-
-    private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange, String interactionId) {
-
-        ServerHttpRequest serverHttpRequest = exchange.getRequest();
-        String organisation = extractOrganisation(serverHttpRequest.getPath());
-        var sspTraceId = extractSspTraceId(exchange.getRequest().getHeaders());
-
-        return performRequestAccordingToInteractionId(interactionId, organisation, sspTraceId, exchange)
-            .switchIfEmpty(Mono.error(new SdsException(
-                String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
-                    interactionId,
-                    organisation)))
-            ).doOnNext(response -> {
-                LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
-                prepareLookupUri(response.getAddress(), serverHttpRequest)
-                    .ifPresent(uri -> exchange.getAttributes()
-                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-            });
-    }
-
-    private String extractOrganisation(RequestPath requestPath) {
-        return requestPath.elements()
-            .stream()
-            .skip(1)
-            .findFirst()
-            .map(PathContainer.Element::value)
-            .orElseThrow(() -> new IllegalArgumentException("URL does not contain ODS code in its second element"));
-    }
-
-    private String extractSspTraceId(HttpHeaders httpHeaders) {
-        if (httpHeaders.containsKey(SSP_TRACE_ID)) {
-            List<String> sspTraceIds = httpHeaders.get(SSP_TRACE_ID);
-
-            if (!CollectionUtils.isEmpty(sspTraceIds)) {
-                return sspTraceIds.get(0);
-            }
-        }
-        throw new SdsException("Missing Ssp-TraceID Header for X-Correlation-Id for SDS Request");
     }
 
     private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(String interactionId,

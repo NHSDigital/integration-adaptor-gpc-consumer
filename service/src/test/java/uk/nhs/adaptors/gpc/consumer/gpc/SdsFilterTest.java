@@ -1,6 +1,7 @@
 package uk.nhs.adaptors.gpc.consumer.gpc;
 
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,7 @@ import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import reactor.test.StepVerifier;
@@ -68,6 +70,56 @@ class SdsFilterTest {
 
         filterChain = Mockito.mock(GatewayFilterChain.class);
         captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+    }
+
+    @Test
+    void When_InteractionIdHeaderMissing_Expect_SdsExceptionThrown() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
+                .header("Ssp-TraceID", TEST_TRACE_ID)
+                .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        //noinspection ReactiveStreamsUnusedPublisher
+        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+    }
+
+    @Test
+    void When_InteractionIdHeaderIsPresentButEmpty_Expect_SdsExceptionThrown() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
+                .header("Ssp-TraceID", TEST_TRACE_ID)
+                .header("Ssp-InteractionID", StringUtils.EMPTY)
+                .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        //noinspection ReactiveStreamsUnusedPublisher
+        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+    }
+
+    @Test
+    void When_SspTraceIdHeaderMissing_Expect_SdsExceptionThrown() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
+            .header("Ssp-InteractionID", MIGRATE_STRUCTURED_INTERACTION)
+            .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        //noinspection ReactiveStreamsUnusedPublisher
+        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+    }
+
+    @Test
+    void When_SspTraceIdHeaderIsPresentButEmpty_Expect_SdsExceptionThrown() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
+                .header("Ssp-InteractionID", MIGRATE_STRUCTURED_INTERACTION)
+                .header("Ssp-TraceID", StringUtils.EMPTY)
+                .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        //noinspection ReactiveStreamsUnusedPublisher
+        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
     }
 
     @Test
