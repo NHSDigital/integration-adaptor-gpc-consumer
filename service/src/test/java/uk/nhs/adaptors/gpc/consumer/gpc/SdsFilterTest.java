@@ -32,9 +32,10 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import reactor.test.StepVerifier;
-import static uk.nhs.adaptors.gpc.consumer.filters.SdsFilter.SSP_INTERACTION_ID;
+
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.STRUCTURED_ID;
+import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_INTERACTION_ID;
 import static uk.nhs.adaptors.gpc.consumer.utils.HeaderConstants.SSP_TRACE_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
