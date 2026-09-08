@@ -73,6 +73,31 @@ class SdsFilterTest {
     }
 
     @Test
+    void When_InteractionIdHeaderMissing_Expect_SdsExceptionThrown() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
+                .header("Ssp-TraceID", TEST_TRACE_ID)
+                .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        //noinspection ReactiveStreamsUnusedPublisher
+        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+    }
+
+    @Test
+    void When_InteractionIdHeaderIsPresentButEmpty_Expect_SdsExceptionThrown() {
+        MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
+                .header("Ssp-TraceID", TEST_TRACE_ID)
+                .header("Ssp-InteractionID", StringUtils.EMPTY)
+                .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        //noinspection ReactiveStreamsUnusedPublisher
+        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+    }
+
+    @Test
     void When_SspTraceIdHeaderMissing_Expect_SdsExceptionThrown() {
         MockServerHttpRequest request = MockServerHttpRequest.get("/A12345/STU3/1/gpconnect/fhir/Patient/$gpc.migratestructuredrecord")
             .header("Ssp-InteractionID", MIGRATE_STRUCTURED_INTERACTION)

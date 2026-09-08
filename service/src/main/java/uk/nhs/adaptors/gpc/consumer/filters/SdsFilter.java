@@ -37,7 +37,6 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -70,6 +69,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     public static final String BAD_REQUEST = "BAD_REQUEST";
     public static final String PATIENT_NOT_FOUND = "PATIENT_NOT_FOUND";
     public static final String NO_ENDPOINT_AVAILABLE = "NO_ENDPOINT_AVAILABLE";
+    public static final String MISSING_HEADER_EXCEPTION_MESSAGE = "Missing or empty %s Header Value for SDS Request";
 
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
@@ -100,29 +100,21 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
         LoggingUtil.info(LOGGER, exchange, "Using SDS API for GP connect provider service lookup");
 
-        var id = extractInteractionId(exchange.getRequest().getHeaders());
-        return performGpcProviderSdsLookup(exchange, id.get());
+        var id = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
+        return performGpcProviderSdsLookup(exchange, id);
     }
 
-    private Optional<String> extractInteractionId(HttpHeaders httpHeaders) {
-        if (!httpHeaders.containsKey(SSP_INTERACTION_ID)) {
-            return Optional.empty();
-        }
-
-        List<String> interactionIds = httpHeaders.get(SSP_INTERACTION_ID);
-
-        if (CollectionUtils.isEmpty(interactionIds)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(interactionIds.getFirst());
+    private String extractHeaderValueOrThrowSdsException(HttpHeaders httpHeaders, String headerName) {
+        return Optional.ofNullable(httpHeaders.getFirst(headerName))
+                .filter(StringUtils::hasText)
+                .orElseThrow(() -> new SdsException(MISSING_HEADER_EXCEPTION_MESSAGE.formatted(headerName)));
     }
 
     private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange, String interactionId) {
 
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOdsCode(serverHttpRequest.getPath());
-        var sspTraceId = extractSspTraceIdFromHeaders(exchange.getRequest().getHeaders());
+        var sspTraceId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
 
         return performRequestAccordingToInteractionId(interactionId, organisation, sspTraceId, exchange)
                 .switchIfEmpty(Mono.error(new SdsException(
@@ -217,10 +209,10 @@ public class SdsFilter implements GlobalFilter, Ordered {
         LoggingUtil.info(LOGGER, exchange, "Using SDS API to fetch GPC consumer ASID value");
 
         var odsCode = extractOdsCode(exchange.getRequest().getPath());
-        var correlationId = extractSspTraceIdFromHeaders(exchange.getRequest().getHeaders());
-        var interactionId = extractInteractionId(exchange.getRequest().getHeaders());
+        var correlationId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
+        var interactionId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
 
-        return sdsClient.callForGetAsid(interactionId.get(), odsCode, correlationId);
+        return sdsClient.callForGetAsid(interactionId, odsCode, correlationId);
     }
 
     private String extractOdsCode(RequestPath requestPath) {
@@ -235,13 +227,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
         throw new IllegalArgumentException("URL does not contain ODS code in its second element");
     }
-
-    private String extractSspTraceIdFromHeaders(HttpHeaders httpHeaders) {
-        return Optional.ofNullable(httpHeaders.getFirst(SSP_TRACE_ID))
-                .filter(StringUtils::hasText)
-                .orElseThrow(() -> new SdsException("Missing or empty Ssp-TraceId Header Value for SDS Request"));
-    }
-
 
     @NotNull
     private ServerWebExchange appendSspHeaderWhenAbsent(ServerWebExchange exchange, String asid, String sspHeader) {
