@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_MIGRATE_ID;
 import static uk.nhs.adaptors.gpc.consumer.gpc.InteractionIds.DOCUMENT_READ_ID;
@@ -71,23 +69,6 @@ public class SdsFilter implements GlobalFilter, Ordered {
 
     private final SdsClient sdsClient;
     private Map<String, BiFunction<String, String, Mono<SdsClient.SdsResponseData>>> sdsRequestFunctions;
-
-    @Override
-    public int getOrder() {
-        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
-    }
-
-    @PostConstruct
-    public void initializeSdsRequestFunctions() {
-        sdsRequestFunctions = Map.of(
-                STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
-                PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
-                DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
-                DOCUMENT_READ_ID, sdsClient::callForRetrieveDocumentRecord,
-                DOCUMENT_MIGRATE_ID, sdsClient::callForMigrateDocumentRecord,
-                MIGRATE_STRUCTURED_ID, sdsClient::callForMigrateStructuredRecord
-        );
-    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -145,8 +126,9 @@ public class SdsFilter implements GlobalFilter, Ordered {
             ServerHttpRequest serverHttpRequest
     ) {
         LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
-        URI lookupUri = prepareLookupUri(response.getAddress(), serverHttpRequest);
-        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, lookupUri);
+        prepareLookupUri(response.getAddress(), serverHttpRequest)
+                .ifPresent(uri -> exchange.getAttributes()
+                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
     }
 
     private static @NotNull Mono<SdsClient.SdsResponseData> buildNoEndpointFoundError(String interactionId, String organisation) {
@@ -188,25 +170,14 @@ public class SdsFilter implements GlobalFilter, Ordered {
         String spineCode = mapWebClientExceptionToSpineCode(e);
         String fhirCode = mapSpineCodeToFhirCode(spineCode);
 
-        ServerHttpResponse response = exchange.getResponse();
-        byte[] bytes = buildResponseBodyAsUtf8Bytes(e, status, spineCode, fhirCode, response);
-
-        DataBuffer buffer = response.bufferFactory().wrap(bytes);
-        return response.writeWith(Mono.just(buffer));
-    }
-
-    private static byte @NotNull [] buildResponseBodyAsUtf8Bytes(
-            Exception e,
-            HttpStatus status,
-            String spineCode,
-            String fhirCode,
-            ServerHttpResponse response
-    ) {
         ResponseEntity<String> errorResponse = OperationOutcomes.buildErrorResponse(status, spineCode, fhirCode, e.getMessage());
+        ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(errorResponse.getStatusCode());
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         String body = Objects.requireNonNullElse(errorResponse.getBody(), "");
-        return body.getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = response.bufferFactory().wrap(bytes);
+        return response.writeWith(Mono.just(buffer));
     }
 
     private static HttpStatus mapExceptionToHttpStatus(Exception e) {
@@ -266,6 +237,25 @@ public class SdsFilter implements GlobalFilter, Ordered {
         return exchange.mutate().request(mutateRequest).build();
     }
 
+
+    @Override
+    public int getOrder() {
+        return RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+    }
+
+    @PostConstruct
+    @SuppressWarnings("unused")
+    public void initializeSdsRequestFunctions() {
+        sdsRequestFunctions = Map.of(
+                STRUCTURED_ID, sdsClient::callForGetStructuredRecord,
+                PATIENT_SEARCH_ID, sdsClient::callForPatientSearchAccessDocument,
+                DOCUMENT_SEARCH_ID, sdsClient::callForSearchForDocumentRecord,
+                DOCUMENT_READ_ID, sdsClient::callForRetrieveDocumentRecord,
+                DOCUMENT_MIGRATE_ID, sdsClient::callForMigrateDocumentRecord,
+                MIGRATE_STRUCTURED_ID, sdsClient::callForMigrateStructuredRecord
+        );
+    }
+
     private Mono<SdsClient.SdsResponseData> performRequestAccordingToInteractionId(
             String interactionId,
             String organisation,
@@ -273,37 +263,32 @@ public class SdsFilter implements GlobalFilter, Ordered {
             ServerWebExchange exchange
     ) {
         if (sdsRequestFunctions.containsKey(interactionId)) {
-            LoggingUtil.info(
-                    LOGGER,
-                    exchange,
-                    "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
-                    organisation,
-                    interactionId
-            );
-            return sdsRequestFunctions.get(interactionId).apply(organisation, sspTraceId);
+            LoggingUtil.info(LOGGER, exchange, "Performing request with organisation \"{}\" and NHS service endpoint id \"{}\"",
+                    organisation, interactionId);
+            return sdsRequestFunctions.get(interactionId)
+                    .apply(organisation, sspTraceId);
         }
         throw new IllegalArgumentException(String.format("Not recognised InteractionId %s", interactionId));
     }
 
-    private URI prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
-        var path = getEitherBinaryOrPatientFhirPathOrThrow(originalRequest);
-
-        return UriComponentsBuilder.fromUriString(serviceRootUrl + path)
+    private Optional<URI> prepareLookupUri(String serviceRootUrl, ServerHttpRequest originalRequest) {
+        var originalRequestPath = originalRequest.getPath();
+        var originalRequestPathValues = originalRequestPath.elements().stream()
+                .map(PathContainer.Element::value)
+                .toList();
+        int indexOfPatientInFhirPath = originalRequestPathValues.lastIndexOf("Patient");
+        int indexOfBinaryInFhirPath = originalRequestPathValues.lastIndexOf("Binary");
+        int indexOfStartOfFhirPath = Math.max(indexOfPatientInFhirPath, indexOfBinaryInFhirPath);
+        if (indexOfStartOfFhirPath < 0) {
+            throw new SdsFilterException("Unable to detect a supported FHIR path in the original request");
+        }
+        String fhirRequestPathPart = originalRequest.getPath().subPath(indexOfStartOfFhirPath - 1)
+                .toString();
+        String uriWithoutQueryParameters = serviceRootUrl + fhirRequestPathPart;
+        URI constructedUri = UriComponentsBuilder.fromUriString(uriWithoutQueryParameters)
                 .queryParams(originalRequest.getQueryParams())
                 .build()
                 .toUri();
-
-    }
-
-    private static @NotNull String getEitherBinaryOrPatientFhirPathOrThrow(ServerHttpRequest originalRequest) {
-        var pattern = Pattern.compile("Patient|Binary");
-        Matcher matcher = pattern.matcher(originalRequest.getPath().toString());
-
-        if (!matcher.find()) {
-            throw new SdsFilterException("Unable to detect a supported FHIR path in the original request");
-        }
-
-        var startIndex = Math.max(0, matcher.start() - 1);
-        return originalRequest.getPath().toString().substring(startIndex);
+        return Optional.of(constructedUri);
     }
 }
