@@ -82,18 +82,18 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<SdsClient.SdsResponseData> getGpcProviderEndpointDetails(ServerWebExchange exchange) {
-
         return performGpcProviderSdsLookup(exchange)
-                .doOnNext(v -> {
-                    if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
-                        QueryParamsEncoder.encodeQueryParams(exchange);
-                    }
-                });
+                .doOnNext(v -> encodeQueryParamsToUrlWhenDocumentRequest(exchange));
+    }
+
+    private static void encodeQueryParamsToUrlWhenDocumentRequest(ServerWebExchange exchange) {
+        if (exchange.getRequest().getPath().value().endsWith(DOCUMENT_REFERENCE_SUFFIX)) {
+            QueryParamsEncoder.encodeQueryParams(exchange);
+        }
     }
 
     @NotNull
     private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange) {
-
         LoggingUtil.info(LOGGER, exchange, "Using SDS API for GP connect provider service lookup");
 
         var id = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
@@ -107,22 +107,35 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange, String interactionId) {
-
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOdsCode(serverHttpRequest.getPath());
         var sspTraceId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
 
         return performRequestAccordingToInteractionId(interactionId, organisation, sspTraceId, exchange)
-                .switchIfEmpty(Mono.error(new SdsException(
-                        String.format("No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s",
-                                interactionId,
-                                organisation)))
-                ).doOnNext(response -> {
-                    LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
-                    prepareLookupUri(response.getAddress(), serverHttpRequest)
-                            .ifPresent(uri -> exchange.getAttributes()
-                                    .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
-                });
+                .switchIfEmpty(buildNoEndpointFoundError(interactionId, organisation)
+                ).doOnNext(response -> updateGatewayRequestUrlIfEndpointFound(
+                        exchange,
+                        response,
+                        serverHttpRequest
+                ));
+    }
+
+    private void updateGatewayRequestUrlIfEndpointFound(
+            ServerWebExchange exchange,
+            SdsClient.SdsResponseData response,
+            ServerHttpRequest serverHttpRequest
+    ) {
+        LoggingUtil.info(LOGGER, exchange, "Found GP connect provider endpoint in sds: {}", response.getAddress());
+        prepareLookupUri(response.getAddress(), serverHttpRequest)
+                .ifPresent(uri -> exchange.getAttributes()
+                        .put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, uri));
+    }
+
+    private static @NotNull Mono<SdsClient.SdsResponseData> buildNoEndpointFoundError(String interactionId, String organisation) {
+        return Mono.error(new SdsException(
+                "No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s".formatted(
+                        interactionId,
+                        organisation)));
     }
 
     private Mono<Void> appendSspHeadersToExchangeIfRequired(
@@ -170,8 +183,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private static HttpStatus mapExceptionToHttpStatus(Exception e) {
         return switch (e) {
             case WebClientRequestException ignored -> HttpStatus.BAD_GATEWAY;
-            case WebClientResponseException webClientResponseEx ->
-                    HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
+            case WebClientResponseException webClientResponseEx -> HttpStatus.resolve(webClientResponseEx.getStatusCode().value());
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
