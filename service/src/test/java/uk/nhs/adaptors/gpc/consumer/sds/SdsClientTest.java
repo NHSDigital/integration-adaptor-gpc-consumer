@@ -20,6 +20,8 @@ import ca.uhn.fhir.parser.IParser;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
+import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 
@@ -81,7 +83,7 @@ class SdsClientTest {
         stubDeviceResponse(buildEmptyBundle());
 
         StepVerifier.create(sdsClient.callForGetAsid(INTERACTION_ID, FROM_ODS_CODE, CORRELATION_ID))
-            .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(RuntimeException.class)
+            .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(SdsException.class)
                 .hasMessageContaining("SDS returned no result"))
             .verify();
     }
@@ -94,7 +96,7 @@ class SdsClientTest {
 
         StepVerifier.create(sdsClient.callForGetAsid(INTERACTION_ID, FROM_ODS_CODE, CORRELATION_ID))
             .expectErrorSatisfies(e -> {
-                assertThat(e).isInstanceOf(RuntimeException.class);
+                assertThat(e).isInstanceOf(SdsException.class);
                 assertThat(e.getMessage()).contains("Identifier of system");
             })
             .verify();
@@ -127,7 +129,7 @@ class SdsClientTest {
         stubDeviceResponse(buildEmptyBundle());
 
         StepVerifier.create(sdsClient.callForGetStructuredRecord(FROM_ODS_CODE, CORRELATION_ID))
-                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(RuntimeException.class)
+                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(SdsException.class)
                         .hasMessageContaining("SDS returned no result"))
                 .verify();
     }
@@ -142,7 +144,7 @@ class SdsClientTest {
         stubEndpointResponse(buildEmptyBundle());
 
         StepVerifier.create(sdsClient.callForGetStructuredRecord(FROM_ODS_CODE, CORRELATION_ID))
-                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(RuntimeException.class)
+                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(SdsException.class)
                         .hasMessageContaining("SDS returned no result"))
                 .verify();
     }
@@ -157,7 +159,7 @@ class SdsClientTest {
         stubEndpointResponse(buildEndpointBundle("", TEST_MHS_ID));
 
         StepVerifier.create(sdsClient.callForGetStructuredRecord(FROM_ODS_CODE, CORRELATION_ID))
-                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(RuntimeException.class)
+                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(SdsException.class)
                         .hasMessageContaining("empty address"))
                 .verify();
     }
@@ -172,7 +174,7 @@ class SdsClientTest {
         stubEndpointResponse(buildEndpointBundleWithoutMhsId(TEST_ADDRESS));
 
         StepVerifier.create(sdsClient.callForGetStructuredRecord(FROM_ODS_CODE, CORRELATION_ID))
-                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(RuntimeException.class)
+                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(SdsException.class)
                         .hasMessageContaining(NHS_MHS_ID_SYSTEM))
                 .verify();
     }
