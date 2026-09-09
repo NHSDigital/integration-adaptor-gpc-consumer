@@ -258,7 +258,7 @@ public class SdsClientComponentTest {
             stubSdsOperation(pair.getKey(), DEVICE, ResourceReader.asString(sdsDeviceResponse));
 
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(SdsException.class)
                 .hasMessageContaining("SDS returned a result but with an empty address");
             wireMockServer.resetAll();
         });
@@ -271,7 +271,7 @@ public class SdsClientComponentTest {
             stubSdsOperation(pair.getKey(), ENDPOINT, ResourceReader.asString(sdsEndpointResponse));
             stubSdsOperation(pair.getKey(), DEVICE, ResourceReader.asString(sdsNoResultResponse));
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(SdsException.class)
                 .hasMessageContaining("SDS returned no result")
                 .hasMessageContaining("lookupContext=provider-device-asid")
                 .hasMessageContaining("bundleTotal=0")
@@ -288,7 +288,7 @@ public class SdsClientComponentTest {
         stubSdsAsidOperation(GET_STRUCTURED_INTERACTION, DEVICE, ResourceReader.asString(sdsNoResultResponse));
 
         assertThatThrownBy(() -> sdsClient.callForGetAsid(GET_STRUCTURED_INTERACTION, FROM_ODS_CODE, X_CORRELATION_ID).block())
-            .isInstanceOf(RuntimeException.class)
+            .isInstanceOf(SdsException.class)
             .hasMessageContaining("SDS returned no result")
             .hasMessageContaining("lookupContext=consumer-asid")
             .hasMessageContaining("bundleTotal=0")
