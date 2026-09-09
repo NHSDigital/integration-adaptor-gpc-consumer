@@ -22,6 +22,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.filters.SdsFilter;
+import uk.nhs.adaptors.gpc.consumer.filters.exception.SdsFilterException;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 
@@ -226,7 +227,7 @@ class SdsFilterTest {
     @Test
     void shouldReturn500AndOperationOutcomeWhenUnexpectedExceptionThrown() {
         when(sdsClient.callForGetStructuredRecord(TEST_ODS_CODE, TEST_TRACE_ID))
-            .thenReturn(Mono.error(new RuntimeException("Unexpected error")));
+            .thenReturn(Mono.error(new SdsFilterException("Unexpected error")));
 
         StepVerifier.create(sdsFilter.filter(exchange, chain)).verifyComplete();
 
