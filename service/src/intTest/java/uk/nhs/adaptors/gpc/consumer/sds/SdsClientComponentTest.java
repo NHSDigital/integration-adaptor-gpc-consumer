@@ -241,7 +241,7 @@ public class SdsClientComponentTest {
             stubSdsOperation(pair.getKey(), ENDPOINT, ResourceReader.asString(sdsNoResultResponse));
             stubSdsOperation(pair.getKey(), DEVICE, ResourceReader.asString(sdsDeviceResponse));
             assertThatThrownBy(() -> pair.getValue().apply(FROM_ODS_CODE, X_CORRELATION_ID).block())
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(SdsException.class)
                 .hasMessageContaining("SDS returned no result")
                 .hasMessageContaining("lookupContext=provider-endpoint")
                 .hasMessageContaining("bundleTotal=0")
