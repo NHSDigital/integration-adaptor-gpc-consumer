@@ -28,8 +28,8 @@ import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 
 import java.net.URI;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import reactor.test.StepVerifier;
@@ -68,7 +68,7 @@ class SdsFilterTest {
     public void before() {
         sdsFilter = new SdsFilter(sdsClient);
         sdsFilter.initializeSdsRequestFunctions();
-        exchange = buildExchange(TEST_URL);
+        exchange = buildExchange();
 
         filterChain = Mockito.mock(GatewayFilterChain.class);
         captor = ArgumentCaptor.forClass(ServerWebExchange.class);
@@ -83,7 +83,7 @@ class SdsFilterTest {
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
         //noinspection ReactiveStreamsUnusedPublisher
-        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+        assertThrows(SdsFilterException.class, () -> sdsFilter.filter(exchange, filterChain));
     }
 
     @Test
@@ -96,7 +96,7 @@ class SdsFilterTest {
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
         //noinspection ReactiveStreamsUnusedPublisher
-        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+        assertThrows(SdsFilterException.class, () -> sdsFilter.filter(exchange, filterChain));
     }
 
     @Test
@@ -108,7 +108,7 @@ class SdsFilterTest {
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
         //noinspection ReactiveStreamsUnusedPublisher
-        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+        assertThrows(SdsFilterException.class, () -> sdsFilter.filter(exchange, filterChain));
     }
 
     @Test
@@ -121,7 +121,7 @@ class SdsFilterTest {
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
         //noinspection ReactiveStreamsUnusedPublisher
-        assertThrows(SdsException.class, () -> sdsFilter.filter(exchange, filterChain));
+        assertThrows(SdsFilterException.class, () -> sdsFilter.filter(exchange, filterChain));
     }
 
     @Test
@@ -148,8 +148,9 @@ class SdsFilterTest {
         sdsFilter.filter(exchange, filterChain).block();
 
         var resultExchange = captor.getValue();
-        assertEquals(gpConnectConsumerAsid, resultExchange.getRequest().getHeaders().get("ssp-From").get(0));
-        assertEquals(gpConnectServerAsid, resultExchange.getRequest().getHeaders().get("ssp-To").get(0));
+
+        assertEquals(gpConnectConsumerAsid, resultExchange.getRequest().getHeaders().get("Ssp-From").getFirst());
+        assertEquals(gpConnectServerAsid, resultExchange.getRequest().getHeaders().get("Ssp-To").getFirst());
     }
 
     @Test
@@ -179,8 +180,8 @@ class SdsFilterTest {
         sdsFilter.filter(exchange, filterChain).block();
 
         var resultExchange = captor.getValue();
-        assertEquals(gpConnectConsumerAsid, resultExchange.getRequest().getHeaders().get("ssp-From").get(0));
-        assertEquals(gpConnectServerAsid, resultExchange.getRequest().getHeaders().get("ssp-To").get(0));
+        assertEquals(gpConnectConsumerAsid, resultExchange.getRequest().getHeaders().get("Ssp-From").getFirst());
+        assertEquals(gpConnectServerAsid, resultExchange.getRequest().getHeaders().get("Ssp-To").getFirst());
     }
 
     @Test
@@ -383,8 +384,8 @@ class SdsFilterTest {
         assertThat(exchange.getResponse().getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
     }
 
-    private MockServerWebExchange buildExchange(String path) {
-        MockServerHttpRequest request = MockServerHttpRequest.get(path)
+    private MockServerWebExchange buildExchange() {
+        MockServerHttpRequest request = MockServerHttpRequest.get(SdsFilterTest.TEST_URL)
             .header(SSP_INTERACTION_ID, STRUCTURED_ID)
             .header(SSP_TRACE_ID, TEST_TRACE_ID)
             .build();
