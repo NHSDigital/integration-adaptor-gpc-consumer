@@ -24,16 +24,17 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     private static final String PLACEHOLDER_URI = "http://0.0.0.0";
     private static final String INTERACTION_ID_HEADER_NAME = "Ssp-InteractionID";
 
-    @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
-    private String searchForAPatientsDocumentsPath;
+    @Value("${gpc-consumer.gpc.migrateStructuredPath}")
+    private String migrateStructuredPath;
     @Value("${gpc-consumer.gpc.structuredPath}")
     private String structuredPath;
+    @Value("${gpc-consumer.gpc.searchForAPatientsDocumentsPath}")
+    private String searchForAPatientsDocumentsPath;
     @Value("${gpc-consumer.gpc.findPatientPath}")
     private String findPatientPath;
     @Value("${gpc-consumer.gpc.documentPath}")
     private String documentPath;
-    @Value("${gpc-consumer.gpc.migrateStructuredPath}")
-    private String migrateStructuredPath;
+
 
     @Autowired
     private UrlsInResponseBodyRewriteFunction urlsInResponseBodyRewriteFunction;
@@ -47,27 +48,26 @@ public class RoutingGatewayFilterFactory extends AbstractGatewayFilterFactory<Ro
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()
-            .route("get-document", r -> r.path(documentPath)
-                .and()
-                .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_READ_ID)
-                .uri(PLACEHOLDER_URI))
-            .route("migrate-document", r -> r.path(documentPath)
-                .and()
-                .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_MIGRATE_ID)
-                .uri(PLACEHOLDER_URI))
-            .route("get-structured-record", r -> r.path(structuredPath)
-                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(PLACEHOLDER_URI))
-            .route("find-a-patient", r -> r.path(findPatientPath)
-                .and()
-                .uri(PLACEHOLDER_URI))
-            .route("migrate-structured-record", r -> r.path(migrateStructuredPath)
-                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(PLACEHOLDER_URI))
-            .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
-                .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
-                .uri(PLACEHOLDER_URI))
-            .build();
+                .route("migrate-structured-record", r -> r.path(migrateStructuredPath)
+                        .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
+                        .uri(PLACEHOLDER_URI))
+                .route("get-structured-record", r -> r.path(structuredPath)
+                        .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
+                        .uri(PLACEHOLDER_URI))
+                .route("get-document", r -> r.path(documentPath)
+                        .and()
+                        .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_READ_ID)
+                        .uri(PLACEHOLDER_URI))
+                .route("migrate-document", r -> r.path(documentPath)
+                        .and()
+                        .header(INTERACTION_ID_HEADER_NAME, DOCUMENT_MIGRATE_ID)
+                        .uri(PLACEHOLDER_URI))
+                .route("find-a-patient", r -> r.path(findPatientPath)
+                        .uri(PLACEHOLDER_URI))
+                .route("search-documents", r -> r.path(searchForAPatientsDocumentsPath)
+                        .filters(f -> f.modifyResponseBody(String.class, String.class, urlsInResponseBodyRewriteFunction))
+                        .uri(PLACEHOLDER_URI))
+                .build();
     }
 
     @Setter
