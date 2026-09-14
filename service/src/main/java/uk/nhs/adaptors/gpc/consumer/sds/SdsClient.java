@@ -31,6 +31,20 @@ public class SdsClient {
     private static final String LOOKUP_CONTEXT_PROVIDER_DEVICE_ASID = "provider-device-asid";
     private static final String LOOKUP_CONTEXT_PROVIDER_ENDPOINT = "provider-endpoint";
     private static final String LOOKUP_CONTEXT_CONSUMER_ASID = "consumer-asid";
+
+    private static final String GET_STRUCTURED_INTERACTION =
+            "urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1";
+    private static final String PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION =
+            "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:patient-1";
+    private static final String SEARCH_FOR_DOCUMENT_INTERACTION =
+            "urn:nhs:names:services:gpconnect:documents:fhir:rest:search:documentreference-1";
+    private static final String RETRIEVE_DOCUMENT_INTERACTION =
+            "urn:nhs:names:services:gpconnect:documents:fhir:rest:read:binary-1";
+    private static final String MIGRATE_DOCUMENT_INTERACTION =
+            "urn:nhs:names:services:gpconnect:documents:fhir:rest:migrate:binary-1";
+    private static final String MIGRATE_STRUCTURED_INTERACTION =
+            "urn:nhs:names:services:gpconnect:fhir:operation:gpc.migratestructuredrecord-1";
+
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
@@ -38,51 +52,50 @@ public class SdsClient {
     private String supplierOdsCode;
 
     public Mono<String> callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
-        LOGGER.info("SDS lookup for consumer ASID (fromOdsCode={}, interactionId={}, correlationId={})",
-            fromOdsCode, interactionId, correlationId);
+        LOGGER.info("SDS lookup for consumer ASID (fromOdsCode={}, interactionId={}, correlationId={})", fromOdsCode, interactionId, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
         return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_CONSUMER_ASID);
     }
 
     public Mono<SdsResponseData> callForGetStructuredRecord(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for GetStructuredRecord (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
-        var sdsEndpointRequest = sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(fromOdsCode, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, GET_STRUCTURED_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, GET_STRUCTURED_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForMigrateStructuredRecord(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for MigrateStructuredRecord (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(fromOdsCode, correlationId);
-        var sdsEndpointRequest = sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(fromOdsCode, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, MIGRATE_STRUCTURED_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, MIGRATE_STRUCTURED_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for PatientSearchAccessDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var sdsEndpointRequest = sdsRequestBuilder.buildPatientSearchAccessDocumentEndpointRequest(fromOdsCode, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForSearchForDocumentRecord(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for SearchForDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var sdsEndpointRequest = sdsRequestBuilder.buildSearchForDocumentEndpointRequest(fromOdsCode, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, SEARCH_FOR_DOCUMENT_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, SEARCH_FOR_DOCUMENT_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForRetrieveDocumentRecord(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for RetrieveDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var sdsEndpointRequest = sdsRequestBuilder.buildRetrieveDocumentEndpointRequest(fromOdsCode, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, RETRIEVE_DOCUMENT_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, RETRIEVE_DOCUMENT_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
     public Mono<SdsResponseData> callForMigrateDocumentRecord(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for MigrateDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(fromOdsCode, correlationId);
-        var sdsEndpointRequest = sdsRequestBuilder.buildMigrateDocumentEndpointRequest(fromOdsCode, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, MIGRATE_DOCUMENT_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, MIGRATE_DOCUMENT_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
