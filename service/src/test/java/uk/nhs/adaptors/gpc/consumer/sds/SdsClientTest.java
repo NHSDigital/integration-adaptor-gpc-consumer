@@ -254,8 +254,8 @@ class SdsClientTest {
 
         sdsClient.callForSearchForDocumentRecord(FROM_ODS_CODE, CORRELATION_ID).block();
 
-       verify(sdsRequestBuilder, times(1)).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION);
-       verify(sdsRequestBuilder, times(1)).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION);
+        verify(sdsRequestBuilder, times(1)).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION);
+        verify(sdsRequestBuilder, times(1)).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION);
     }
 
     @Test

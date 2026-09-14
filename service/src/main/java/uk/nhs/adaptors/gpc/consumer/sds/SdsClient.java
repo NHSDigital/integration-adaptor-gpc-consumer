@@ -52,7 +52,11 @@ public class SdsClient {
     private String supplierOdsCode;
 
     public Mono<String> callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
-        LOGGER.info("SDS lookup for consumer ASID (fromOdsCode={}, interactionId={}, correlationId={})", fromOdsCode, interactionId, correlationId);
+        LOGGER.info(
+                "SDS lookup for consumer ASID (fromOdsCode={}, interactionId={}, correlationId={})",
+                fromOdsCode,
+                interactionId,
+                correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
         return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_CONSUMER_ASID);
     }
@@ -74,7 +78,10 @@ public class SdsClient {
     public Mono<SdsResponseData> callForPatientSearchAccessDocument(String fromOdsCode, String correlationId) {
         LOGGER.info("SDS lookup for PatientSearchAccessDocument (fromOdsCode={}, correlationId={})", fromOdsCode, correlationId);
         var sdsDeviceRequest = sdsRequestBuilder.buildDeviceRequest(fromOdsCode, correlationId, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
-        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(fromOdsCode, correlationId, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
+        var sdsEndpointRequest = sdsRequestBuilder.buildEndpointRequest(
+                fromOdsCode,
+                correlationId,
+                PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
         return retrieveData(sdsDeviceRequest, sdsEndpointRequest);
     }
 
