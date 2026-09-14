@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Device;
 import org.hl7.fhir.dstu3.model.Endpoint;
+import org.hl7.fhir.dstu3.model.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
+import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -91,23 +93,26 @@ public class SdsClient {
         return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_PROVIDER_DEVICE_ASID)
                 .flatMap(nhsSpineAsid -> performRequest(sdsEndpointRequest)
                     .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
-                    .map(bundle -> {
-                        doBundleEntryCheck(bundle, LOOKUP_CONTEXT_PROVIDER_ENDPOINT);
-                        var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
-                        var nhsMhsId = getNhsMhsId(endpoint);
-                        var address = getAddressFromEndpoint(endpoint);
-
-                        LOGGER.info("SDS provider details retrieved (nhsMhsId={}, nhsSpineAsid={}, address={})",
-                            nhsMhsId, nhsSpineAsid, address);
-
-                        return SdsResponseData.builder()
-                                .address(getAddressFromEndpoint(endpoint))
-                                .nhsMhsId(getNhsMhsId(endpoint))
-                                .nhsSpineAsid(nhsSpineAsid)
-                                .build();
-                    })
+                    .map(bundle -> buildSdsResponseDataFromEndpointBundle(nhsSpineAsid, bundle))
                 )
                 .doOnError(error -> LOGGER.error("Failed to retrieve SDS provider endpoint details", error));
+    }
+
+    private SdsResponseData buildSdsResponseDataFromEndpointBundle(String nhsSpineAsid, Bundle bundle) {
+        validateBundleEntries(bundle, LOOKUP_CONTEXT_PROVIDER_ENDPOINT);
+
+        var endpoint = (Endpoint) bundle.getEntryFirstRep().getResource();
+        var nhsMhsId = getNhsMhsId(endpoint);
+        var address = getAddressFromEndpoint(endpoint);
+
+        LOGGER.info("SDS provider details retrieved (nhsMhsId={}, nhsSpineAsid={}, address={})",
+            nhsMhsId, nhsSpineAsid, address);
+
+        return SdsResponseData.builder()
+                .address(getAddressFromEndpoint(endpoint))
+                .nhsMhsId(getNhsMhsId(endpoint))
+                .nhsSpineAsid(nhsSpineAsid)
+                .build();
     }
 
     private Mono<String> retrieveAsDeviceNhsSpineAsid(RequestHeadersSpec<? extends RequestHeadersSpec<?>> request,
@@ -120,7 +125,7 @@ public class SdsClient {
                 lookupContext, bodyString.length()))
             .map(bodyString -> fhirParser.parseResource(Bundle.class, bodyString))
             .map(bundle -> {
-                doBundleEntryCheck(bundle, lookupContext);
+                validateBundleEntries(bundle, lookupContext);
                 var device = (Device) bundle.getEntryFirstRep().getResource();
                 return getNhsSpineAsid(device);
             })
@@ -131,11 +136,12 @@ public class SdsClient {
         return endpoint.getIdentifier()
             .stream()
             .filter(id -> NHS_SPINE_ASID.equals(id.getSystem()))
-            .map(id -> id.getValue())
+            .map(Identifier::getValue)
             .findFirst()
             .orElseThrow(() -> {
                 LOGGER.error("SDS Device response is missing identifier system {}", NHS_SPINE_ASID);
-                return new RuntimeException(String.format("Identifier of system %s not found", NHS_SPINE_ASID));
+
+                return new SdsException(String.format("Identifier of system %s not found", NHS_SPINE_ASID));
             });
     }
 
@@ -143,23 +149,25 @@ public class SdsClient {
         return endpoint.getIdentifier()
             .stream()
             .filter(id -> NHS_MHS_ID.equals(id.getSystem()))
-            .map(id -> id.getValue())
+            .map(Identifier::getValue)
             .findFirst()
             .orElseThrow(() -> {
                 LOGGER.error("SDS Endpoint response is missing identifier system {}", NHS_MHS_ID);
-                return new RuntimeException(String.format("Identifier of system %s not found", NHS_MHS_ID));
+
+                return new SdsException(String.format("Identifier of system %s not found", NHS_MHS_ID));
             });
     }
 
-    private void doBundleEntryCheck(Bundle bundle, String lookupContext) {
-        LOGGER.info("Attempting to parse the bundle response from SDS ({})", getBundleSummary(bundle, lookupContext));
+    private void validateBundleEntries(Bundle bundle, String lookupContext) {
         if (!bundle.hasEntry()) {
-            LOGGER.error("SDS returned no entries ({})", getBundleSummary(bundle, lookupContext));
-            throw new RuntimeException(String.format("SDS returned no result (%s)", getBundleSummary(bundle, lookupContext)));
+            LOGGER.error("SDS returned no entries");
+            throw new SdsException("SDS returned no results (%s)".formatted(getBundleSummary(bundle, lookupContext)));
         }
 
+        LOGGER.info("Attempting to parse the bundle response from SDS ({})", getBundleSummary(bundle, lookupContext));
+
         if (bundle.getEntry().size() > 1) {
-            LOGGER.warn("SDS returned more than 1 result. Taking the first one ({})", getBundleSummary(bundle, lookupContext));
+            LOGGER.warn("SDS returned more than 1 result. Taking the first one.");
         }
     }
 
@@ -176,7 +184,7 @@ public class SdsClient {
         var address = endpoint.getAddress();
         if (StringUtils.isBlank(address)) {
             LOGGER.error("SDS Endpoint response contained an empty address");
-            throw new RuntimeException("SDS returned a result but with an empty address");
+            throw new SdsException("SDS returned a result but with an empty address");
         }
         return address;
     }

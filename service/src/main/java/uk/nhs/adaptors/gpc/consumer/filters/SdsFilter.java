@@ -28,7 +28,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.filters.exception.SdsFilterException;
 import uk.nhs.adaptors.gpc.consumer.sds.SdsClient;
-import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.utils.LoggingUtil;
 import uk.nhs.adaptors.gpc.consumer.utils.OperationOutcomes;
 import uk.nhs.adaptors.gpc.consumer.utils.QueryParamsEncoder;
@@ -115,20 +114,20 @@ public class SdsFilter implements GlobalFilter, Ordered {
     private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange) {
         LoggingUtil.info(LOGGER, exchange, "Using SDS API for GP connect provider service lookup");
 
-        var id = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
+        var id = extractHeaderValueOrThrowSdsFilterException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
         return performGpcProviderSdsLookup(exchange, id);
     }
 
-    private String extractHeaderValueOrThrowSdsException(HttpHeaders httpHeaders, String headerName) {
+    private String extractHeaderValueOrThrowSdsFilterException(HttpHeaders httpHeaders, String headerName) {
         return Optional.ofNullable(httpHeaders.getFirst(headerName))
                 .filter(StringUtils::hasText)
-                .orElseThrow(() -> new SdsException(MISSING_HEADER_EXCEPTION_MESSAGE.formatted(headerName)));
+                .orElseThrow(() -> new SdsFilterException(MISSING_HEADER_EXCEPTION_MESSAGE.formatted(headerName)));
     }
 
     private Mono<SdsClient.SdsResponseData> performGpcProviderSdsLookup(ServerWebExchange exchange, String interactionId) {
         ServerHttpRequest serverHttpRequest = exchange.getRequest();
         String organisation = extractOdsCode(serverHttpRequest.getPath());
-        var sspTraceId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
+        var sspTraceId = extractHeaderValueOrThrowSdsFilterException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
 
         return performRequestAccordingToInteractionId(interactionId, organisation, sspTraceId, exchange)
                 .switchIfEmpty(buildNoEndpointFoundError(interactionId, organisation)
@@ -150,7 +149,7 @@ public class SdsFilter implements GlobalFilter, Ordered {
     }
 
     private static @NotNull Mono<SdsClient.SdsResponseData> buildNoEndpointFoundError(String interactionId, String organisation) {
-        return Mono.error(new SdsException(
+        return Mono.error(new SdsFilterException(
                 "No endpoint found in SDS for GP Connect endpoint InteractionId=%s OdsCode=%s".formatted(
                         interactionId,
                         organisation)));
@@ -241,8 +240,8 @@ public class SdsFilter implements GlobalFilter, Ordered {
         LoggingUtil.info(LOGGER, exchange, "Using SDS API to fetch GPC consumer ASID value");
 
         var odsCode = extractOdsCode(exchange.getRequest().getPath());
-        var correlationId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
-        var interactionId = extractHeaderValueOrThrowSdsException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
+        var correlationId = extractHeaderValueOrThrowSdsFilterException(exchange.getRequest().getHeaders(), SSP_TRACE_ID);
+        var interactionId = extractHeaderValueOrThrowSdsFilterException(exchange.getRequest().getHeaders(), SSP_INTERACTION_ID);
 
         return sdsClient.callForGetAsid(interactionId, odsCode, correlationId);
     }
