@@ -104,6 +104,25 @@ public class SdsConfigurationValidationTest {
     }
 
     @Test
+    void When_SdsConfigurationDoesOdsCodePopulatedButIsWhitespaceOnly_Expect_ContextIsNotCreated() {
+        contextRunner
+                .withPropertyValues(
+                        buildPropertyValue(URL, URL_VALUE),
+                        buildPropertyValue(API_KEY, API_KEY_VALUE),
+                        buildPropertyValue(SUPPLIER_ODS_CODE, "   \t \n \r    ")
+                )
+                .run(context -> {
+                    assertThat(context).hasFailed();
+
+                    var startupFailure = context.getStartupFailure();
+
+                    assertThat(startupFailure)
+                            .rootCause()
+                            .hasMessageContaining("The environment variable(s) GPC_SUPPLIER_ODS_CODE must be provided.");
+                });
+    }
+
+    @Test
     void When_SdsConfigurationHasMultipleValuesNotPopulated_Expect_ContextIsNotCreated() {
         contextRunner
             .withPropertyValues(

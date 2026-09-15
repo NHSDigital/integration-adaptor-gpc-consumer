@@ -69,13 +69,13 @@ class SdsClientTest {
     @BeforeEach
     void setUp() {
         sdsClient = new SdsClient(fhirParser, sdsRequestBuilder);
-        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", SUPPLIER_ODS_CODE);
+        ReflectionTestUtils.setField(sdsRequestBuilder, "supplierOdsCode", SUPPLIER_ODS_CODE);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void When_DeviceBundleContainsSpineAsid_Expect_CallForGetAsidReturnsAsid() {
-        when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
+        when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
             .thenReturn(deviceRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
 
@@ -87,7 +87,7 @@ class SdsClientTest {
     @Test
     @SuppressWarnings("unchecked")
     void When_DeviceBundleHasNoEntries_Expect_CallForGetAsidErrors() {
-        when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
+        when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
             .thenReturn(deviceRequest);
         stubDeviceResponse(buildEmptyBundle());
 
@@ -100,7 +100,7 @@ class SdsClientTest {
     @Test
     @SuppressWarnings("unchecked")
     void When_DeviceMissingSpineAsidIdentifier_Expect_CallForGetAsidErrors() {
-        when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
+        when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
             .thenReturn(deviceRequest);
         stubDeviceResponse(buildDeviceBundleWithWrongIdentifierSystem());
 
@@ -326,12 +326,6 @@ class SdsClientTest {
         var device = new Device();
         device.addIdentifier().setSystem("https://fhir.nhs.uk/Id/WRONG_SYSTEM").setValue("some-value");
         bundle.addEntry().setResource(device);
-        return fhirParser.encodeResourceToString(bundle);
-    }
-
-    private String buildDeviceBundleWithoutIdentifier() {
-        var bundle = new Bundle();
-        bundle.addEntry().setResource(new Device());
         return fhirParser.encodeResourceToString(bundle);
     }
 

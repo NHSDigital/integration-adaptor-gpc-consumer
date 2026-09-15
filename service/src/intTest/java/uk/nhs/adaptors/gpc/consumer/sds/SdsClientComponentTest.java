@@ -48,6 +48,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import reactor.core.publisher.Mono;
 import uk.nhs.adaptors.gpc.consumer.common.ResourceReader;
 import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
+import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 import uk.nhs.adaptors.gpc.consumer.testcontainers.WiremockExtension;
@@ -87,10 +88,10 @@ public class SdsClientComponentTest {
     private WireMockServer wireMockServer;
 
     @Autowired
-    private SdsConfiguration sdsConfiguration;
+    private SdsClient sdsClient;
 
     @Autowired
-    private SdsClient sdsClient;
+    private SdsRequestBuilder sdsRequestBuilder;
 
     @Value("classpath:sds/sds_endpoint_response.json")
     private Resource sdsEndpointResponse;
@@ -184,32 +185,13 @@ public class SdsClientComponentTest {
     public void callForGetAsidTest(String interactionId) {
         wireMockServer.resetAll();
 
-        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", SUPPLIER_ODS_CODE);
+        ReflectionTestUtils.setField(sdsRequestBuilder, "supplierOdsCode", SUPPLIER_ODS_CODE);
         stubSdsAsidOperation(interactionId, DEVICE, ResourceReader.asString(sdsDeviceResponse));
 
         assertEquals(
             "928942012545",
             sdsClient.callForGetAsid(interactionId, FROM_ODS_CODE, X_CORRELATION_ID).block()
         );
-
-        wireMockServer.resetAll();
-    }
-
-    @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = {"", " "})
-    public void callForGetAsidAndExpectExceptionWhenODSCodeIsNullTest(String emptyOrNullOdsCode) {
-        wireMockServer.resetAll();
-
-        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", null);
-
-        GpConnectException thrownGpConnectException
-                            = assertThrows(GpConnectException.class,
-                                           () -> sdsClient.callForGetAsid(GET_STRUCTURED_INTERACTION, emptyOrNullOdsCode, X_CORRELATION_ID),
-                                           "Test is expected to throw an exception when ODS code is null"
-                                           );
-
-        assertTrue(thrownGpConnectException.getMessage().contains("Supplier ODS code variable must be defined"));
 
         wireMockServer.resetAll();
     }
@@ -284,7 +266,7 @@ public class SdsClientComponentTest {
     public void When_SdsConsumerAsidLookupReturnsNoResult_Expect_EmptyResultIsReturned() {
         wireMockServer.resetAll();
 
-        ReflectionTestUtils.setField(sdsClient, "supplierOdsCode", SUPPLIER_ODS_CODE);
+        ReflectionTestUtils.setField(sdsRequestBuilder, "supplierOdsCode", SUPPLIER_ODS_CODE);
         stubSdsAsidOperation(GET_STRUCTURED_INTERACTION, DEVICE, ResourceReader.asString(sdsNoResultResponse));
 
         assertThatThrownBy(() -> sdsClient.callForGetAsid(GET_STRUCTURED_INTERACTION, FROM_ODS_CODE, X_CORRELATION_ID).block())
