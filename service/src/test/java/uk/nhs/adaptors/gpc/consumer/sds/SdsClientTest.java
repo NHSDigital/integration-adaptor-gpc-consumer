@@ -329,12 +329,6 @@ class SdsClientTest {
         return fhirParser.encodeResourceToString(bundle);
     }
 
-    private String buildDeviceBundleWithoutIdentifier() {
-        var bundle = new Bundle();
-        bundle.addEntry().setResource(new Device());
-        return fhirParser.encodeResourceToString(bundle);
-    }
-
     private String buildEndpointBundle(String address, String nhsMhsId) {
         var bundle = new Bundle();
         var endpoint = new Endpoint();
