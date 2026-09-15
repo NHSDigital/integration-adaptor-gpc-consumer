@@ -2,9 +2,9 @@ package uk.nhs.adaptors.gpc.consumer.sds.builder;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,6 @@ import org.springframework.web.reactive.function.client.WebClient.RequestHeaders
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
-import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
@@ -40,6 +39,9 @@ public class SdsRequestBuilder {
     private final RequestBuilderService requestBuilderService;
     private final WebClientFilterService webClientFilterService;
 
+    @Value("${gpc-consumer.sds.supplierOdsCode}")
+    private String supplierOdsCode;
+
 
     public RequestHeadersSpec<?> buildEndpointRequest(String fromOdsCode, String correlationId, String interactionUrn) {
         return buildMhsEndpointRequest(fromOdsCode, interactionUrn, correlationId);
@@ -59,20 +61,13 @@ public class SdsRequestBuilder {
         return buildClientFor(odsCode, interaction, correlationId, ENDPOINT_AS_DEVICE);
     }
 
-    public RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceAsidRequest(String odsCode, String supplierOdsCode,
-                                                                                        String interaction, String correlationId) {
-        return buildAsidClientFor(odsCode, supplierOdsCode, interaction, correlationId);
-    }
 
     @NotNull
-    private RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsidClientFor(String consumerOrgOdsCode, String supplierOdsCode,
-                                                                                   String interaction, String correlationId) {
-
-        if (StringUtils.isEmpty(supplierOdsCode)) {
-            LOGGER.error("Supplier ODS code is not configured — cannot build ASID lookup request");
-            throw new GpConnectException("Supplier ODS code variable must be defined");
-        }
-
+    public RequestHeadersSpec<? extends RequestHeadersSpec<?>> buildAsDeviceAsidRequest(
+            String consumerOrgOdsCode,
+            String interaction,
+            String correlationId
+    ) {
         LOGGER.debug("Building ASID Device request (consumerOdsCode={}, supplierOdsCode={}, interaction={})",
             consumerOrgOdsCode, supplierOdsCode, interaction);
 

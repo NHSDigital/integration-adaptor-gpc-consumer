@@ -7,7 +7,6 @@ import org.hl7.fhir.dstu3.model.Endpoint;
 import org.hl7.fhir.dstu3.model.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 
@@ -48,8 +47,7 @@ public class SdsClient {
     private final IParser fhirParser;
     private final SdsRequestBuilder sdsRequestBuilder;
 
-    @Value("${gpc-consumer.sds.supplierOdsCode}")
-    private String supplierOdsCode;
+
 
     public Mono<String> callForGetAsid(String interactionId, String fromOdsCode, String correlationId) {
         LOGGER.info(
@@ -57,7 +55,7 @@ public class SdsClient {
                 fromOdsCode,
                 interactionId,
                 correlationId);
-        var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, supplierOdsCode, interactionId, correlationId);
+        var sdsDeviceRequest = sdsRequestBuilder.buildAsDeviceAsidRequest(fromOdsCode, interactionId, correlationId);
         return retrieveAsDeviceNhsSpineAsid(sdsDeviceRequest, LOOKUP_CONTEXT_CONSUMER_ASID);
     }
 

@@ -1,6 +1,5 @@
 package uk.nhs.adaptors.gpc.consumer.sds.builder;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -19,7 +17,6 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
 import io.netty.handler.ssl.SslContext;
 import reactor.core.publisher.Mono;
-import uk.nhs.adaptors.gpc.consumer.gpc.exception.GpConnectException;
 import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
@@ -36,7 +33,6 @@ import static uk.nhs.adaptors.gpc.consumer.TestConstants.SEARCH_FOR_DOCUMENT_INT
 class SdsRequestBuilderTest {
 
     private static final String ODS_CODE = "A12345";
-    private static final String SUPPLIER_ODS_CODE = "SUPPLIER01";
     private static final String CORRELATION_ID = "corr-id-001";
     private static final String INTERACTION_ID = "urn:nhs:names:services:gpconnect:fhir:operation:gpc.getstructuredrecord-1";
     private static final String SDS_URL = "https://sds.example.com";
@@ -71,18 +67,10 @@ class SdsRequestBuilderTest {
                 .thenReturn(ExchangeFilterFunction.ofResponseProcessor(Mono::just));
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    void When_SupplierOdsCodeIsBlank_Expect_GpConnectException(String blankSupplierOdsCode) {
-        assertThatThrownBy(() -> sdsRequestBuilder.buildAsDeviceAsidRequest(ODS_CODE, blankSupplierOdsCode, INTERACTION_ID, CORRELATION_ID))
-            .isInstanceOf(GpConnectException.class)
-            .hasMessageContaining("Supplier ODS code variable must be defined");
-    }
-
     @Test
     void When_SupplierOdsCodeIsPresent_Expect_BuildAsDeviceAsidRequestReturnsRequest() {
 
-        var result = sdsRequestBuilder.buildAsDeviceAsidRequest(ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID);
+        var result = sdsRequestBuilder.buildAsDeviceAsidRequest(ODS_CODE, INTERACTION_ID, CORRELATION_ID);
 
         assertNotNull(result);
     }
