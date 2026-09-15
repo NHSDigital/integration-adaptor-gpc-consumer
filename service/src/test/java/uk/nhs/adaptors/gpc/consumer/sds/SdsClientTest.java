@@ -2,6 +2,8 @@ package uk.nhs.adaptors.gpc.consumer.sds;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.hl7.fhir.dstu3.model.Bundle;
@@ -23,7 +25,12 @@ import uk.nhs.adaptors.gpc.consumer.sds.builder.SdsRequestBuilder;
 import uk.nhs.adaptors.gpc.consumer.sds.exception.SdsException;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.GET_STRUCTURED_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.MIGRATE_DOCUMENT_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.MIGRATE_STRUCTURED_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.RETRIEVE_DOCUMENT_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.SEARCH_FOR_DOCUMENT_INTERACTION;
 
 @ExtendWith(MockitoExtension.class)
 class SdsClientTest {
@@ -66,6 +73,7 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_DeviceBundleContainsSpineAsid_Expect_CallForGetAsidReturnsAsid() {
         when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
             .thenReturn(deviceRequest);
@@ -77,6 +85,7 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_DeviceBundleHasNoEntries_Expect_CallForGetAsidErrors() {
         when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
             .thenReturn(deviceRequest);
@@ -89,6 +98,7 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_DeviceMissingSpineAsidIdentifier_Expect_CallForGetAsidErrors() {
         when(sdsRequestBuilder.buildAsDeviceAsidRequest(FROM_ODS_CODE, SUPPLIER_ODS_CODE, INTERACTION_ID, CORRELATION_ID))
             .thenReturn(deviceRequest);
@@ -103,10 +113,11 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_BothBundlesAreValid_Expect_CallForGetStructuredRecordReturnsSdsResponseData() {
-        when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
             .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
             .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
@@ -121,10 +132,11 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_DeviceBundleHasNoEntries_Expect_CallForGetStructuredRecordErrors() {
-        when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildEmptyBundle());
 
@@ -135,10 +147,11 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_EndpointBundleHasNoEntries_Expect_CallForGetStructuredRecordErrors() {
-        when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEmptyBundle());
@@ -150,10 +163,11 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_EndpointAddressIsBlank_Expect_CallForGetStructuredRecordErrors() {
-        when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle("", TEST_MHS_ID));
@@ -165,10 +179,11 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_EndpointMissingNhsMhsIdIdentifier_Expect_CallForGetStructuredRecordErrors() {
-        when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundleWithoutMhsId(TEST_ADDRESS));
@@ -180,10 +195,11 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_DeviceBundleHasMultipleEntries_Expect_CallForGetStructuredRecordSucceeds() {
-        when(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, GET_STRUCTURED_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundleWithMultipleEntries(TEST_ASID, "other-asid"));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
@@ -194,78 +210,84 @@ class SdsClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_CallingForMigrateStructuredRecord_Expect_CorrectBuilderMethodsInvoked() {
-        when(sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_STRUCTURED_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_STRUCTURED_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
 
         sdsClient.callForMigrateStructuredRecord(FROM_ODS_CODE, CORRELATION_ID).block();
 
-        verify(sdsRequestBuilder).buildMigrateStructuredRecordAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID);
-        verify(sdsRequestBuilder).buildMigrateStructuredRecordEndpointRequest(FROM_ODS_CODE, CORRELATION_ID);
+        verify(sdsRequestBuilder).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_STRUCTURED_INTERACTION);
+        verify(sdsRequestBuilder).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_STRUCTURED_INTERACTION);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_CallingForPatientSearchAccessDocument_Expect_CorrectBuilderMethodsInvoked() {
-        when(sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildPatientSearchAccessDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
 
         sdsClient.callForPatientSearchAccessDocument(FROM_ODS_CODE, CORRELATION_ID).block();
 
-        verify(sdsRequestBuilder).buildPatientSearchAccessDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID);
-        verify(sdsRequestBuilder).buildPatientSearchAccessDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID);
+        verify(sdsRequestBuilder).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
+        verify(sdsRequestBuilder).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_CallingForSearchForDocumentRecord_Expect_CorrectBuilderMethodsInvoked() {
-        when(sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildSearchForDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
 
         sdsClient.callForSearchForDocumentRecord(FROM_ODS_CODE, CORRELATION_ID).block();
 
-        verify(sdsRequestBuilder).buildSearchForDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID);
-        verify(sdsRequestBuilder).buildSearchForDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID);
+        verify(sdsRequestBuilder, times(1)).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION);
+        verify(sdsRequestBuilder, times(1)).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, SEARCH_FOR_DOCUMENT_INTERACTION);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_CallingForRetrieveDocumentRecord_Expect_CorrectBuilderMethodsInvoked() {
-        when(sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, RETRIEVE_DOCUMENT_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildRetrieveDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, RETRIEVE_DOCUMENT_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
 
         sdsClient.callForRetrieveDocumentRecord(FROM_ODS_CODE, CORRELATION_ID).block();
 
-        verify(sdsRequestBuilder).buildRetrieveDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID);
-        verify(sdsRequestBuilder).buildRetrieveDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID);
+        verify(sdsRequestBuilder).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, RETRIEVE_DOCUMENT_INTERACTION);
+        verify(sdsRequestBuilder).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, RETRIEVE_DOCUMENT_INTERACTION);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void When_CallingForMigrateDocumentRecord_Expect_CorrectBuilderMethodsInvoked() {
-        when(sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_DOCUMENT_INTERACTION))
                 .thenReturn(deviceRequest);
-        when(sdsRequestBuilder.buildMigrateDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID))
+        when(sdsRequestBuilder.buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_DOCUMENT_INTERACTION))
                 .thenReturn(endpointRequest);
         stubDeviceResponse(buildDeviceBundle(TEST_ASID));
         stubEndpointResponse(buildEndpointBundle(TEST_ADDRESS, TEST_MHS_ID));
 
         sdsClient.callForMigrateDocumentRecord(FROM_ODS_CODE, CORRELATION_ID).block();
 
-        verify(sdsRequestBuilder).buildMigrateDocumentAsDeviceRequest(FROM_ODS_CODE, CORRELATION_ID);
-        verify(sdsRequestBuilder).buildMigrateDocumentEndpointRequest(FROM_ODS_CODE, CORRELATION_ID);
+        verify(sdsRequestBuilder).buildDeviceRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_DOCUMENT_INTERACTION);
+        verify(sdsRequestBuilder).buildEndpointRequest(FROM_ODS_CODE, CORRELATION_ID, MIGRATE_DOCUMENT_INTERACTION);
     }
 
     @SuppressWarnings("unchecked")

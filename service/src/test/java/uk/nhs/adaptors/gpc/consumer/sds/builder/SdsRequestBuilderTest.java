@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +24,12 @@ import uk.nhs.adaptors.gpc.consumer.sds.configuration.SdsConfiguration;
 import uk.nhs.adaptors.gpc.consumer.web.RequestBuilderService;
 import uk.nhs.adaptors.gpc.consumer.web.WebClientFilterService;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.GET_STRUCTURED_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.MIGRATE_DOCUMENT_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.MIGRATE_STRUCTURED_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.RETRIEVE_DOCUMENT_INTERACTION;
+import static uk.nhs.adaptors.gpc.consumer.TestConstants.SEARCH_FOR_DOCUMENT_INTERACTION;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -80,63 +87,26 @@ class SdsRequestBuilderTest {
         assertNotNull(result);
     }
 
-    @Test
-    void When_Called_Expect_BuildGetStructuredRecordAsDeviceRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildGetStructuredRecordAsDeviceRequest(ODS_CODE, CORRELATION_ID));
+    public static String[] getInteractionUrns() {
+        return new String[] {
+            GET_STRUCTURED_INTERACTION,
+            PATIENT_SEARCH_ACCESS_DOCUMENT_INTERACTION,
+            SEARCH_FOR_DOCUMENT_INTERACTION,
+            RETRIEVE_DOCUMENT_INTERACTION,
+            MIGRATE_DOCUMENT_INTERACTION,
+            MIGRATE_STRUCTURED_INTERACTION
+        };
     }
 
-    @Test
-    void When_Called_Expect_BuildGetStructuredRecordEndpointRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildGetStructuredRecordEndpointRequest(ODS_CODE, CORRELATION_ID));
+    @ParameterizedTest
+    @MethodSource("getInteractionUrns")
+    void When_Called_Expect_BuildGetStructuredRecordAsDeviceRequestReturnsRequest(String interactionUrn) {
+        assertNotNull(sdsRequestBuilder.buildDeviceRequest(ODS_CODE, CORRELATION_ID, interactionUrn));
     }
 
-    @Test
-    void When_Called_Expect_BuildMigrateStructuredRecordAsDeviceRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildMigrateStructuredRecordAsDeviceRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildMigrateStructuredRecordEndpointRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildMigrateStructuredRecordEndpointRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildPatientSearchAccessDocumentAsDeviceRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildPatientSearchAccessDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildPatientSearchAccessDocumentEndpointRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildPatientSearchAccessDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildSearchForDocumentAsDeviceRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildSearchForDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildSearchForDocumentEndpointRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildSearchForDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildRetrieveDocumentAsDeviceRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildRetrieveDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildRetrieveDocumentEndpointRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildRetrieveDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildMigrateDocumentAsDeviceRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildMigrateDocumentAsDeviceRequest(ODS_CODE, CORRELATION_ID));
-    }
-
-    @Test
-    void When_Called_Expect_BuildMigrateDocumentEndpointRequestReturnsRequest() {
-        assertNotNull(sdsRequestBuilder.buildMigrateDocumentEndpointRequest(ODS_CODE, CORRELATION_ID));
+    @ParameterizedTest
+    @MethodSource("getInteractionUrns")
+    void When_Called_Expect_BuildGetStructuredRecordEndpointRequestReturnsRequest(String interactionUrn) {
+        assertNotNull(sdsRequestBuilder.buildEndpointRequest(ODS_CODE, CORRELATION_ID, interactionUrn));
     }
 }
